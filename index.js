@@ -1,7 +1,4 @@
-const express = require('express');
 const {app, BrowserWindow} = require('electron');
-
-var pos = express();
 
 function createWindow(){
     let win = new BrowserWindow({
@@ -16,16 +13,3 @@ function createWindow(){
 }
 
 app.whenReady().then(createWindow);
-
-
-/*app.get('/', function (req, res) {
-    res.send('Hello world!');
-});
-
-app.get('/test', function (req, res) {
-    res.send('Pagina test');
-});
-
-app.listen(3000, function() {
-    console.log('Este es un ejemplo xd')
-});*/
