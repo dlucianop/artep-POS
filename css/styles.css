@@ -1,4 +1,5 @@
 body {
+    font-family: system-ui;
     margin: 0;
     padding: 0;
     justify-content: center;
@@ -41,10 +42,6 @@ header {
     font-size: xx-large;
 }
 
-.date {
-    font-size: medium;
-}
-
 footer {
     text-align: center;
     padding: 1rem;
@@ -67,7 +64,7 @@ footer {
     gap: 1rem;
 }
 
-button {
+.btnNav {
     background-color: #e7d2c4;
     color: #300907;
     border: solid #300907;
@@ -76,10 +73,15 @@ button {
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.6s ease;
+    text-decoration: none;
 }
 
-button:hover {
+.btnNav:hover {
     background-color: #300907;
     color: #c3a3a4;
     border: solid #c3a3a4;
+}
+
+main {
+    padding: 2rem;
 }
