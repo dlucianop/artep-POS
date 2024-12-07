@@ -32,10 +32,10 @@
         </nav>
         <section class="content">
             <div class="actions">
-                <div class="search-form">
+                <div>
                     <input type="text" id="searchProduct" placeholder="Buscar producto por nombre o código..." onkeyup="searchProduct()">
                 </div>
-                <div class="btnAction">
+                <div>
                     <button id="btnCreateProd" onclick="modalAdd()">Agregar Producto</button>
                 </div>
             </div>
@@ -44,21 +44,46 @@
             <table id="inventoryTable">
                 <thead>
                     <tr>
-                        <th rowspan="2">Código de Producto</th>
+                        <th rowspan="2" id="codeProd">Código de Producto</th>
                         <th colspan="5">Nombre del Producto</th>
-                        <th rowspan="2">Cantidad en Stock</th>
-                        <th rowspan="2">Acciones</th>
+                        <th rowspan="2" id="stockProd">Cantidad en Stock</th>
+                        <th rowspan="2" id="actionsProd">Acciones</th>
                     </tr>
                     <tr>
                         <th>Categoria</th>
                         <th>Modelo</th>
-                        <th>Tamaño</th>
+                        <th id="sizeProd">Tamaño</th>
                         <th>Decorado</th>
                         <th>Color</th>
                     </tr>
                 </thead>
                 <tbody>
-
+                    <tr>
+                        <td>123456789</td>
+                        <td>Vaso</td>
+                        <td>Navideño</td>
+                        <td>XG</td>
+                        <td>A mano</td>
+                        <td>Vermellon</td>
+                        <td>50</td>
+                        <td class="btnAction">
+                          <button onclick="editProduct(1234)" id="btnUpdate">Modificar</button>
+                          <button onclick="deleteProduct(1234)" id="btnDelete">Eliminar</button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>123456789</td>
+                        <td>Vaso</td>
+                        <td>Navideño</td>
+                        <td>XG</td>
+                        <td>A mano</td>
+                        <td>Vermellon</td>
+                        <td>50</td>
+                        <td class="btnAction">
+                          <button onclick="editProduct(1234)" id="btnUpdate">Modificar</button>
+                          <button onclick="deleteProduct(1234)" id="btnDelete">Eliminar</button>
+                        </td>
+                      </tr>
                 </tbody>
             </table>
         </section>
