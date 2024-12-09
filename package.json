@@ -9,6 +9,7 @@
   "author": "dlucianop31",
   "license": "ISC",
   "description": "",
+  "type": "commonjs",
   "dependencies": {
     "express": "^4.21.2",
     "sqlite3": "^5.1.7"
