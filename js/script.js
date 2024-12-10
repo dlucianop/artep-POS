@@ -36,3 +36,28 @@ readProducts((err, data) => {
         fillTable(data);
     }
 });
+
+///************************** AGREGAR PRODUCTO */
+
+
+//*************************** BUSCAR PRODUCTO */
+
+function searchProduct() {
+    const table = document.getElementById('inventoryTable');
+    const input = document.getElementById('searchProduct').value.toUpperCase();
+    const rows = table.querySelectorAll('tbody tr');
+
+    rows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        let found = false;
+
+        for (let i = 0; i < cells.length - 2; i++) {
+            if (cells[i] && cells[i].textContent.toUpperCase().includes(input)) {
+                found = true;
+                break;
+            }
+        }
+
+        row.style.display = found ? '' : 'none';
+    });
+}
