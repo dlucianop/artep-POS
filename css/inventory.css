@@ -110,3 +110,80 @@ td{
     color: #B03A2E;
     border: solid #B03A2E;
 }
+
+/*MODAL*/
+/* Filas del formulario */
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-bottom: 15px;
+}
+
+.form-row .full-width {
+    grid-column: span 3;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+}
+
+select, .form-input{
+    width: 95%;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+#codProd{
+    width: 90%;
+}
+
+.precio-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 35px;
+}
+
+.moneda {
+    font-weight: bold;
+    font-size: large;
+}
+
+.mandatory-note{
+    font-weight: bold;
+    font-size: small;
+    float: right;
+}
+
+#sendProd {
+    padding: 8px 15px;
+    background-color: whitesmoke;
+    color: #a67b5b; 
+    border: 2px solid #c4a484;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+  
+#sendProd:hover {
+    background-color: #a67b5b; 
+    border-color: #8c6450; 
+    color: whitesmoke;
+}
+  
+#sendProd:active {
+    background-color: #8c6450;
+}  

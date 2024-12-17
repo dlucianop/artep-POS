@@ -61,69 +61,80 @@
                 </tbody>
             </table>
         </section>
-        <section class="modal">
+        <section class="modal" id="modal">
             <form action="" class="formProduct" id="formProduct">
                 <div class="modal-header">
+                    <span class="close" id="close-modal">&times;</span>
                     <h1>AGREGAR PRODUCTO</h1>
-                    <span class="close">&times;</span>
                 </div>
                 <div class="fieldsProd">
-                    <label for="">Codigo**</label>
-                    <input type="number" id="codeProd" required class="form-input" placeholder="000000000000">
-
-                    <label for="">Categoria**</label>
-                    <select name="category" id="categoryProd">
-                        <option value="" disabled selected>-- Elige una categoria --</option>
-                        <option value="1">Vaso</option>
-                        <option value="2">Taza</option>
-                        <option value="3">Plato</option>
-                        <option value="4">Jarrón</option>
-                        <option value="5">Termo</option>
-                        <option value="6">Maceta</option>
-                        <option value="7">Cuenco</option>
-                        <option value="8">Decoración de pared</option>
-                        <option value="9">Escultura</option>
-                        <option value="10">Figuras</option>
-                        <option value="11">Lámpara</option>
-                        <option value="12">Florero</option>
-                        <option value="13">Tetera</option>
-                        <option value="14">Vasija</option>
-                        <option value="15">Ladrillo decorativo</option>
-                        <option value="16">Azulejos</option>
-                        <option value="17">Plato de sobremesa</option>
-                        <option value="18">Tazón</option>
-                        <option value="19">Salero y/o pimentero</option>
-                        <option value="20">Candelabro</option>
-                    </select>
-
-                    <label for="">Modelo**</label>
-                    <input type="text" id="modelProd" required class="form-input" placeholder="Ingrese un Modelo...">
-
-                    <label for="">Tamaño**</label>
-                    <select name="size" id="sizeProd" required class="form-input">
-                        <option value="" disabled selected>-- Elige un tamaño --</option>
-                        <option value="1">MINI (XS)</option>
-                        <option value="2">PEQUEÑO (S)</option>
-                        <option value="3">MEDIANO (M)</option>
-                        <option value="4">GRANDE (L)</option>
-                        <option value="5">EXTRA GRANDE (XL)</option>
-                        <option value="6">MUY EXTRA GRANDE(2XL)</option>
-                        <option value="7">COMPACTO (COMP)</option>
-                        <option value="8">ESTANDAR (STD)</option>
-                        <option value="9">AMPLIO (AMP)</option>
-                    </select>
-
-                    <label for="">Decoración**</label>
-                    <input type="text" id="decorationProd" required class="form-input" placeholder="Ingrese la Decoración...">
-
-                    <label for="">Color**</label>
-                    <input type="text" id="colorProd" required class="form-input" placeholder="Ingrese el Color...">
-
-                    <label for="" class="mandatory-note">**Los campos marcados son obligatorios</label>
-                    <div class="button-container">
-                        <button type="button" onclick="" id="btnSaveProd">Guardar Producto</button>
-                        <button type="button" onclick="" id="btnClearProd">Limpiar Formulario</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="">Codigo**</label>
+                            <input type="number" id="codProd" required class="form-input" placeholder="000000000000">
+                        </div>
+                        <div class="form-group">
+                            <label for="">Categoria**</label>
+                            <select name="category" id="categoryProd">
+                                <option value="" disabled selected>-- Elige una categoria --</option>
+                                <option value="1">Vaso</option>
+                                <option value="2">Taza</option>
+                                <option value="3">Plato</option>
+                                <option value="4">Jarrón</option>
+                                <option value="5">Termo</option>
+                                <option value="6">Maceta</option>
+                                <option value="7">Cuenco</option>
+                                <option value="8">Decoración de pared</option>
+                                <option value="9">Escultura</option>
+                                <option value="10">Figuras</option>
+                                <option value="11">Lámpara</option>
+                                <option value="12">Florero</option>
+                                <option value="13">Tetera</option>
+                                <option value="14">Vasija</option>
+                                <option value="15">Ladrillo decorativo</option>
+                                <option value="16">Azulejos</option>
+                                <option value="17">Plato de sobremesa</option>
+                                <option value="18">Tazón</option>
+                                <option value="19">Salero y/o pimentero</option>
+                                <option value="20">Candelabro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="">Tamaño**</label>
+                            <select name="size" id="sizeProd" required class="form-input">
+                                <option value="" disabled selected>-- Elige un tamaño --</option>
+                                <option value="1">MINI (XS)</option>
+                                <option value="2">PEQUEÑO (S)</option>
+                                <option value="3">MEDIANO (M)</option>
+                                <option value="4">GRANDE (L)</option>
+                                <option value="5">EXTRA GRANDE (XL)</option>
+                                <option value="6">MUY EXTRA GRANDE (2XL)</option>
+                                <option value="7">COMPACTO (COMP)</option>
+                                <option value="8">ESTANDAR (STD)</option>
+                                <option value="9">AMPLIO (AMP)</option>
+                            </select>
+                        </div>
                     </div>
+                    <div class="form-row full-width form-group">
+                        <label for="">Modelo**</label>
+                        <input type="text" id="modelProd" required class="form-input" placeholder="Ingrese un Modelo...">
+                    </div>
+                    <div class="form-row full-width form-group">
+                        <label for="">Decoración**</label>
+                        <input type="text" id="decorationProd" required class="form-input" placeholder="Ingrese la Decoración...">
+                    </div>
+                    <div class="form-row full-width form-group">
+                        <label for="">Color**</label>
+                        <input type="text" id="colorProd" required class="form-input" placeholder="Ingrese el Color...">
+                    </div> 
+                    <div class="precio-input">
+                        <label for="">Precio Unitario</label>
+                        <span class="moneda">$</span>
+                        <input type="number" id="priceProd" class="form-input" placeholder="Ingrese un precio....">
+                        <span class="moneda">MXN</span>
+                    </div>
+                    <label for="" class="mandatory-note">**Los campos marcados son obligatorios</label>
+                    <button id="sendProd" type="submit">Guardar Producto</button>
                 </div>
             </form>
         </section>
@@ -135,7 +146,8 @@
             </a>
         </p>
     </footer>
-    <script src="../js/hour-date.js"></script>
     <script src="../js/script.js"></script>
+    <script src="../js/hour-date.js"></script>
+    <script src="../js/modal.js"></script>
 </body>
 </html>
