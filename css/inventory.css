@@ -55,6 +55,7 @@ th{
 }
 
 td{
+    height: 70px;
     background-color: whitesmoke;
     color: #841309;
     padding: 10px;
@@ -131,10 +132,10 @@ td{
 }
 
 .full-width{
-    max-width: 150px; /* Ajusta el ancho máximo según sea necesario */
-    overflow: hidden; /* Oculta el texto que se desborda */
-    text-overflow: ellipsis; /* Muestra "..." cuando el texto se desborda */
-    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
+    max-width: 150px; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .form-group {

@@ -6,13 +6,13 @@ function createProduct(product, callback) {
     const db = openDataBase();
     
     const query = `
-        INSERT INTO productos (code, category, model, size, decoration, color)
-        VALUES (?, ?, ?, ?, ?, ?);
+        INSERT INTO productos (code, category, model, size, decoration, color, price)
+        VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
 
-    db.run(query, [product.code, product.category, product.model, product.size, product.decoration, product.color], function(err) {
+    db.run(query, [product.code, product.category, product.model, product.size, product.decoration, product.color, product.price], function(err) {
         if (err) {
-            console.error('ERROR al insertar el producto:', err.message);
+            alert('ERROR al insertar el producto:', err.message);
             closeDatabase(db);
             callback(err, null);
             return;

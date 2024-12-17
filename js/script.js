@@ -18,6 +18,7 @@ function fillTable(products) {
             <td class="full-width">${product.decoration || 'N/A'}</td>
             <td class="full-width">${product.color || 'N/A'}</td>
             <td style="background-color: ${product.num_products === 0 ? '#B03A2E' : '#6B8E23'};" class="prodStock">${product.num_products || 0}</td>
+            <td>${product.price || 0}</td>
             <td class="btnAction">
                 <button onclick="editProduct(${product.code})" id="btnUpdate">Modificar</button>
                 <button onclick="deleteProduct(${product.code})" id="btnDelete">Eliminar</button>
@@ -42,6 +43,7 @@ document.getElementById('formProduct').addEventListener('submit', (event) => {
         size: document.getElementById('sProd').value,
         decoration: document.getElementById('decorationProd').value,
         color: document.getElementById('colorProd').value,
+        price: document.getElementById('priceProd').value,
     };
 
     //console.log(newProduct)
