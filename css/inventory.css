@@ -73,6 +73,8 @@ td{
     width: 240px;
 }
 
+
+
 /*----------------------------BOTONES DE ACCION----------------------------------*/
 .btnAction{
     display: flex;
@@ -126,6 +128,13 @@ td{
 
 .form-row .full-width {
     grid-column: span 3;
+}
+
+.full-width{
+    max-width: 150px; /* Ajusta el ancho máximo según sea necesario */
+    overflow: hidden; /* Oculta el texto que se desborda */
+    text-overflow: ellipsis; /* Muestra "..." cuando el texto se desborda */
+    white-space: nowrap; /* Evita que el texto se divida en varias líneas */
 }
 
 .form-group {
@@ -187,3 +196,7 @@ select, .form-input{
 #sendProd:active {
     background-color: #8c6450;
 }  
+
+.prodStock {
+    color: whitesmoke;
+}
