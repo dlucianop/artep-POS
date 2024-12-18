@@ -84,11 +84,23 @@ function searchProduct() {
     const input = document.getElementById('searchProduct').value.toUpperCase();
     const rows = table.querySelectorAll('tbody tr');
 
+    /*const sizeMap = {
+        "XS": "MINI",
+        "S": "PEQUEÑO",
+        "M": "MEDIANO",
+        "L": "GRANDE",
+        "XL": "EXTRA GRANDE",
+        "2XL": "DOBLE EXTRA GRANDE",
+        "COMP": "COMPACTO",
+        "STD": "ESTANDAR",
+        "AMP": "AMPLIO"
+    };*/
+
     rows.forEach(row => {
         const cells = row.getElementsByTagName('td');
         let found = false;
 
-        for (let i = 0; i < cells.length - 2; i++) {
+        for (let i = 0; i < cells.length - 3; i++) {
             if (cells[i] && cells[i].textContent.toUpperCase().includes(input)) {
                 found = true;
                 break;
