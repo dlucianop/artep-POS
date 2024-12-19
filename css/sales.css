@@ -1,0 +1,64 @@
+.venta-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    max-width: 80%;
+    margin: 0 auto;
+}
+
+.venta-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.venta-info {
+    border-color: black;
+    line-height: 1.6;
+}
+
+.venta-info p {
+    margin: 5px 0;
+}
+
+.venta-estado {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.estado-tag {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.entregado {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.pendiente {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.botones-estado button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.botones-estado button:hover {
+    background-color: #0056b3;
+}
