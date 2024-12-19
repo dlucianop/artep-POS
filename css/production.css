@@ -1,0 +1,86 @@
+.busqueda {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    margin-top: 30px;
+}
+  
+.busqueda input {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+  
+.busqueda button {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+  
+.busqueda button:hover {
+    background-color: #45a049;
+}
+  
+
+.tabla-produccion {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+  
+.columna {
+    flex: 1;
+    background-color: #fff;
+    margin: 0 10px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+  
+.columna h3 {
+    text-align: center;
+    background-color: #ddd;
+    padding: 10px;
+    margin: -15px -15px 15px -15px;
+    border-bottom: 2px solid #ccc;
+}
+  
+.pieza {
+    background-color: #f3f3f3;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+  
+.pieza p {
+    margin: 5px 0;
+}
+  
+.pieza button {
+    margin: 5px 5px 0 0;
+    padding: 5px;
+    border: none;
+    background-color: #ff7043;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+  
+.pieza button:hover {
+    background-color: #f4511e;
+}
+  
+.resumen {
+    text-align: center;
+    margin-top: 20px;
+}
+  
+.resumen h2 {
+    color: whitesmoke;
+}
+  

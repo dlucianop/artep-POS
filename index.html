@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Producción - Cerámica Artep</title>
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/production.css">
     <link rel="icon" href="images/icono.jpeg" type="image/jpeg">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self';">
 </head>
 <body>
     <header>
@@ -30,6 +30,59 @@
             <a href="html/sales.html" class="btnNav">Historial de Ventas</a>
             <a href="html/configuration.html" class="btnNav">Configuración</a>
         </nav>
+        <section>
+            <div class="busqueda">
+                <label for="buscar">Buscar pieza:</label>
+                <input type="text" id="buscar" placeholder="Ingrese nombre, tipo, etc.">
+                <button>Buscar</button>
+            </div>
+
+            <div class="tabla-produccion">
+                <div class="columna">
+                <h3>Crudo</h3>
+                <div class="pieza">
+                    <p>Vaso Confirmacion [M] con Palomas (Blanco) </p>
+                    <p>Cantidad: <span>3</span></p>
+                    <button>✏️</button>
+                    <button>🗑️</button>
+                </div>
+                <div class="pieza">
+                    <p>Jarron Dia de Muertos [L] con flores de colores y velas (Negro, Azul Claro, Rojo, Amarillo y Morado)</p>
+                    <p>Cantidad: <span>5</span></p>
+                    <button>✏️</button>
+                    <button>🗑️</button>
+                </div>
+                </div>
+
+                <div class="columna">
+                <h3>Proceso</h3>
+                <div class="pieza">
+                    <p>Taza Navidad [XS] Nieve en la parte de abajo y una noche estrellada (Blanco, azul, negro)</p>
+                    <p>Cantidad: <span>7</span></p>
+                    <button>✏️</button>
+                    <button>🗑️</button>
+                </div>
+                </div>
+
+                <div class="columna">
+                <h3>Terminado</h3>
+                <div class="pieza" style="display: flex;">
+                    <div>
+                        <p>Taza Navidad [XS] Nieve en la parte de abajo y una noche estrellada (Blanco, azul, negro)</p>
+                        <button>✏️</button>
+                        <button>🗑️</button>
+                    </div>
+                    <div style="width: 30%; font-size: 300%; display: flex;align-items: center; justify-content: center; font-weight: bolder;">
+                        <p>10</p>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div class="resumen">
+                <h2>Total de Piezas: <span>25</span></h2>
+            </div>
+        </section>
     </main>
     <footer>
         <p>
