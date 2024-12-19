@@ -96,6 +96,7 @@ function searchProduct() {
         "AMP": "AMPLIO"
     };*/
 
+    let anyFound = false
     rows.forEach(row => {
         const cells = row.getElementsByTagName('td');
         let found = false;
@@ -108,5 +109,13 @@ function searchProduct() {
         }
 
         row.style.display = found ? '' : 'none';
+        if (found) anyFound = true
     });
+
+    const noResultsImage = document.getElementById('response');
+    if (anyFound) {
+        noResultsImage.style.display = 'none';
+    } else {
+        noResultsImage.style.display = 'block flex';
+    }
 }

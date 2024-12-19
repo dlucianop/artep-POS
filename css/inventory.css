@@ -201,3 +201,20 @@ select, .form-input{
 .prodStock {
     color: whitesmoke;
 }
+
+/*RESPOSEE*/
+
+.response{
+    display: none; 
+    align-items: center; 
+    justify-content: center;
+    flex-direction: column;
+}
+
+#no-image{
+    display: block; 
+    margin-top: 
+    20px; height: 
+    200px; 
+    width: 200px;
+}
