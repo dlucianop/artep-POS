@@ -1,6 +1,6 @@
 # Artep POS - Sistema de Punto de Venta
 
-**Versión:** 1.0.0  
+**Versión:** 2.0.0  
 **Autor:** dlucianop31  
 **Licencia:** ISC  
 
@@ -40,7 +40,6 @@ El sistema está construido con las siguientes tecnologías:
 
 - **Electron** (v33.2.1): Para convertir la aplicación web en una aplicación de escritorio.  
 - **Node.js**: Backend principal para lógica de la aplicación.  
-- **Express** (v4.21.2): Para manejar las rutas y funcionalidades del servidor local.  
 - **SQLite3** (v5.1.7): Base de datos local y ligera para almacenar los datos.  
 - **HTML, CSS y JavaScript**: Desarrollo de la interfaz de usuario.  
 
