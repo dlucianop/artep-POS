@@ -1,89 +1,203 @@
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
-}
-  
-.cliente, .detalle {
-    flex: 1;
-    min-width: 250px;
-    background-color: #fff;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-  
-.cliente input, .detalle input {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-  
-.productos {
-    flex: 2;
-    min-width: 300px;
-    background-color: #fff;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-  
-.carrito {
-    margin-top: 15px;
-    width: 100%;
+/****************** INFORMACION DE LA VENTA *****************************/
+#info-client{
+    padding: 10px;
+    padding-bottom: 20px;
     text-align: center;
+    background: white
 }
 
-th, td{
-    border: solid black;
+#btnCollapse{
+    width: 60px;
+    height: 60px;
 }
 
-.producto {
+#btnCollapse:hover{
+    cursor: pointer;
+}
+
+#form-info-client {
+    display: none;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 80px;
+    width: 80%;
+    margin: 0 auto;
+    transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+#form-info-client.visible {
+    display: grid;
+    opacity: 1;
+    transform: scale(1);
+}
+
+.form-group{
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
 }
-  
-button {
-    margin-left: 5px;
-    padding: 5px 10px;
-    border: none;
-    background-color: whitesmoke;
-    color: #ff7043;
-    border-radius: 3px;
-    cursor: pointer;
-}
-  
-button:hover {
-    background-color: #f4511e;
-}
-  
 
-.total {
-    flex: 1;
-    text-align: center;
-    background-color: #fff;
-    padding: 15px;
-    border: 1px solid #ccc;
+#form-info-client label {
+    grid-column: span 1;
+    align-self: center;
+    font-size: large;
+}
+
+/*#form-info-client input, .product-car > td input {
+    padding: 5px;
     border-radius: 5px;
+}*/
+
+#info-sale > input{
+    height: 40px;
+    width: 75%;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: large;
 }
-  
-.total h2 {
-    color: green;
-  }
-  
-#imprimir {
-    margin-top: 10px;
-    background-color: #ffa000;
-}
-  
-.actionsPOS{
+
+/************************************ DETALLES DE LA VENTA **************************/
+#client-collapse{
     display: flex;
+    gap: 5%;
+    justify-content: center;
+}
+
+#info-sale{
+    padding: 20px;
+    text-align: center;
+    background: #c98b6e;
+}
+
+#products-details{
+    /*background: green;*/
+    display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    text-decoration: solid;
+}
+
+/********************************** TABLA DE PRODUCTOS EN VENTAs ************************************/
+#info-products{
+    margin-top: 20px;
+    width: 100%;
+    height: auto;
+    justify-content: center;
+}
+
+#table-products{
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#table-products > thead tr th{
+    background-color: #300907;
+    color: white;
+    border: 1px solid white;
+}
+
+#table-products > tbody tr td{
+    width: 0;
+    background-color: whitesmoke;
+    color: #300907;
+    border: 1px solid #300907;
+}
+
+#table-products td:nth-child(2) {
+    padding: 10px 0;
+    width: 450px;
+}
+
+#table-products td:nth-child(3), #table-products td:nth-child(5) {
+    width: 100px;
+}
+
+#table-products td:nth-child(4) {
+    width: 200px;
+}
+
+/*#table-products th[colspan="4"] {
+}*/
+
+.btnActions{
+    font-size: x-large;
+    padding: 0px 10px;
+}
+
+.product-car > td input{
+    width: 120px;
+}
+
+/********************************* TOTAL PAGO *****************************************/
+.info-total{
+    width: 95%;
+    height: auto;
+    text-align: left;
+    margin: 0px 20px;
+    justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+}
+
+.pay-form-field{
+    justify-content: right;
+    display: flex;
+    flex-direction: row;
+    margin: 10px 30px;
+    align-items: center;
+}
+
+#label-total{
+    font-weight: bolder;
+}
+
+.pay-form-data{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 70%;
+}
+
+.pay-form-data > input{
+    height: 40px;
+    font-size: x-large;
+    border-radius: 5px;
+    width: 75%;
+    background: white;
+}
+
+.p-method{
+    margin: 0;
+    width: 100%;
+    justify-content: space-between;
+}
+.p-form, .p-btn{
+    margin: 30px 0;
+    width: 100%;
+    justify-content: space-between;
+}
+
+#pay-form-method{
+    margin: 20px;
+    gap: 20px;
+}
+#payment-form, #payment-method{
+    height: 40px;
+    width: 60%;
+    border-radius: 5px;
+    margin: 10px 30px;
+}
+
+#btnImpresion{
+    font-size: xx-large;
+    text-align: center;
+    align-items: center;
+}
+
+#btnImpresion > a{
+    color: white;
+    text-decoration: none;
+    background: #6B8E23;
+    padding: 20px;
+    border-radius: 5px;
 }

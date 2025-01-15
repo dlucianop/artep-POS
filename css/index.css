@@ -1,0 +1,153 @@
+*{
+    font-family: "Roboto Mono", serif;
+}
+
+body {
+    padding: 0;
+    margin: 0;
+}
+
+header{
+    position: relative;
+    background: #300907;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    overflow: hidden;
+    height: 15vh;
+}
+
+.menu-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    align-items: center;
+    height: 90px;
+    width: 100px;
+    margin: 0 30px;
+}
+
+.bar {
+    height: 10px;
+    background-color: red;
+    width: 80%;
+    margin: 12px 0;
+    transition: all 0.3s ease;
+}
+
+.open .bar:nth-child(1) {
+    width: 50%;
+    margin-left: 50px;
+    transform: rotate(45deg) translateY(42.5px);
+    transition: transform 0.3s ease; 
+}
+
+.open .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.open .bar:nth-child(3) {
+    width: 50%;
+    margin-left: 50px;
+    transform: rotate(-45deg) translateY(-42.5px); 
+    transition: transform 0.3s ease;
+}
+
+.notification-icon > img, .logo-header > img{
+    margin: 10px 30px;
+}
+
+.logo-header > img{
+    width: 100px;
+    height: auto;
+    border-radius: 50%;
+}
+
+.notification-icon > img{
+    width: 60px;
+    height: auto;
+}
+
+/*-----------Para las notificaciones*/
+
+.no-active{
+    display: block;
+}
+
+.active{
+    display: none;
+}
+
+/*----------------NAVIGATION-------------------*/
+.sidebar {
+    margin: 0;
+    padding: 0;
+    width: 220px;
+    background-color: #602112;
+    color: #ecf0f1;
+    height: 100vh;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+    position: fixed;
+    overflow-y: auto;
+    padding-bottom: 20px; 
+}
+
+.sidebar > ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.btnMenu, .selected-page{
+    padding: 5px 0px;
+    display: flex;
+    align-items: center;
+    border: solid transparent;
+    border-bottom: solid white;
+    transition: background 0.4s ease-in-out;
+}
+
+.menu-img{
+    width: 40px;
+    height: auto;
+    margin: 5px;
+}
+
+.txtMenu{
+    font-size: smaller;
+    color: white;
+    text-decoration: none;
+    width: 100%;
+    text-align: center;
+}
+
+.btnMenu:hover{
+    background: #865c52;
+    cursor: pointer;
+    border-top: solid white;
+}
+
+.selected-page{
+    background: #865c52;
+    border-top: solid white;
+}
+
+.selected-page > a{
+    pointer-events: none;
+}
+
+.content-container {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    height: 100vh; 
+    background: #c98b6e;
+}
+
+input, select{
+    text-align: center;
+    vertical-align: middle;
+    font-size: medium;
+    width: 100%;
+}

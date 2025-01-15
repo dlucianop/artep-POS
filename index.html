@@ -2,95 +2,220 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Producción - Cerámica Artep</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/production.css">
-    <link rel="icon" href="images/icono.jpeg" type="image/jpeg">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Artep | Punto de Venta</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/pos.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <div>
-            <a href="">
-                <img src="images/logo-artep.jpeg" alt="" class="logo">
-            </a>
+    <!--header>
+        <div class="menu-icon" onclick="toggleMenu()">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
         </div>
-        <div class="window">
-            <h1>P R O D U C C I O N</h1>
+        <div class="logo-header">
+            <img src="img/logo-artep.jpeg" alt="">
         </div>
-        <div class="hour-date">
-            <div class="hour" id="hour"></div>
-            <div class="date" id="date"></div>
+        <div class="notification-icon">
+            <img src="img/bell.png" alt="" class="no-active">
+            <img src="img/notification.png" alt="" class="active">
         </div>
-    </header>
-    <main>
-        <nav class="navigation">
-            <a href="html/inventory.html" class="btnNav">Inventario</a>
-            <a href="html/pos.html" class="btnNav">Punto de Venta</a>
-            <a href="html/sales.html" class="btnNav">Historial de Ventas</a>
-            <a href="html/configuration.html" class="btnNav">Configuración</a>
-        </nav>
-        <section>
-            <div class="busqueda">
-                <label for="buscar">Buscar pieza:</label>
-                <input type="text" id="buscar" placeholder="Ingrese nombre, tipo, etc.">
-                <button>Buscar</button>
+    </header-->
+    <nav class="sidebar">
+        <ul>
+            <li class="selected-page">
+                <img src="img/point-of-sale.png" alt="" class="menu-img active">
+                <img src="img/point-of-sale1.png" alt="" class="menu-img no-active">
+                <a href="" class="txtMenu">Punto de venta</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/fire.png" alt="" class="menu-img no-active">
+                <img src="img/fire1.png" alt="" class="menu-img active">
+                <a onclick="showSection('inventario-piezas')" class="txtMenu">Inventario de Piezas</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/vase.png" alt="" class="menu-img no-active">
+                <img src="img/vase1.png" alt="" class="menu-img active">
+                <a href="#productos" class="txtMenu">Inventario de Productos</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/production-line.png" alt="" class="menu-img no-active">
+                <img src="img/production-line1.png" alt="" class="menu-img active">
+                <a href="#produccion" class="txtMenu">Panel de Produccion</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/history.png" alt="" class="menu-img no-active">
+                <img src="img/history1.png" alt="" class="menu-img active">
+                <a href="#ventas" class="txtMenu">Historial de Ventas</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/dashboard.png" alt="" class="menu-img no-active">
+                <img src="img/dashboard1.png" alt="" class="menu-img active">
+                <a href="#dashboard" class="txtMenu">Dashboard</a>
+            </li>
+            <li class="btnMenu">
+                <img src="img/gear.png" alt="" class="menu-img no-active">
+                <img src="img/gear1.png" alt="" class="menu-img active">
+                <a href="#configuracion" class="txtMenu">Configuracion</a>
+            </li>
+            <li>
+                <img src="img/logo-artep.jpeg" alt="" style="width: 100%; border-radius: 50%; margin-top: 20px;">
+            </li>
+        </ul>
+    </nav>
+    <section class="content-container section" id="punto-de-venta">
+        <div class="info-client" id="info-client">
+            <div id="client-collapse" class="client-collapse">
+                <h3>Información del Cliente</h3>
+                <img src="img/down.png" alt="" id="btnCollapse">
             </div>
-
-            <div class="tabla-produccion">
-                <div class="columna">
-                <h3>Crudo</h3>
-                <div class="pieza">
-                    <p>Vaso Confirmacion [M] con Palomas (Blanco) </p>
-                    <p>Cantidad: <span>3</span></p>
-                    <button>✏️</button>
-                    <button>🗑️</button>
+            <form action="" id="form-info-client">
+                <div class="form-group">
+                    <label for="client-name">Nombre: </label>
+                    <input type="text" id="client-name" placeholder="Introducir nombre del cliente">
                 </div>
-                <div class="pieza">
-                    <p>Jarron Dia de Muertos [L] con flores de colores y velas (Negro, Azul Claro, Rojo, Amarillo y Morado)</p>
-                    <p>Cantidad: <span>5</span></p>
-                    <button>✏️</button>
-                    <button>🗑️</button>
+                <div class="form-group">
+                    <label for="client-phone">Teléfono: </label>
+                    <input type="text" id="client-phone" placeholder="Introducir teléfono del cliente">
                 </div>
+                <div class="form-group">
+                    <label for="client-mail">Correo: </label>
+                    <input type="text" id="client-mail" placeholder="Introducir correo del cliente">
                 </div>
-
-                <div class="columna">
-                <h3>Proceso</h3>
-                <div class="pieza">
-                    <p>Taza Navidad [XS] Nieve en la parte de abajo y una noche estrellada (Blanco, azul, negro)</p>
-                    <p>Cantidad: <span>7</span></p>
-                    <button>✏️</button>
-                    <button>🗑️</button>
+                <div class="form-group">
+                    <label for="client-direction">Dirección: </label>
+                    <input type="text" id="client-direction" placeholder="Introducir dirección del cliente">
                 </div>
+            </form>
+        </div>
+        <div class="info-sale" id="info-sale">
+            <input type="text" placeholder="+ Agregar producto" id="addProduct-input">
+            <div class="products-details" id="products-details">
+                <div class="info-products" id="info-products">
+                    <table id="table-products" class="table-products">
+                        <thead>
+                            <tr>
+                                <th>Codigo</th>
+                                <th>Descripcion</th>
+                                <th>Precio Unitario</th>
+                                <th>Cantidad</th>
+                                <th>Importe</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="product-car">
+                                <td>7412589630</td>
+                                <td>Decoracion de Pared Navidad [Mediano] Decoracion puntos Color azul</td>
+                                <td>$50.00</td>
+                                <td>
+                                    <div class="control-group">
+                                        <button class="decrement">-</button>
+                                        <input type="number" value="1" min="0">
+                                        <button class="increment">+</button>
+                                        <button class="delete">X</button>
+                                      </div>
+                                </td>
+                                <td>$50.00</td>
+                            </tr>
+                            <tr class="product-car">
+                                <td>9876543210</td>
+                                <td>Vaso Confirmacion [Grande] Decoracion con palomas Color Blanco</td>
+                                <td>$950.00</td>
+                                <td>
+                                    <div class="control-group">
+                                        <button class="decrement">-</button>
+                                        <input type="number" value="1" min="0">
+                                        <button class="increment">+</button>
+                                        <button class="delete">X</button>
+                                      </div>
+                                </td>
+                                <td>$950.00</td>
+                            </tr>
+                            <tr class="product-car">
+                                <td>1234567890</td>
+                                <td>Plato Navidad [Pequeño] Decoracion con nieve en la base y azul estrellado en bordes Color azul,blanco, negro, dorado</td>
+                                <td>$50.00</td>
+                                <td>
+                                    <div class="control-group">
+                                        <button class="decrement">-</button>
+                                        <input type="number" value="1" min="0">
+                                        <button class="increment">+</button>
+                                        <button class="delete">X</button>
+                                      </div>
+                                </td>
+                                <td>$50.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-
-                <div class="columna">
-                <h3>Terminado</h3>
-                <div class="pieza" style="display: flex;">
-                    <div>
-                        <p>Taza Navidad [XS] Nieve en la parte de abajo y una noche estrellada (Blanco, azul, negro)</p>
-                        <button>✏️</button>
-                        <button>🗑️</button>
-                    </div>
-                    <div style="width: 30%; font-size: 300%; display: flex;align-items: center; justify-content: center; font-weight: bolder;">
-                        <p>10</p>
-                    </div>
-                </div>
+                <div class="info-total">
+                    <form action="" id="pay-form-method">
+                        <div class="pay-form-field p-method">
+                            <label for="payment-method">Selecciona el método de pago: </label>
+                            <select id="payment-method">
+                                <option value="">----Seleccionar----</option>
+                                <option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia Bancaria</option>
+                                <option value="tarjeta">Tarjeta de Débito/Crédito</option>
+                            </select>
+                        </div>
+                        <div class="pay-form-field p-form">
+                            <label for="payment-form">Selecciona la forma de pago:  </label>
+                            <select id="payment-form">
+                                <option value="">----Seleccionar----</option>
+                                <option value="una-exhibicion">Pago en una sola exhibición</option>
+                                <option value="plazos">Pago a plazos</option>
+                            </select>
+                        </div>
+                        <div class="btnImpresion" id="btnImpresion">
+                            <a href="">Imprimir recibo</a>
+                        </div>
+                    </form>
+                    <form action="" id="total-pay-form">
+                        <div class="pay-form-field">
+                            <label for="monto-pagar" id="label-total">MONTO A PAGAR: </label>
+                            <div class="pay-form-data">
+                                <h1>$</h1>
+                                <input type="text" id="monto-pagar" disabled value="1000000.00">
+                                <h1>MXN</h1>
+                            </div>
+                        </div>
+                        <div class="pay-form-field">
+                            <label for="monto-recibido">Monto recibido: </label>
+                            <div class="pay-form-data">
+                                <h1>$</h1>
+                                <input type="text" id="monto-recibido">
+                                <h1>MXN</h1>
+                            </div>
+                        </div>
+                        <div class="pay-form-field">
+                            <label for="cambio">Cambio: </label>
+                            <div class="pay-form-data">
+                                <h1>$</h1>
+                                <input type="text" disabled id="cambio">
+                                <h1>MXN</h1>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
+        </div>
+    </section>
+    <section class="content-container section" id="inventario-piezas"></section>
+    <section class="content-container section" id="inventario-productos"></section>
+    <section class="content-container section" id="panel-produccion"></section>
+    <section class="content-container section" id="historial-ventas"></section>
+    <section class="content-container section" id="dashboard"></section>
+    <section class="content-container section" id="configuracion"></section>
 
-            <div class="resumen">
-                <h2>Total de Piezas: <span>25</span></h2>
-            </div>
-        </section>
-    </main>
-    <footer>
-        <p>
-            <a href="https://www.linkedin.com/in/dlucianop-299b2722b/" id="contactoDEV" target="_blank">
-                Creditos
-            </a>
-        </p>
-    </footer>
-    <script src="js/hour-date.js"></script>
+    <footer></footer>
+
+    <script src="js/collapse-Client.js"></script>
+    <script src="js/carrito-calculo.js"></script>
+    <script src="js/change-section.js"></script>
 </body>
 </html>
