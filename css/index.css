@@ -156,3 +156,34 @@ h1{
     padding: 0;
     margin: 0;
 }
+
+a{
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+/************************** PANTALLA DE CARGA *****************************/
+.loader-container{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loader {
+    margin-top: 20px;
+}
+  
+.loader img {
+    width: 200px;
+    animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+}
