@@ -13,68 +13,54 @@
     <nav class="sidebar">
         <ul>
             <li class="btnMenu">
-                <img src="../img/point-of-sale.png" alt="" class="menu-img no-active">
-                <img src="../img/point-of-sale1.png" alt="" class="menu-img active">
-                <a href="punto-de-venta.html" class="txtMenu">Punto de venta</a>
+                <a href="punto-de-venta.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/point-of-sale.png" alt="" class="menu-img no-active">Punto de venta
+                </a>
             </li>
             <li class="btnMenu">
-                <img src="../img/fire.png" alt="" class="menu-img no-active">
-                <img src="../img/fire1.png" alt="" class="menu-img active">
-                <a href="inv-piezas.html" class="txtMenu">Inventario de Piezas</a>
+                <a href="inv-piezas.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/fire.png" alt="" class="menu-img no-active">Inventario de Piezas
+                </a>
             </li>
             <li class="btnMenu">
-                <img src="../img/vase.png" alt="" class="menu-img no-active">
-                <img src="../img/vase1.png" alt="" class="menu-img active">
-                <a href="inv-productos.html" class="txtMenu">Inventario de Productos</a>
+                <a href="inv-productos.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/vase.png" alt="" class="menu-img no-active">Inventario de Productos
+                </a>
             </li>
             <li class="btnMenu">
-                <img src="../img/production-line.png" alt="" class="menu-img no-active">
-                <img src="../img/production-line1.png" alt="" class="menu-img active">
-                <a href="produccion.html" class="txtMenu">Panel de Producción</a>
+                <a href="produccion.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/production-line.png" alt="" class="menu-img no-active">Panel de Producción
+                </a>
             </li>
             <li class="btnMenu">
-                <img src="../img/history.png" alt="" class="menu-img no-active">
-                <img src="../img/history1.png" alt="" class="menu-img active">
-                <a href="ventas.html" class="txtMenu">Historial de Ventas</a>
+                <a href="ventas.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/history.png" alt="" class="menu-img no-active">Historial de Ventas
+                </a>
             </li>
             <li class="selected-page">
-                <img src="../img/dashboard.png" alt="" class="menu-img active">
-                <img src="../img/dashboard1.png" alt="" class="menu-img no-active">
-                <a class="txtMenu">Dashboard</a>
+                <a class="txtMenu">
+                    <img src="../img/dashboard1.png" alt="" class="menu-img no-active">Dashboard
+                </a>
             </li>
             <li class="btnMenu">
-                <img src="../img/gear.png" alt="" class="menu-img no-active">
-                <img src="../img/gear1.png" alt="" class="menu-img active">
-                <a href="configuracion.html" class="txtMenu">Configuración</a>
+                <a href="configuracion.html" class="txtMenu link" onclick="showLoader(this, event)">
+                    <img src="../img/gear.png" alt="" class="menu-img no-active">Configuración
+                </a>
             </li>
             <li>
-                <img src="../img/logo-artep.jpeg" alt="" style="width: 100%; border-radius: 50%; margin-top: 20px;">
+                <img src="../img/logo-artep.jpeg" alt="" class="logo-principal">
             </li>
         </ul>
     </nav>
-    <!--section class="content-container section" id="pos">
-        <h1>Punto de Venta</h1>
+    <section class="content-container loader-container" style="display: none;">
+        <div id="loader" class="loader">
+            <img src="../img/clay-crafting.png" alt="Cargando...">
+        </div>
     </section>
-    <section class="content-container section" id="piezas">
-        <h1>Inventario de Piezas</h1>
-    </section>
-    <section class="content-container section" id="productos">
-        <h1>Inventario de Productos</h1>
-    </section>
-    <section class="content-container section" id="produccion">
-        <h1>Panel de Produccion</h1>
-    </section>
-    <section class="content-container section" id="ventas">
-        <h1>Historial de Ventas</h1>
-    </section-->
     <section class="content-container section" id="dashboard">
         <h1>Dashboard</h1>
     </section>
-    <!--section class="content-container section" id="configuracion">
-        <h1>Configuracion</h1>
-    </section>
 
-    <footer></footer-->
-
+    <script src="../js/load-page.js"></script>
 </body>
 </html>
