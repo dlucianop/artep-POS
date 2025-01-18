@@ -10,7 +10,7 @@ function createWindow(){
         }
     });
 
-    win.loadFile("index.html");
+    win.loadFile("html/punto-de-venta.html");
 }
 
 app.whenReady().then(createWindow);
