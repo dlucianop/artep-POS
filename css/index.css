@@ -163,6 +163,12 @@ a{
     justify-content: space-evenly;
 }
 
+.logo-principal{
+    width: 100%; 
+    border-radius: 50%; 
+    margin-top: 20px;
+}
+
 /************************** PANTALLA DE CARGA *****************************/
 .loader-container{
     display: flex;
