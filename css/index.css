@@ -83,7 +83,7 @@ header{
 .sidebar {
     margin: 0;
     padding: 0;
-    width: 220px;
+    width: 160px;
     background-color: #602112;
     color: #ecf0f1;
     height: 100vh;
@@ -139,8 +139,7 @@ header{
 }
 
 .content-container {
-    margin-left: 250px;
-    width: calc(100% - 250px);
+    margin-left: 200px;
     height: 100vh; 
     background: #c98b6e;
 }
