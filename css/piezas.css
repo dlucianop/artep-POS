@@ -1,0 +1,64 @@
+.btnActions-container{
+    display: flex;
+    flex-direction: row;
+    height: 10vh;
+    align-items: center;
+    justify-content: center;
+}
+
+.btnAction{
+    height: 40px;
+    width: 200px;
+    border-radius: 5px;
+    margin: 10px 30px;
+    text-decoration: none;
+    font-size: x-large;
+    color: white;
+}
+
+#btnAdd{
+    background-color: #556B2F;
+}
+
+#btnModify{
+    background-color: #4682B4 ;
+}
+
+.table-container{
+    display: flex;
+    width: 100%;
+    height: auto;
+    justify-content: center;
+    align-items: center;
+}
+
+#table-pieces{
+    width: 90%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    text-align: center;
+}
+
+#table-pieces > thead tr th{
+    background-color: #300907;
+    color: white;
+    border: 1px solid white;
+    padding: 15px 0;
+}
+
+#table-pieces > tbody tr td{
+    height: 40px;
+    background-color: whitesmoke;
+    color: #300907;
+    border: 1px solid #300907;
+}
+
+
+#table-pieces td:nth-child(n+3):nth-child(-n+6) {
+    width: 170px;
+}
+/*
+
+
+
+*/
