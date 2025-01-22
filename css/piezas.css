@@ -1,60 +1,74 @@
-.btnActions-container{
-    padding-top: 20px;
+.filters{
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    align-items: center;
+    gap: 30px;
+}
+
+.filters> div{
     display: flex;
     flex-direction: row;
-    height: 10vh;
-    align-items: center;
-    justify-content: center;
+}
+
+.filters div > input, .filters div > select{
+    width: 70vh;
+    padding: 20px;
+    margin: 10px 20px;
+}
+
+.btnActions{
+    width: 80%;
+    justify-content: right;
 }
 
 .btnAction{
-    height: 40px;
-    width: 200px;
     border-radius: 5px;
     margin: 10px 30px;
-    text-decoration: none;
-    font-size: x-large;
+    font-size: medium;
+    padding: 10px 20px;
     color: white;
+    border-radius: 5px;
+    background-color: #2d9a8f; 
 }
 
-#btnAdd{
-    background-color: #556B2F;
+#btnAdd-Bizcocho:hover{
+    color: #2d9a8f;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.4s ease-in-out;
 }
 
-#btnModify{
-    background-color: #4682B4 ;
-}
-
-.table-container{
+/*------------------TABLA*******************************/
+#table-bizcochos-container{
     display: flex;
     width: 100%;
-    height: auto;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 }
 
-#table-pieces{
+#table-bizcochos{
     width: 90%;
     border-collapse: collapse;
-    margin: 20px 0;
+    margin-bottom: 20px;
     text-align: center;
 }
 
-#table-pieces > thead tr th{
+#table-bizcochos > tbody{
+    min-height: 100px;
+}
+
+#table-bizcochos > thead tr th{
+    padding: 10px 0;
     background-color: #300907;
     color: white;
     border: 1px solid white;
-    padding: 15px 0;
 }
 
-#table-pieces > tbody tr td{
-    height: 40px;
+#table-bizcochos > tbody tr td{
+    padding: 10px 0;
+    width: 0;
     background-color: whitesmoke;
     color: #300907;
     border: 1px solid #300907;
-}
-
-
-#table-pieces td:nth-child(n+3):nth-child(-n+6) {
-    width: 170px;
 }

@@ -148,8 +148,6 @@ header{
 input, select{
     text-align: center;
     vertical-align: middle;
-    font-size: medium;
-    width: 100%;
 }
 
 h1{

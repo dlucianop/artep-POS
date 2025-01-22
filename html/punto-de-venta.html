@@ -98,7 +98,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="product-car">
+                            <tr id="rowvoid">
+                                <td colspan="5" style="height: 35vh;"></td>
+                            </tr>
+                            <!--tr class="product-car">
                                 <td>7412589630</td>
                                 <td>Decoracion de Pared Navidad [Mediano] Decoracion puntos Color azul</td>
                                 <td>$50.00</td>
@@ -112,7 +115,7 @@
                                 </td>
                                 <td>$50.00</td>
                             </tr>
-                            <!--tr class="product-car">
+                            <tr class="product-car">
                                 <td>9876543210</td>
                                 <td>Vaso Confirmacion [Grande] Decoracion con palomas Color Blanco</td>
                                 <td>$950.00</td>
@@ -147,7 +150,7 @@
                 <div class="info-total">
                     <form action="" id="pay-form-method">
                         <div class="pay-form-field p-method">
-                            <label for="payment-method">Selecciona el método de pago: </label>
+                            <label for="payment-method">Método de pago: </label>
                             <select id="payment-method">
                                 <option value="">----Seleccionar----</option>
                                 <option value="efectivo">Efectivo</option>
@@ -156,7 +159,7 @@
                             </select>
                         </div>
                         <div class="pay-form-field p-form">
-                            <label for="payment-form">Selecciona la forma de pago:  </label>
+                            <label for="payment-form">Forma de pago:  </label>
                             <select id="payment-form">
                                 <option value="">----Seleccionar----</option>
                                 <option value="una-exhibicion">Pago en una sola exhibición</option>
@@ -164,7 +167,7 @@
                             </select>
                         </div>
                         <div class="btnImpresion" id="btnImpresion">
-                            <a href="">Imprimir recibo</a>
+                            <button>Imprimir recibo</button>
                         </div>
                     </form>
                     <form action="" id="total-pay-form">
@@ -172,7 +175,7 @@
                             <label for="monto-pagar" id="label-total">MONTO A PAGAR: </label>
                             <div class="pay-form-data">
                                 <h1>$</h1>
-                                <input type="text" id="monto-pagar" disabled value="1000000.00">
+                                <input type="number" id="monto-pagar" disabled value="0.00">
                                 <h1>MXN</h1>
                             </div>
                         </div>
@@ -180,7 +183,7 @@
                             <label for="monto-recibido">Monto recibido: </label>
                             <div class="pay-form-data">
                                 <h1>$</h1>
-                                <input type="text" id="monto-recibido">
+                                <input type="number" id="monto-recibido">
                                 <h1>MXN</h1>
                             </div>
                         </div>
@@ -188,7 +191,7 @@
                             <label for="cambio">Cambio: </label>
                             <div class="pay-form-data">
                                 <h1>$</h1>
-                                <input type="text" disabled id="cambio">
+                                <input type="number" disabled id="cambio" value="0.00">
                                 <h1>MXN</h1>
                             </div>
                         </div>

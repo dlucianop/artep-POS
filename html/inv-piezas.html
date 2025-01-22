@@ -59,70 +59,62 @@
         </div>
     </section>
     <section class="content-container section" id="piezas">
-        <div class="btnActions-container">
-            <a href="#" id="btnAdd" class="btnAction">
-                Agregar
-            </a>
-            <a href="#" id="btnModify" class="btnAction">
-                Modificar
-            </a>
+        <div id="inventory-bizcochos">
+            <div class="filters">
+                <div class="btnActions">
+                    <button id="btnAdd-Bizcocho" class="btnAction">Agregar Piezas de Bizcocho</button>
+                </div>
+                <div>
+                    <input type="text" placeholder="Buscar por tipo de pieza..." />
+                    <select id="filter-size">
+                        <option value="">Tamaño: Todos</option>
+                        <option value="chico">Chico</option>
+                        <option value="mediano">Mediano</option>
+                        <option value="grande">Grande</option>
+                    </select>
+                </div>
+            </div>
+            <div id="table-bizcochos-container">
+                <table id="table-bizcochos">
+                    <thead>
+                        <tr>
+                            <th>Tipo de Pieza</th>
+                            <th>Tamaño</th>
+                            <th>Cantidad en Bodega</th>
+                            <th>Cantidad en Produccion</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="rowvoid">
+                            <td colspan="5" style="height: 35vh;"></td>
+                        </tr>
+                        <!--tr>
+                            <td>Taza</td>
+                            <td>Grande</td>
+                            <td>200</td>
+                            <td>300</td>
+                            <td>
+                                <button>Editar</button>
+                                <button>Eliminar</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Plato</td>
+                            <td>Chico</td>
+                            <td>150</td>
+                            <td>50</td>
+                            <td>
+                                <button>Editar</button>
+                                <button>Eliminar</button>
+                            </td>
+                        </tr-->
+                    </tbody>
+                </table>
+            </div>
         </div>
-        <div class="table-container">
-            <table class="table-pieces" id="table-pieces">
-                <thead>
-                    <tr>
-                        <th>Tipo de Pieza</th>
-                        <th>Tamaño</th>
-                        <th>Stock Disponible</th>
-                        <th>Stock en Produccion</th>
-                        <th>Stock Defectuoso/Roto</th>
-                        <th>Stock Faltante para Pedidos</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Taza</td>
-                        <td>Chica</td>
-                        <td>200</td>
-                        <td>50</td>
-                        <td>16</td>
-                        <td>50</td>
-                    </tr>
-                    <tr>
-                        <td>Taza</td>
-                        <td>Chica</td>
-                        <td>200</td>
-                        <td>50</td>
-                        <td>16</td>
-                        <td>50</td>
-                    </tr>
-                    <tr>
-                        <td>Taza</td>
-                        <td>Chica</td>
-                        <td>200</td>
-                        <td>50</td>
-                        <td>16</td>
-                        <td>50</td>
-                    </tr>
-                    <tr>
-                        <td>Taza</td>
-                        <td>Chica</td>
-                        <td>200</td>
-                        <td>50</td>
-                        <td>16</td>
-                        <td>50</td>
-                    </tr>
-                    <tr>
-                        <td>Taza</td>
-                        <td>Chica</td>
-                        <td>200</td>
-                        <td>50</td>
-                        <td>16</td>
-                        <td>50</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        
+        
     </section>
     <!--footer></footer-->
 
