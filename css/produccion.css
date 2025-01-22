@@ -1,0 +1,81 @@
+#kanban {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+}
+  
+.column {
+    text-align: center;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 20%;
+    min-height: 80vh;
+    height: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+h2{
+    color: #602112;
+}
+
+.card{
+    background: #40E0D0;
+    border: 1px solid;
+    border-radius: 5px;
+    padding: 10px;
+    cursor: grab;
+    text-align: justify;
+}
+
+.card > p{
+    margin: 10px 0;
+}
+
+.card > p:nth-child(n+1):nth-child(-n+2){
+    text-align: center;
+    font-size: 20px;
+    font-weight: bolder;
+}
+
+.card > p:nth-child(3){
+    font-size: 15px;
+    text-align: justify;
+}
+
+.card > table{
+    width: 100%;
+}
+
+.card > table tr td{
+    align-items: center;
+    text-align: center;
+    font-size: smaller;
+    border: solid #2d9a8f;
+}
+
+.card > table tr td:nth-child(1) {
+    display: flex;
+    width: 50px;
+    height: 50px;
+    justify-content: center;
+}
+
+.card-caution{
+    background: #E57373;
+}
+
+.card-caution > table tr td{
+    border: solid #9a4d4d;
+}
+
+.card-half{
+    background: #D2B48C;
+}
+
+.card-half > table tr td{
+    border: solid #826f56;
+}

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Panel de Producción | Artep Ceramica</title>
     <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="../css/constructor.css">
+    <link rel="stylesheet" href="../css/produccion.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
@@ -59,18 +59,97 @@
         </div>
     </section>
     <section class="content-container section" id="produccion">
-        <div class="constructor-container">
-            <div class="gear-container">
-                <img src="../img/gear-a.png" alt="Gear 1" class="gear gear1">
-                <img src="../img/gear2-a.png" alt="Gear 2" class="gear gear2">
-              </div>          
-            <h1>¡Estamos trabajando en ello!</h1>
-            <p>Esta página está en construcción. Vuelva pronto para descubrir las actualizaciones y novedades.</p>
-            <p>Gracias por su paciencia.</p>
-            <div class="contact">
-                <p>¿Tienes dudas? Contáctame:</p>
-                <p>📞 Teléfono: <a href="tel:+527121174402">+52 (712)117-4402</a></p>
-                <p>📧 Correo: <a href="mailto:3112dlp@gmail.com">3112dlp@gmail.com</a></p>
+        <div id="kanban">
+            <div class="column" data-status="vaciado">
+                <h2>Vaciado</h2>
+                <div class="card" draggable="true" data-id="1" style="border-left: 5px solid blue;">
+                    <h3>Pedido: 54851055815</h3>
+                    <p><strong>Pieza:</strong> Plato [Pequeño]</p>
+                    <p><strong>Estado:</strong> 600/500 completadas (Excedente: 100)</p>
+                    <table>
+                        <tr>
+                            <td><strong>200</strong></td>
+                            <td>Piezas en bodega</td>
+                        </tr>
+                        <tr>
+                            <td><strong>400</strong></td>
+                            <td>Piezas a crear</td>
+                        </tr>
+                    </table>
+                    <p><strong>Notas:</strong> Pedido completado con un excedente de 100 piezas para evitar faltantes.</p>
+                </div> 
+                
+            </div>
+            <div class="column" data-status="secado">
+                <h2>Secado</h2>
+                <div class="card card-half" draggable="true" data-id="2" style="border-left: 5px solid yellow;">
+                    <h3>Reposición para Pedido: 54851055815</h3>
+                    <p><strong>Pieza:</strong> Plato [Pequeño]</p>
+                    <p><strong>Estado:</strong> En reposición</p>
+                    <table>
+                        <tr>
+                            <td><strong>50</strong></td>
+                            <td>Piezas en bodega usadas</td>
+                        </tr>
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>Piezas a crear desde el principio</td>
+                        </tr>
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>Piezas ya completadas de la reposición</td>
+                        </tr>
+                        <tr>
+                            <td><strong>10</strong></td>
+                            <td>Piezas restantes por crear</td>
+                        </tr>
+                    </table>
+                    <p><strong>Notas:</strong> Reposición debido a daños en la etapa de bizcochado. Entrega programada para el 25/01/2025.</p>
+                </div>
+                
+            </div>
+            <div class="column" data-status="bizcochado">
+                <h2>Bizcochado</h2>
+                <div class="card" draggable="true" data-id="3" style="border-left: 5px solid orange;">
+                    <h3>Pedido adicional: 54851055815</h3>
+                    <p><strong>Pieza:</strong> Plato [Pequeño]</p>
+                    <p><strong>Estado:</strong> Pedido incrementado a 100 piezas adicionales</p>
+                    <table>
+                        <tr>
+                            <td><strong>0</strong></td>
+                            <td>Piezas en bodega</td>
+                        </tr>
+                        <tr>
+                            <td><strong>100</strong></td>
+                            <td>Piezas a crear</td>
+                        </tr>
+                    </table>
+                    <p><strong>Notas:</strong> Cliente solicitó 100 piezas adicionales para entrega el 30/01/2025.</p>
+                </div>
+                
+            </div>
+            <div class="column" data-status="barnizado">
+                <h2>Barnizado</h2>
+                <div class="card card-caution" draggable="true" data-id="4" style="border-left: 5px solid red;">
+                    <h3>Pedido con problemas: 54851055815</h3>
+                    <p><strong>Pieza:</strong> Plato [Pequeño]</p>
+                    <p><strong>Estado:</strong> 480/500 completadas (20 faltantes)</p>
+                    <table>
+                        <tr>
+                            <td><strong>0</strong></td>
+                            <td>Piezas en bodega disponibles</td>
+                        </tr>
+                        <tr>
+                            <td><strong>20</strong></td>
+                            <td>Piezas a crear desde el principio</td>
+                        </tr>
+                    </table>
+                    <p><strong>Notas:</strong> Piezas dañadas en el proceso de barnizado. Se reinicia creación desde vaciado.</p>
+                </div>
+                
+            </div>
+            <div class="column" data-status="horneado">
+                <h2>Horneado Final</h2>
             </div>
         </div>
     </section>
