@@ -85,16 +85,56 @@
     align-items: center;
     z-index: 1000;
     display: none;
-  }
+}
 
-  .modal-content {
+.modal-content {
     background: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    text-align: center;
-  }
+    text-align: right;
+}
 
-  .show {
+
+.show {
     display: flex;
-  }
+}
+
+/************ CAMPOS DEL FORMULARIO*************/
+
+#form-bizcocho{
+    text-align: left;
+}
+
+.form-group{
+    padding: 10px 0;
+}
+
+
+#closeModal, #agregarBizcocho{
+    color: white;
+    transition: background-color 0.3s ease-in-out;
+}
+
+#closeModal:hover, #agregarBizcocho:hover{
+    background-color: white;
+    cursor: pointer;
+}
+
+#closeModal{
+    background-color: red;
+    border-radius: 10px;
+}
+
+#closeModal:hover{
+    color: red;
+}
+
+#agregarBizcocho{
+    background-color: #2d9a8f;
+    border-radius: 5px;
+}
+
+#agregarBizcocho:hover{
+    color: #2d9a8f;
+}

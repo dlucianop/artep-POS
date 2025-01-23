@@ -95,23 +95,15 @@
         </div>
         <div class="modal-overlay" id="modal">
             <div class="modal-content">
-                <button id="closeModal">Cerrar</button>
-                <h2>Modal</h2>
-                <p>Este es el contenido del modal.</p>
-            </div>
-          </div>
-         
-    </section>
-    <!--section class="modal content-container" id="modal">
-        <form action="" id="form-bizcocho">
-            <div class="modal-header">
-                <span class="close" id="close-modal">&times;</span>
-                <h1>Agregar Piezas (Bizcochos)</h1>
-                
-                <div class="form-group">
-                    <label for="tipoBizcocho">Categoria</label>
-                    <select name="" id="tipoBizcocho" required class="form-input">
-                        <option value="" disabled selected>-- Elija una categoria --</option>
+                <button id="closeModal">&times;</button>
+                <form id="form-bizcocho">
+                  <div class="modal-header">
+                    <h1>Agregar Piezas (Bizcochos)</h1>
+                    <!-- Categoría -->
+                    <div class="form-group">
+                      <label for="tipoBizcocho">Categoría:</label>
+                      <select id="tipoBizcocho" name="categoria" required class="form-input">
+                        <option value="" disabled selected>-- Elija una categoría --</option>
                         <option value="Vaso">Vaso</option>
                         <option value="Taza">Taza</option>
                         <option value="Plato">Plato</option>
@@ -132,12 +124,13 @@
                         <option value="Tazón">Tazón</option>
                         <option value="Salero y/o pimentero">Salero y/o pimentero</option>
                         <option value="Candelabro">Candelabro</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="sizeBizcocho">Tamaño</label>
-                    <select name="" id="sizeBizcocho" required class="form-input">
-                        <option value="" disabled selected>-- Elija una tamaño --</option>
+                      </select>
+                    </div>
+                    <!-- Tamaño -->
+                    <div class="form-group">
+                      <label for="sizeBizcocho">Tamaño:</label>
+                      <select id="sizeBizcocho" name="tamano" required class="form-input">
+                        <option value="" disabled selected>-- Elija un tamaño --</option>
                         <option value="XS">MINI (XS)</option>
                         <option value="S">PEQUEÑO (S)</option>
                         <option value="M">MEDIANO (M)</option>
@@ -145,21 +138,25 @@
                         <option value="XL">EXTRA GRANDE (XL)</option>
                         <option value="2XL">DOBLE EXTRA GRANDE (2XL)</option>
                         <option value="COMP">COMPACTO (COMP)</option>
-                        <option value="STD">ESTANDAR (STD)</option>
+                        <option value="STD">ESTÁNDAR (STD)</option>
                         <option value="AMP">AMPLIO (AMP)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="">Numero de piezas en Bodega: </label>
-                    <input type="number" value="0" required class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="">Numero de piezas en Bodega: </label>
-                    <input type="number" value="0" required class="form-input">
-                </div>
-            </div>
-        </form>
-    </section-->
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label for="cantidadBodega">Número de piezas en Bodega:</label>
+                      <input type="number" id="cantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidadProduccion">Número de piezas en Producción:</label>
+                        <input type="number" id="cantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
+                      </div>
+                  </div>
+                  <button type="button" id="agregarBizcocho">Agregar</button>
+                </form>
+              </div>              
+        </div>
+         
+    </section>
     <!--footer></footer-->
 
     <script src="../js/load-page.js"></script>
