@@ -58,11 +58,11 @@
             <img src="../img/clay-crafting.png" alt="Cargando...">
         </div>
     </section>
-    <section class="content-container section" id="piezas">
+    <section class="content-container section" id="piezas" >
         <div id="inventory-bizcochos">
             <div class="filters">
                 <div class="btnActions">
-                    <button id="btnAdd-Bizcocho" class="btnAction">Agregar Piezas de Bizcocho</button>
+                    <button id="openModal" class="btnAction">Agregar Piezas de Bizcocho</button>
                 </div>
                 <div>
                     <input type="text" placeholder="Buscar por tipo de pieza..." />
@@ -89,35 +89,81 @@
                         <tr id="rowvoid">
                             <td colspan="5" style="height: 35vh;"></td>
                         </tr>
-                        <!--tr>
-                            <td>Taza</td>
-                            <td>Grande</td>
-                            <td>200</td>
-                            <td>300</td>
-                            <td>
-                                <button>Editar</button>
-                                <button>Eliminar</button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>Plato</td>
-                            <td>Chico</td>
-                            <td>150</td>
-                            <td>50</td>
-                            <td>
-                                <button>Editar</button>
-                                <button>Eliminar</button>
-                            </td>
-                        </tr-->
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        
+        <div class="modal-overlay" id="modal">
+            <div class="modal-content">
+                <button id="closeModal">Cerrar</button>
+                <h2>Modal</h2>
+                <p>Este es el contenido del modal.</p>
+            </div>
+          </div>
+         
     </section>
+    <!--section class="modal content-container" id="modal">
+        <form action="" id="form-bizcocho">
+            <div class="modal-header">
+                <span class="close" id="close-modal">&times;</span>
+                <h1>Agregar Piezas (Bizcochos)</h1>
+                
+                <div class="form-group">
+                    <label for="tipoBizcocho">Categoria</label>
+                    <select name="" id="tipoBizcocho" required class="form-input">
+                        <option value="" disabled selected>-- Elija una categoria --</option>
+                        <option value="Vaso">Vaso</option>
+                        <option value="Taza">Taza</option>
+                        <option value="Plato">Plato</option>
+                        <option value="Jarrón">Jarrón</option>
+                        <option value="Termo">Termo</option>
+                        <option value="Maceta">Maceta</option>
+                        <option value="Cuenco">Cuenco</option>
+                        <option value="Decoración de pared">Decoración de pared</option>
+                        <option value="Escultura">Escultura</option>
+                        <option value="Figuras">Figuras</option>
+                        <option value="Lámpara">Lámpara</option>
+                        <option value="Florero">Florero</option>
+                        <option value="Tetera">Tetera</option>
+                        <option value="Vasija">Vasija</option>
+                        <option value="Ladrillo decorativo">Ladrillo decorativo</option>
+                        <option value="Azulejos">Azulejos</option>
+                        <option value="Plato de sobremesa">Plato de sobremesa</option>
+                        <option value="Tazón">Tazón</option>
+                        <option value="Salero y/o pimentero">Salero y/o pimentero</option>
+                        <option value="Candelabro">Candelabro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="sizeBizcocho">Tamaño</label>
+                    <select name="" id="sizeBizcocho" required class="form-input">
+                        <option value="" disabled selected>-- Elija una tamaño --</option>
+                        <option value="XS">MINI (XS)</option>
+                        <option value="S">PEQUEÑO (S)</option>
+                        <option value="M">MEDIANO (M)</option>
+                        <option value="L">GRANDE (L)</option>
+                        <option value="XL">EXTRA GRANDE (XL)</option>
+                        <option value="2XL">DOBLE EXTRA GRANDE (2XL)</option>
+                        <option value="COMP">COMPACTO (COMP)</option>
+                        <option value="STD">ESTANDAR (STD)</option>
+                        <option value="AMP">AMPLIO (AMP)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="">Numero de piezas en Bodega: </label>
+                    <input type="number" value="0" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="">Numero de piezas en Bodega: </label>
+                    <input type="number" value="0" required class="form-input">
+                </div>
+            </div>
+        </form>
+    </section-->
     <!--footer></footer-->
 
     <script src="../js/load-page.js"></script>
+    <script src="../js/script-Bizcocho.js"></script>
+    <script src="../js/modal.js"></script>
 </body>
 </html>

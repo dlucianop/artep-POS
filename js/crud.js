@@ -43,9 +43,9 @@ function createProduct(product, callback) {
 
 
 function readProducts(callback) {
-    const db = openDataBase();
+    /*const db = openDataBase();
 
-    /*const query = `
+    const query = `
         SELECT p.*, 
             ep.state, 
             CASE 
