@@ -8,29 +8,34 @@
 
 ## 📋 Descripción  
 
-**Artep POS** es una aplicación de escritorio diseñada para optimizar la gestión de ventas y el inventario de productos de cerámica. La herramienta facilita el control eficiente de la tienda, proporcionando funcionalidades clave como administración de stock, generación de notas de venta e impresión de reportes.
+**Artep POS** es una aplicación de escritorio diseñada para optimizar la gestión de ventas y el inventario de productos de cerámica. La herramienta facilita el control eficiente de la tienda, proporcionando funcionalidades clave como administración de stock, generación de notas de venta e impresión de reportes. Además, incluye un panel de producción estilo Kanban para gestionar las fases de creación de productos y la posibilidad de realizar pedidos personalizados por parte de los clientes.
 
 ---
 
 ## 🚀 Características  
 
-1. **Gestión de inventario**  
-   - CRUD de productos: Crear, leer, actualizar y eliminar artículos.  
-   - Control del estado de los productos: "hecho", "en proceso", "entregado".  
+1. **Punto de Venta**  
+   - Venta de productos desde el inventario.  
+   - Creación de pedidos personalizados con especificaciones del cliente.  
+   - Gestión de datos opcionales del cliente, fecha de entrega, carrito de compras, forma de pago, método de pago y monto a pagar.
 
-2. **Punto de venta**  
-   - Registro de ventas.  
-   - Generación e impresión de notas de venta.  
+2. **Panel de Producción**  
+   - Tablero Kanban con 5 fases: Vaciado, Secado, Bizcochado, Barnizado, Horneado Final.  
+   - Tarjetas que indican el estado de los pedidos o piezas en proceso.  
+   - Seguimiento de productos producidos, productos rotos y reposiciones de productos o aumento de pedidos.  
 
-3. **Reportes y análisis**  
-   - Reportes diarios y mensuales.  
-   - Gráficas comparativas de ventas para un mejor análisis del negocio.  
+3. **Inventario de Bizcochos (piezas sin barnizado)**  
+   - CRUD para gestionar las piezas en bizcochado (Crear, leer, actualizar y eliminar artículos).  
 
-4. **Historial de ventas**  
-   - Seguimiento de todas las transacciones realizadas.  
+4. **Inventario de Productos (piezas decoradas)**  
+   - CRUD pendiente de implementación para gestionar los productos finales.
 
-5. **Configuración**  
-   - Personalización de parámetros y ajustes del sistema.  
+5. **Historial de Ventas**  
+   - Registro y seguimiento de todas las transacciones realizadas.  
+   - Opción para reimprimir notas de ventas o realizar reposiciones en caso de extravío.
+
+6. **Configuración y Dashboard**  
+   - Personalización de parámetros y ajustes del sistema (pendientes de aprobación).
 
 ---
 
@@ -41,7 +46,7 @@ El sistema está construido con las siguientes tecnologías:
 - **Electron** (v33.2.1): Para convertir la aplicación web en una aplicación de escritorio.  
 - **Node.js**: Backend principal para lógica de la aplicación.  
 - **SQLite3** (v5.1.7): Base de datos local y ligera para almacenar los datos.  
-- **HTML, CSS y JavaScript**: Desarrollo de la interfaz de usuario.  
+- **HTML, CSS y JavaScript**: Desarrollo de la interfaz de usuario.
 
 ---
 
