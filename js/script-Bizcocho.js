@@ -10,14 +10,15 @@ function fillTableBizcochos(bizcochos){
 
     bizcochos.forEach(bizcocho =>{
         const row = document.createElement('tr');
+        row.id = 'biz-' + bizcocho.id_bizcocho;
         row.innerHTML = `
         <td>${bizcocho.tipo_bizcocho || 'N/A'}</td>
         <td>${bizcocho.size_bizcocho || 'N/A'}</td>
         <td>${bizcocho.bizcochos_en_bodega || 0}</td>
         <td>${bizcocho.bizcochos_en_proceso || 0}</td>
         <td>
-            <button>Editar</button>
-            <button>Eliminar</button>
+            <button type="button" class="editarBizcocho">Editar</button>
+            <button type="button" class="eliminarBizcocho">Eliminar</button>
         </td>
         
         `;
@@ -46,7 +47,6 @@ function reloadTable() {
     });
 }
 
-
 document.getElementById('agregarBizcocho').addEventListener('click', function () {
     const categoria = document.getElementById('tipoBizcocho').value;
     const tamano = document.getElementById('sizeBizcocho').value;
@@ -71,5 +71,3 @@ document.getElementById('agregarBizcocho').addEventListener('click', function ()
 
     document.getElementById('closeModal').click();
 });
-
-  

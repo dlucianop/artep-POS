@@ -10,8 +10,6 @@ function createBizcocho(bizcocho, callback) {
         VALUES (?, ?, ?, ?);
     `;
 
-    console.log(query);
-    console.log(bizcocho);
     db.run(query, [bizcocho.categoria, bizcocho.tamano, bizcocho.cantidadBodega, bizcocho.cantidadProduccion], function (err) {
         if (err) {
             alert(`ERROR al insertar el producto: ${err.message}`);
@@ -66,8 +64,13 @@ function readBizcochos(callback) {
 }
 
 
-function updateBizcocho(){
-
+function updateBizcocho(bizcocho, callback){
+    const db = openDataBase();
+    const query = `
+        UPDATE inventario_bizcochos 
+        SET bizcochos_en_bodega = ?, bizcochos_en_proceso = ?
+        WHERE id_bizcocho = ?;
+    `;
 }
 
 function deleteBizcocho(){

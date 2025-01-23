@@ -93,7 +93,7 @@
                 </table>
             </div>
         </div>
-        <div class="modal-overlay" id="modal">
+        <div class="modal-overlay" id="modal-agregar">
             <div class="modal-content">
                 <button id="closeModal">&times;</button>
                 <form id="form-bizcocho">
@@ -131,17 +131,36 @@
                       <label for="sizeBizcocho">Tamaño:</label>
                       <select id="sizeBizcocho" name="tamano" required class="form-input">
                         <option value="" disabled selected>-- Elija un tamaño --</option>
-                        <option value="XS">MINI (XS)</option>
-                        <option value="S">PEQUEÑO (S)</option>
-                        <option value="M">MEDIANO (M)</option>
-                        <option value="L">GRANDE (L)</option>
-                        <option value="XL">EXTRA GRANDE (XL)</option>
-                        <option value="2XL">DOBLE EXTRA GRANDE (2XL)</option>
-                        <option value="COMP">COMPACTO (COMP)</option>
-                        <option value="STD">ESTÁNDAR (STD)</option>
-                        <option value="AMP">AMPLIO (AMP)</option>
+                        <option value="MINI">MINI</option>
+                        <option value="PEQUEÑO">PEQUEÑO</option>
+                        <option value="MEDIANO">MEDIANO</option>
+                        <option value="GRANDE">GRANDE</option>
+                        <option value="EXTRA GRANDE">EXTRA GRANDE</option>
+                        <option value="DOBLE EXTRA GRANDE">DOBLE EXTRA GRANDE</option>
+                        <option value="COMPACTO (COMP)">COMPACTO</option>
+                        <option value="ESTÁNDAR">ESTÁNDAR</option>
+                        <option value="AMPLIO">AMPLIO</option>
                       </select>
                     </div>
+                    <div class="form-group">
+                      <label for="cantidadBodega">Número de piezas en Bodega:</label>
+                      <input type="number" id="cantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidadProduccion">Número de piezas en Producción:</label>
+                        <input type="number" id="cantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
+                      </div>
+                  </div>
+                  <button type="button" id="agregarBizcocho">Agregar</button>
+                </form>
+              </div>              
+        </div>
+        <div class="modal-overlay" id="modal-editar">
+            <div class="modal-content">
+                <button id="closeModal">&times;</button>
+                <form id="form-bizcocho">
+                  <div class="modal-header">
+                    <h1>Editar datos (Bizcochos)</h1>
                     <div class="form-group">
                       <label for="cantidadBodega">Número de piezas en Bodega:</label>
                       <input type="number" id="cantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
