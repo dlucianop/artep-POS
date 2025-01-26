@@ -108,8 +108,42 @@ function updateBizcocho(bizcocho, callback) {
 }
 
 
-function deleteBizcocho(){
+function deleteBizcocho(bizcocho, callback){
+    console.log("Datos del bizcocho a eliminar:", bizcocho);
+    const db = openDataBase();
+    const query = `
+        DELETE FROM inventario_bizcochos
+        WHERE id_bizcocho = ? AND tipo_bizcocho = ? AND size_bizcocho = ?;
+    `;
 
+    db.run(
+        query,
+        [
+            bizcocho.id,
+            bizcocho.categoria,
+            bizcocho.tamano,
+        ],
+        function (err) {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                return callback(err, null);
+            }
+
+            console.log(`Bizcocho con ID ${bizcocho.id} eliminado correctamente.`);
+
+            const deletedBizcocho = {
+                id: bizcocho.id,
+                tipo_bizcocho: bizcocho.categoria,
+                size_bizcocho: bizcocho.tamano,
+                bizcochos_en_bodega: bizcocho.cantidadBodega,
+                bizcochos_en_proceso: bizcocho.cantidadProduccion,
+            };
+
+            closeDatabase(db);
+            callback(null, deletedBizcocho);
+        }
+    );
 }
 
 module.exports = { createBizcocho, readBizcochos, updateBizcocho, deleteBizcocho };

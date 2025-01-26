@@ -43,21 +43,31 @@ function openEditModal(bizcocho) {
     const id = document.getElementById('editId');
     const categoria = document.getElementById('editCategoria');
     const tamano = document.getElementById('editSize');
+    const cantidadBodega = document.getElementById('editCantidadBodega');
+    const cantidadProduccion = document.getElementById('editCantidadProduccion');
 
-    id.readOnly = false;
     id.value = bizcocho.id_bizcocho;
-    id.readOnly = true;
-
-    categoria.readOnly = false;
     categoria.value = bizcocho.tipo_bizcocho;
-    categoria.readOnly = true;
-
-    tamano.readOnly = false;
     tamano.value = bizcocho.size_bizcocho;
-    tamano.readOnly = true;
+    cantidadBodega.value = bizcocho.bizcochos_en_bodega || '';
+    cantidadProduccion.value = bizcocho.bizcochos_en_proceso || '';
 
-    document.getElementById('editCantidadBodega').value = bizcocho.bizcochos_en_bodega || '';
-    document.getElementById('editCantidadProduccion').value = bizcocho.bizcochos_en_proceso || '';
+    modal.classList.add('show');
+}
+
+function deleteModal(bizcocho) {
+    const modal = document.getElementById('modal-eliminar');
+    const id = document.getElementById('deleteId');
+    const categoria = document.getElementById('deleteCategoria');
+    const tamano = document.getElementById('deleteSize')
+    const cantidadBodega = document.getElementById('deleteCantidadBodega');
+    const cantidadProduccion = document.getElementById('deleteCantidadProduccion');
+
+    id.value = bizcocho.id_bizcocho;
+    categoria.value = bizcocho.tipo_bizcocho;
+    tamano.value = bizcocho.size_bizcocho;
+    cantidadBodega.value = bizcocho.bizcochos_en_bodega || '';
+    cantidadProduccion.value = bizcocho.bizcochos_en_proceso || '';
 
     modal.classList.add('show');
 }

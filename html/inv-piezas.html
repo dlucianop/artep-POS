@@ -179,7 +179,7 @@
                     <div class="form-group">
                         <label for="editCantidadProduccion">Número de piezas en Producción:</label>
                         <input type="number" id="editCantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
-                      </div>
+                    </div>
                   </div>
                   <button type="button" id="editarBizcocho" onclick="updateOldBizcocho()">Guardar</button>
                 </form>
@@ -187,15 +187,34 @@
         </div>
         <div id="modal-eliminar" class="modal-overlay">
             <div class="modal-content">
-                <button id="closeModal" onclick="closeModal('modal-editar')">&times;</button>
-                <h3>Eliminar Bizcocho</h3>
-                <p id="eliminarMensaje">¿Estás seguro de que deseas eliminar este bizcocho?</p>
-                <button type="button" onclick="confirmDeleteBizcocho()">Eliminar</button>
-                <!--button type="button" onclick="closeModal('modal-eliminar')">Cancelar</button-->
+                <button id="closeModal" onclick="closeModal('modal-eliminar')">&times;</button>
+                <form id="form-bizcocho">
+                    <h3>Eliminar Bizcocho</h3>
+                    <p id="eliminarMensaje">¿Estás seguro de que deseas eliminar este bizcocho?</p>
+                    <div class="form-group">
+                        <input type="number" id="deleteId" class="form-input" value="" readonly style="display: none;">
+                    </div>
+                    <div class="form-group">
+                        <label for="deleteCategoria">Categoría:</label>
+                        <input type="text" id="deleteCategoria" class="form-input" value="" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="deleteSize">Tamaño:</label>
+                        <input type="text" id="deleteSize" class="form-input" value="" readonly>
+                    </div>                    
+                    <div class="form-group">
+                    <label for="deleteCantidadBodega">Número de piezas en Bodega:</label>
+                    <input type="number" id="deleteCantidadBodega" value="0" class="form-input" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="deleteCantidadProduccion">Número de piezas en Producción:</label>
+                        <input type="number" id="deleteCantidadProduccion" value="0" class="form-input" readonly>
+                    </div>
+                    <button type="button" onclick="confirmDeleteBizcocho()">Eliminar</button>
+                    <button type="button" onclick="closeModal('modal-eliminar')">Cancelar</button>
+                </form>
             </div>
-        </div>
-        
-         
+        </div> 
     </section>
     <!--footer></footer-->
 

@@ -18,7 +18,7 @@ function fillTableBizcochos(bizcochos){
         <td>${bizcocho.bizcochos_en_proceso || 0}</td>
         <td>
             <button type="button" onclick='openEditModal(${JSON.stringify(bizcocho)})'>Editar</button>
-            <button type="button" onclick="deleteModal(this, event, '${row.id}')">Eliminar</button>
+            <button type="button" onclick='deleteModal(${JSON.stringify(bizcocho)})'>Eliminar</button>
         </td>
         `;
         fragment.appendChild(row);
@@ -92,6 +92,33 @@ function updateOldBizcocho(){
     });
 }
 
-function eliminarBizcocho(button, event, id_bizcocho) {
+function confirmDeleteBizcocho(){
+    const id = parseInt(document.getElementById('deleteId').value, 10) || 0;
+    const categoria = document.getElementById('deleteCategoria').value;
+    const tamano = document.getElementById('deleteSize').value;
+    const cantidadBodega = parseInt(document.getElementById('deleteCantidadBodega').value, 10) || 0;
+    const cantidadProduccion = parseInt(document.getElementById('deleteCantidadProduccion').value, 10) || 0;
+
+    if (id < 0 || !categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
+        alert('Por favor, complete todos los campos correctamente.');
+        return;
+    }
+
+    const isSure = confirm('¿Está muy seguro de que quiere eliminar este bizcocho? Esta acción no se puede deshacer.');
     
+    if (!isSure) {
+        alert('Acción de eliminación cancelada.');
+        closeModal('modal-eliminar');
+        return;
+    }
+
+    deleteBizcocho({ id, categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
+        if (err) {
+            alert(`Error al borrar bizcocho: ${err}`);
+        } else {
+            alert('Se elimino el bizcocho del inventario.');
+            reloadTable();
+            closeModal('modal-eliminar');
+        }
+    });
 }
