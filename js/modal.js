@@ -44,20 +44,20 @@ function openEditModal(bizcocho) {
     const categoria = document.getElementById('editCategoria');
     const tamano = document.getElementById('editSize');
 
-    id.disabled = false;
+    id.readOnly = false;
     id.value = bizcocho.id_bizcocho;
-    id.disabled = true;
+    id.readOnly = true;
 
-    categoria.disabled = false;
+    categoria.readOnly = false;
     categoria.value = bizcocho.tipo_bizcocho;
-    categoria.disabled = true;
+    categoria.readOnly = true;
 
-    tamano.disabled = false;
+    tamano.readOnly = false;
     tamano.value = bizcocho.size_bizcocho;
-    tamano.disabled = true;
+    tamano.readOnly = true;
 
-    document.getElementById('editCantidadBodega').value = bizcocho.bizcochos_en_bodega;
-    document.getElementById('editCantidadProduccion').value = bizcocho.bizcochos_en_proceso;
+    document.getElementById('editCantidadBodega').value = bizcocho.bizcochos_en_bodega || '';
+    document.getElementById('editCantidadProduccion').value = bizcocho.bizcochos_en_proceso || '';
 
     modal.classList.add('show');
 }
