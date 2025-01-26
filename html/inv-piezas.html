@@ -62,7 +62,7 @@
         <div id="inventory-bizcochos">
             <div class="filters">
                 <div class="btnActions">
-                    <button id="openModal" class="btnAction">Agregar Piezas de Bizcocho</button>
+                    <button id="btnAgregarBizcocho" class="btnAction" onclick="openModal('modal-agregar')">Agregar Piezas de Bizcocho</button>
                 </div>
                 <div>
                     <input type="text" placeholder="Buscar por tipo de pieza..." />
@@ -95,7 +95,7 @@
         </div>
         <div class="modal-overlay" id="modal-agregar">
             <div class="modal-content">
-                <button id="closeModal">&times;</button>
+                <button id="closeModal" onclick="closeModal('modal-agregar')">&times;</button>
                 <form id="form-bizcocho">
                   <div class="modal-header">
                     <h1>Agregar Piezas (Bizcochos)</h1>
@@ -151,29 +151,50 @@
                         <input type="number" id="cantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
                       </div>
                   </div>
-                  <button type="button" id="agregarBizcocho">Agregar</button>
+                  <button type="button" id="agregarBizcocho" onclick="saveNewBizcocho()">Agregar</button>
                 </form>
               </div>              
         </div>
-        <div class="modal-overlay" id="modal-editar">
+        <div class="modal-overlay" id="modal-editar"> 
             <div class="modal-content">
-                <button id="closeModal">&times;</button>
+                <button id="closeModal" onclick="closeModal('modal-editar')">&times;</button>
                 <form id="form-bizcocho">
                   <div class="modal-header">
                     <h1>Editar datos (Bizcochos)</h1>
                     <div class="form-group">
-                      <label for="cantidadBodega">Número de piezas en Bodega:</label>
-                      <input type="number" id="cantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                        <input type="number" id="editId" class="form-input" value="" disabled style="display: none;">
                     </div>
                     <div class="form-group">
-                        <label for="cantidadProduccion">Número de piezas en Producción:</label>
-                        <input type="number" id="cantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
+                        <label for="editCategoria">Categoría:</label>
+                        <input type="text" id="editCategoria" class="form-input" value="" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSize">Tamaño:</label>
+                        <input type="text" id="editSize" class="form-input" value="" disabled>
+                    </div>                    
+                    <div class="form-group">
+                      <label for="editCantidadBodega">Número de piezas en Bodega:</label>
+                      <input type="number" id="editCantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCantidadProduccion">Número de piezas en Producción:</label>
+                        <input type="number" id="editCantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
                       </div>
                   </div>
-                  <button type="button" id="agregarBizcocho">Agregar</button>
+                  <button type="button" id="editarBizcocho" onclick="updateOldBizcocho()">Guardar</button>
                 </form>
               </div>              
         </div>
+        <div id="modal-eliminar" class="modal-overlay">
+            <div class="modal-content">
+                <button id="closeModal" onclick="closeModal('modal-editar')">&times;</button>
+                <h3>Eliminar Bizcocho</h3>
+                <p id="eliminarMensaje">¿Estás seguro de que deseas eliminar este bizcocho?</p>
+                <button type="button" onclick="confirmDeleteBizcocho()">Eliminar</button>
+                <!--button type="button" onclick="closeModal('modal-eliminar')">Cancelar</button-->
+            </div>
+        </div>
+        
          
     </section>
     <!--footer></footer-->

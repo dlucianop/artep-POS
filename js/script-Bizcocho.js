@@ -17,10 +17,9 @@ function fillTableBizcochos(bizcochos){
         <td>${bizcocho.bizcochos_en_bodega || 0}</td>
         <td>${bizcocho.bizcochos_en_proceso || 0}</td>
         <td>
-            <button type="button" class="editarBizcocho">Editar</button>
-            <button type="button" class="eliminarBizcocho">Eliminar</button>
+            <button type="button" onclick='openEditModal(${JSON.stringify(bizcocho)})'>Editar</button>
+            <button type="button" onclick="deleteModal(this, event, '${row.id}')">Eliminar</button>
         </td>
-        
         `;
         fragment.appendChild(row);
     });
@@ -47,27 +46,52 @@ function reloadTable() {
     });
 }
 
-document.getElementById('agregarBizcocho').addEventListener('click', function () {
+
+function saveNewBizcocho() {
     const categoria = document.getElementById('tipoBizcocho').value;
     const tamano = document.getElementById('sizeBizcocho').value;
     const cantidadBodega = parseInt(document.getElementById('cantidadBodega').value, 10) || 0;
     const cantidadProduccion = parseInt(document.getElementById('cantidadProduccion').value, 10) || 0;
-
+    
     if (!categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
         alert('Por favor, complete todos los campos correctamente.');
         return;
     }
 
-    console.log(categoria, tamano, cantidadBodega, cantidadProduccion);
-
-    createBizcocho({ categoria, tamano, cantidadBodega, cantidadProduccion }, (err, newBizcocho) => {
+    createBizcocho({ categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
         if (err) {
-            alert(`Ocurrió un error: ${err}`);
+            alert(`Error al agregar bizcocho: ${err}`);
         } else {
+            alert('¡Bizcocho agregado correctamente!');
             reloadTable();
-            alert('Bizcocho agregado correctamente!');
+            closeModal('modal-agregar');
         }
     });
+}
 
-    document.getElementById('closeModal').click();
-});
+function updateOldBizcocho(){
+    const id = parseInt(document.getElementById('editId').value, 10) || 0;
+    const categoria = document.getElementById('editCategoria').value;
+    const tamano = document.getElementById('editSize').value;
+    const cantidadBodega = parseInt(document.getElementById('editCantidadBodega').value, 10) || 0;
+    const cantidadProduccion = parseInt(document.getElementById('editCantidadProduccion').value, 10) || 0;
+
+    if (id < 0 || !categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
+        alert('Por favor, complete todos los campos correctamente.');
+        return;
+    }
+
+    updateBizcocho({ id, categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
+        if (err) {
+            alert(`Error al editar bizcocho: ${err}`);
+        } else {
+            alert('¡Bizcocho modificado correctamente!');
+            reloadTable();
+            closeModal('modal-editar');
+        }
+    });
+}
+
+function eliminarBizcocho(button, event, id_bizcocho) {
+    
+}

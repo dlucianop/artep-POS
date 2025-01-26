@@ -64,14 +64,49 @@ function readBizcochos(callback) {
 }
 
 
-function updateBizcocho(bizcocho, callback){
+function updateBizcocho(bizcocho, callback) {
+    console.log("Datos del bizcocho a actualizar:", bizcocho);
     const db = openDataBase();
     const query = `
-        UPDATE inventario_bizcochos 
+        UPDATE inventario_bizcochos
         SET bizcochos_en_bodega = ?, bizcochos_en_proceso = ?
-        WHERE id_bizcocho = ?;
+        WHERE id_bizcocho = ?
+        AND tipo_bizcocho = ?
+        AND size_bizcocho = ?;
     `;
+
+    db.run(
+        query,
+        [
+            bizcocho.cantidadBodega,
+            bizcocho.cantidadProduccion,
+            bizcocho.id,
+            bizcocho.categoria,
+            bizcocho.tamano,
+        ],
+        function (err) {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                return callback(err, null);
+            }
+
+            console.log(`Bizcocho con ID ${bizcocho.id} actualizado correctamente.`);
+
+            const updatedBizcocho = {
+                id: bizcocho.id,
+                tipo_bizcocho: bizcocho.categoria,
+                size_bizcocho: bizcocho.tamano,
+                bizcochos_en_bodega: bizcocho.cantidadBodega,
+                bizcochos_en_proceso: bizcocho.cantidadProduccion,
+            };
+
+            closeDatabase(db);
+            callback(null, updatedBizcocho);
+        }
+    );
 }
+
 
 function deleteBizcocho(){
 
