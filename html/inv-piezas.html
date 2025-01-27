@@ -144,11 +144,11 @@
                     </div>
                     <div class="form-group">
                       <label for="cantidadBodega">Número de piezas en Bodega:</label>
-                      <input type="number" id="cantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                      <input type="number" id="cantidadBodega" name="cantidad" value="" min="0" step="1" class="form-input">
                     </div>
                     <div class="form-group">
                         <label for="cantidadProduccion">Número de piezas en Producción:</label>
-                        <input type="number" id="cantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
+                        <input type="number" id="cantidadProduccion" name="cantidad" value="" min="0" step="1" required class="form-input">
                       </div>
                   </div>
                   <button type="button" id="agregarBizcocho" onclick="saveNewBizcocho()">Agregar</button>
@@ -174,11 +174,11 @@
                     </div>                    
                     <div class="form-group">
                       <label for="editCantidadBodega">Número de piezas en Bodega:</label>
-                      <input type="number" id="editCantidadBodega" name="cantidad" value="0" min="0" step="1" class="form-input">
+                      <input type="number" id="editCantidadBodega" name="cantidad" value="" min="0" step="1" class="form-input">
                     </div>
                     <div class="form-group">
                         <label for="editCantidadProduccion">Número de piezas en Producción:</label>
-                        <input type="number" id="editCantidadProduccion" name="cantidad" value="0" min="0" step="1" required class="form-input">
+                        <input type="number" id="editCantidadProduccion" name="cantidad" value="" min="0" step="1" required class="form-input">
                     </div>
                   </div>
                   <button type="button" id="editarBizcocho" onclick="updateOldBizcocho()">Guardar</button>
@@ -204,11 +204,11 @@
                     </div>                    
                     <div class="form-group">
                     <label for="deleteCantidadBodega">Número de piezas en Bodega:</label>
-                    <input type="number" id="deleteCantidadBodega" value="0" class="form-input" readonly>
+                    <input type="number" id="deleteCantidadBodega" value="" class="form-input" readonly>
                     </div>
                     <div class="form-group">
                         <label for="deleteCantidadProduccion">Número de piezas en Producción:</label>
-                        <input type="number" id="deleteCantidadProduccion" value="0" class="form-input" readonly>
+                        <input type="number" id="deleteCantidadProduccion" value="" class="form-input" readonly>
                     </div>
                     <button type="button" onclick="confirmDeleteBizcocho()">Eliminar</button>
                     <button type="button" onclick="closeModal('modal-eliminar')">Cancelar</button>
