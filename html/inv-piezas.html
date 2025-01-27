@@ -65,12 +65,40 @@
                     <button id="btnAgregarBizcocho" class="btnAction" onclick="openModal('modal-agregar')">Agregar Piezas de Bizcocho</button>
                 </div>
                 <div>
-                    <input type="text" placeholder="Buscar por tipo de pieza..." />
+                    <select id="filter-type">
+                        <option value="" selected>Categoría: Todos</option>
+                        <option value="Vaso">Vaso</option>
+                        <option value="Taza">Taza</option>
+                        <option value="Plato">Plato</option>
+                        <option value="Jarrón">Jarrón</option>
+                        <option value="Termo">Termo</option>
+                        <option value="Maceta">Maceta</option>
+                        <option value="Cuenco">Cuenco</option>
+                        <option value="Decoración de pared">Decoración de pared</option>
+                        <option value="Escultura">Escultura</option>
+                        <option value="Figuras">Figuras</option>
+                        <option value="Lámpara">Lámpara</option>
+                        <option value="Florero">Florero</option>
+                        <option value="Tetera">Tetera</option>
+                        <option value="Vasija">Vasija</option>
+                        <option value="Ladrillo decorativo">Ladrillo decorativo</option>
+                        <option value="Azulejos">Azulejos</option>
+                        <option value="Plato de sobremesa">Plato de sobremesa</option>
+                        <option value="Tazón">Tazón</option>
+                        <option value="Salero y/o pimentero">Salero y/o pimentero</option>
+                        <option value="Candelabro">Candelabro</option>
+                      </select>
                     <select id="filter-size">
-                        <option value="">Tamaño: Todos</option>
-                        <option value="chico">Chico</option>
-                        <option value="mediano">Mediano</option>
-                        <option value="grande">Grande</option>
+                        <option value="" selected>Tamaño: Todos</option>
+                        <option value="MINI">MINI</option>
+                        <option value="PEQUEÑO">PEQUEÑO</option>
+                        <option value="MEDIANO">MEDIANO</option>
+                        <option value="GRANDE">GRANDE</option>
+                        <option value="EXTRA GRANDE">EXTRA GRANDE</option>
+                        <option value="DOBLE EXTRA GRANDE">DOBLE EXTRA GRANDE</option>
+                        <option value="COMPACTO (COMP)">COMPACTO</option>
+                        <option value="ESTÁNDAR">ESTÁNDAR</option>
+                        <option value="AMPLIO">AMPLIO</option>
                     </select>
                 </div>
             </div>
