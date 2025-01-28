@@ -126,36 +126,36 @@ function confirmDeleteBizcocho(){
 /***********************************SEARCH FILTERS */
 document.getElementById("filter-type").addEventListener("change", function() {
     filterTable();
-  });
+});
   
-  document.getElementById("filter-size").addEventListener("change", function() {
+document.getElementById("filter-size").addEventListener("change", function() {
     filterTable();
-  });
+});
   
-  function filterTable() {
+function filterTable() {
     var typeFilter = document.getElementById("filter-type").value.toLowerCase();
     var sizeFilter = document.getElementById("filter-size").value.toLowerCase();
     var table = document.getElementById("table-bizcochos");
     var rows = table.getElementsByTagName("tr");
   
     for (var i = 1; i < rows.length; i++) {
-      var cells = rows[i].getElementsByTagName("td");
-      var matchFound = true;
+        var cells = rows[i].getElementsByTagName("td");
+        var matchFound = true;
   
-      if (typeFilter && cells[0].innerText.toLowerCase() !== typeFilter) {
-        matchFound = false;
-      }
+        if (typeFilter && cells[0].innerText.toLowerCase() !== typeFilter) {
+            matchFound = false;
+        }
   
-      if (sizeFilter && cells[1].innerText.toLowerCase() !== sizeFilter) {
-        matchFound = false;
-      }
+        if (sizeFilter && cells[1].innerText.toLowerCase() !== sizeFilter) {
+            matchFound = false;
+        }
   
-      if (matchFound) {
-        rows[i].style.display = "";
-      } else {
-        rows[i].style.display = "none";
-      }
+        if (matchFound) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
     }
-  }
+}
   
   
