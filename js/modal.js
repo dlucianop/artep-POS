@@ -104,13 +104,20 @@ function fillModalEditProdFields(modal, producto) {
 
 function deleteModalProd(producto) {
     const modal = document.getElementById('modal-eliminar');
-    /*fillModalDeleteProdFields(modal, producto);*/
+    fillModalDeleteProdFields(modal, producto);
     modal.classList.add('show');
 }
 
 function fillModalDeleteProdFields(modal, producto) {
     const fields = {
-
+        deleteCodeProd: producto.code,
+        deleteCategoryProd: producto.category,
+        deleteSizeProd: producto.size,
+        deleteModelProd: producto.model,
+        deleteDecorProd: producto.decoration,
+        deleteColorProd: producto.color,
+        deletePrecioProd: producto.price,
+        deleteCantBodProd: producto.stock,
     };
 
     Object.entries(fields).forEach(([key, value]) => {

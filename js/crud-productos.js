@@ -125,7 +125,45 @@ function updateProducto(producto, callback) {
 }
 
 function deleteProducto(producto, callback){
+    const db = openDataBase();
+    const query = `
+        DELETE FROM inventario_productos
+        WHERE code = ?
+        AND category = ?
+        AND size = ?;
+    `;
 
+    db.run(
+        query,
+        [
+            producto.codeD,
+            producto.categoryD,
+            producto.sizeD
+        ],
+        function (err) {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                return callback(err, null);
+            }
+
+            console.log(`Producto con codigo ${producto.codeD} eliminado correctamente.`);
+
+            const deletedProducto = {
+                id: producto.codeD,
+                categoria: producto.categoryD,
+                modelo: producto.modelD,
+                tamano: producto.sizeD,
+                decoracion: producto.decorationD,
+                color: producto.colorD,             
+                productos_en_bodega: producto.stockD,
+                precio: producto.priceD
+            };
+
+            closeDatabase(db);
+            callback(null, deletedProducto);
+        }
+    );
 }
 
 module.exports = { createProducto, readProductos, updateProducto, deleteProducto };

@@ -102,12 +102,35 @@ function updateOldProducto(){
 }
 
 function confirmDeleteProducto(){
-    const codeD = document.getElementById('deleteCodeProd');
-    const categoryD = document.getElementById('deleteCategoryProd');
-    const sizeD = document.getElementById('deleteSizeProd');
-    const modelD = document.getElementById('deleteModelProd');
-    const decorationD = document.getElementById('deleteDecorProd');
-    const colorD = document.getElementById('deleteColorProd');
-    const priceD = document.getElementById('deletePrecioProd');
-    const stockD = document.getElementById('deleteCantBodProd');
+    const codeD = parseInt(document.getElementById('deleteCodeProd').value, 10) || 0;
+    const categoryD = document.getElementById('deleteCategoryProd').value;
+    const sizeD = document.getElementById('deleteSizeProd').value;
+    const modelD = document.getElementById('deleteModelProd').value;
+    const decorationD = document.getElementById('deleteDecorProd').value;
+    const colorD = document.getElementById('deleteColorProd').value;
+    const priceD = parseFloat(document.getElementById('deletePrecioProd').value, 10) || 0;
+    const stockD = parseInt(document.getElementById('deleteCantBodProd').value, 10) || 0;
+
+    if( !codeD || !categoryD || !sizeD || !modelD || !decorationD || !colorD || priceD < 0 || stockD < 0) {
+        alert('Por favor, complete todos los campos correctamente.');
+        return;
+    }
+
+    const isSure = confirm('¿Está muy seguro de que quiere eliminar este producto? Esta acción no se puede deshacer.');
+    
+    if (!isSure) {
+        alert('Acción de eliminación cancelada.');
+        closeModal('modal-eliminar');
+        return;
+    }
+
+    deleteProducto({ codeD, categoryD, sizeD, modelD, decorationD, colorD, priceD, stockD }, (err) => {
+        if (err) {
+            alert(`Error al borrar producto: ${err}`);
+        } else {
+            alert('Se elimino el producto del inventario.');
+            reloadTable();
+            closeModal('modal-eliminar');
+        }
+    });
 }
