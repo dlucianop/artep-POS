@@ -163,7 +163,7 @@
                         <input type="number" id="addCantBodProd" value="0" min="0" step="1" class="form-input">
                     </div>
                     <div class="form-group form-btn">
-                        <button type="button" id="btnAddProducto">Agregar</button>
+                        <button type="button" id="btnAddProducto" onclick="saveNewProducto()">Agregar</button>
                     </div>
                 </form>
                 
@@ -212,7 +212,7 @@
                 
             </div>     
         </div>
-        <div id="modal-eliminar" class="modal-overlay show">
+        <div id="modal-eliminar" class="modal-overlay">
             <div class="modal-content">
                 <button id="closeModal" onclick="closeModal('modal-eliminar')">&times;</button>
                 <form action="" id="form-productos">

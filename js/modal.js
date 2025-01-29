@@ -30,23 +30,35 @@ function resetModalInputs(modal) {
 
 function openEditModal(bizcocho) {
     const modal = document.getElementById('modal-editar');
-    fillModalFields(modal, bizcocho);
+    fillModalEditFields(modal, bizcocho);
     modal.classList.add('show');
 }
 
-function deleteModal(bizcocho) {
-    const modal = document.getElementById('modal-eliminar');
-    fillModalFields(modal, bizcocho);
-    modal.classList.add('show');
-}
-
-function fillModalFields(modal, bizcocho) {
+function fillModalEditFields(modal, bizcocho) {
     const fields = {
         editId: bizcocho.id_bizcocho,
         editCategoria: bizcocho.tipo_bizcocho,
         editSize: bizcocho.size_bizcocho,
         editCantidadBodega: bizcocho.bizcochos_en_bodega || '',
-        editCantidadProduccion: bizcocho.bizcochos_en_proceso || '',
+        editCantidadProduccion: bizcocho.bizcochos_en_proceso || ''
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+        const input = modal.querySelector(`#${key}`);
+        if (input && input.value !== value) {
+            input.value = value;
+        }
+    });
+}
+
+function deleteModal(bizcocho) {
+    const modal = document.getElementById('modal-eliminar');
+    fillModalDeleteFields(modal, bizcocho);
+    modal.classList.add('show');
+}
+
+function fillModalDeleteFields(modal, bizcocho) {
+    const fields = {
         deleteId: bizcocho.id_bizcocho,
         deleteCategoria: bizcocho.tipo_bizcocho,
         deleteSize: bizcocho.size_bizcocho,
@@ -62,3 +74,41 @@ function fillModalFields(modal, bizcocho) {
     });
 }
 
+/**PRODUCTOS */
+function openEditModalProd(producto) {
+    const modal = document.getElementById('modal-editar');
+    /*fillModalEditProdFields(modal, bizcocho);*/
+    modal.classList.add('show');
+}
+
+function fillModalEditProdFields(modal, producto) {
+    const fields = {
+        
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+        const input = modal.querySelector(`#${key}`);
+        if (input && input.value !== value) {
+            input.value = value;
+        }
+    });
+}
+
+function deleteModalProd(producto) {
+    const modal = document.getElementById('modal-eliminar');
+    /*fillModalDeleteProdFields(modal, bizcocho);*/
+    modal.classList.add('show');
+}
+
+function fillModalDeleteProdFields(modal, producto) {
+    const fields = {
+
+    };
+
+    Object.entries(fields).forEach(([key, value]) => {
+        const input = modal.querySelector(`#${key}`);
+        if (input && input.value !== value) {
+            input.value = value;
+        }
+    });
+}
