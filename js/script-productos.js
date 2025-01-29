@@ -134,3 +134,29 @@ function confirmDeleteProducto(){
         }
     });
 }
+
+document.getElementById("searchInput").addEventListener("input", function() {
+    filterTable();
+});
+
+function filterTable() {
+    var searchValue = document.getElementById("searchInput").value.toLowerCase();
+    var table = document.getElementById("table-productos");
+    var rows = table.getElementsByTagName("tr");
+
+    for (var i = 1; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName("td");
+        var matchFound = false;
+
+        var searchColumns = [0, 1, 2, 3, 4, 5]; // columnas de CODE y NOMBRE
+        
+        for (var j of searchColumns) {
+            if (cells[j] && cells[j].innerText.toLowerCase().includes(searchValue)) {
+                matchFound = true;
+                break;
+            }
+        }
+
+        rows[i].style.display = matchFound ? "" : "none";
+    }
+}
