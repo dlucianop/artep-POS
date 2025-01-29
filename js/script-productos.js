@@ -20,7 +20,7 @@ function fillTableProductos(productos){
         <td>${producto.color || 'N/A'}</td>
         <td>${producto.stock || 0}</td>
         <td>${producto.price || 0}</td>
-        <td>
+        <td class="col-btns">
             <button type="button">Editar</button>
             <button type="button">Eliminar</button>
         </td>
