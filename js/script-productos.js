@@ -76,14 +76,29 @@ function saveNewProducto(){
 }
 
 function updateOldProducto(){
-    const codeE = document.getElementById('editCodeProd');
-    const categoryE = document.getElementById('editCategoryProd');
-    const sizeE = document.getElementById('editSizeProd');
-    const modelE = document.getElementById('editModelProd');
-    const decorationE = document.getElementById('editDecorProd');
-    const colorE = document.getElementById('editColorProd');
-    const priceE = document.getElementById('editPrecioProd');
-    const stockE = document.getElementById('editCantBodProd');
+    const codeE = parseInt(document.getElementById('editCodeProd').value, 10) || 0;
+    const categoryE = document.getElementById('editCategoryProd').value;
+    const sizeE = document.getElementById('editSizeProd').value;
+    const modelE = document.getElementById('editModelProd').value;
+    const decorationE = document.getElementById('editDecorProd').value;
+    const colorE = document.getElementById('editColorProd').value;
+    const priceE = parseFloat(document.getElementById('editPrecioProd').value, 10) || 0;
+    const stockE = parseInt(document.getElementById('editCantBodProd').value, 10) || 0;
+    
+    if( !codeE || !categoryE || !sizeE || !modelE || !decorationE || !colorE || priceE < 0 || stockE < 0) {
+        alert('Por favor, complete todos los campos correctamente.');
+        return;
+    }
+
+    updateProducto({ codeE, categoryE, sizeE, modelE, decorationE, colorE, priceE, stockE }, (err) => {
+        if(err){
+            alert(`Error al editar producto: ${err}`);
+        } else{
+            alert('¡Producto modificado correctamente!');
+            reloadTable();
+            closeModal('modal-editar')
+        }
+    });
 }
 
 function confirmDeleteProducto(){

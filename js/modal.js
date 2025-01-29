@@ -77,13 +77,21 @@ function fillModalDeleteFields(modal, bizcocho) {
 /**PRODUCTOS */
 function openEditModalProd(producto) {
     const modal = document.getElementById('modal-editar');
-    /*fillModalEditProdFields(modal, bizcocho);*/
+    fillModalEditProdFields(modal, producto);
     modal.classList.add('show');
 }
 
 function fillModalEditProdFields(modal, producto) {
+    console.log(producto);
     const fields = {
-        
+        editCodeProd: producto.code,
+        editCategoryProd: producto.category,
+        editSizeProd: producto.size,
+        editModelProd: producto.model,
+        editDecorProd: producto.decoration,
+        editColorProd: producto.color,
+        editPrecioProd: producto.price,
+        editCantBodProd: producto.stock,
     };
 
     Object.entries(fields).forEach(([key, value]) => {
@@ -96,7 +104,7 @@ function fillModalEditProdFields(modal, producto) {
 
 function deleteModalProd(producto) {
     const modal = document.getElementById('modal-eliminar');
-    /*fillModalDeleteProdFields(modal, bizcocho);*/
+    /*fillModalDeleteProdFields(modal, producto);*/
     modal.classList.add('show');
 }
 
