@@ -169,7 +169,7 @@
                 
             </div>
         </div>
-        <div class="modal-overlay show" id="modal-editar">    
+        <div class="modal-overlay" id="modal-editar">    
             <div class="modal-content">
                 <button id="closeModal" onclick="closeModal('modal-editar')">&times;</button>
                 <form action="" id="form-productos">
@@ -212,8 +212,51 @@
                 
             </div>     
         </div>
-        <!--div id="modal-eliminar" class="modal-overlay">
-        </div--> 
+        <div id="modal-eliminar" class="modal-overlay show">
+            <div class="modal-content">
+                <button id="closeModal" onclick="closeModal('modal-eliminar')">&times;</button>
+                <form action="" id="form-productos">
+                    <h3>Eliminar Producto</h3>
+                    <p id="eliminarMensaje">¿Estás seguro de que deseas eliminar este producto?</p>
+                    <div class="form-group">
+                        <label for="deleteCodeProd">Codigo del Producto:</label>
+                        <input id="deleteCodeProd" type="number" value="0" min="0" step="1" class="form-input no-edition" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="deleteCategoryProd">Categoría:</label>
+                        <input id="deleteCategoryProd" name="categoria" class="form-input no-edition" readonly>
+    
+                        <label for="deleteSizeProd">Tamaño:</label>
+                        <input id="deleteSizeProd" class="form-input no-edition" readonly>  
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="deleteModelProd">Modelo:</label>
+                        <textarea class="form-input no-edition" id="deleteModelProd" readonly></textarea>
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="deleteDecorProd">Decoración:</label>
+                        <textarea class="form-input no-edition" id="deleteDecorProd" readonly></textarea>
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="deleteColorProd">Color:</label>
+                        <textarea class="form-input no-edition" id="deleteColorProd" readonly></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="deletePrecioProd">Precio Unitario (MXN)</label>
+                        <input type="number" id="deletePrecioProd" value="0" min="0" class="form-input no-edition" readonly>
+
+                        <label for="deleteCantBodProd">Cantidad en Bodega</label>
+                        <input type="number" id="deleteCantBodProd" value="0" min="0" step="1" class="form-input no-edition" readonly>
+                    </div>
+                    <div class="form-group form-btns">
+                        <button type="button" onclick="confirmDeleteProducto()">Eliminar</button>
+                        <button type="button" onclick="closeModal('modal-eliminar')">Cancelar</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div> 
     </section>
     <!--footer></footer-->
 
