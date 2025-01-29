@@ -16,7 +16,7 @@ function fillTableBizcochos(bizcochos){
         <td>${bizcocho.size_bizcocho || 'N/A'}</td>
         <td>${bizcocho.bizcochos_en_bodega || 0}</td>
         <td>${bizcocho.bizcochos_en_proceso || 0}</td>
-        <td>
+        <td class="col-btn">
             <button type="button" onclick='openEditModal(${JSON.stringify(bizcocho)})'>Editar</button>
             <button type="button" onclick='deleteModal(${JSON.stringify(bizcocho)})'>Eliminar</button>
         </td>
