@@ -101,11 +101,11 @@
                     <h3>Agregar Producto al Inventario</h3>
                     <div class="form-group">
                         <label for="addCodeProd">Codigo del Producto:</label>
-                        <input type="number" value="0" min="0" step="1" class="form-input" required>
+                        <input id="addCodeProd" type="number" value="0" min="0" step="1" class="form-input" required>
                     </div>
                     <div class="form-group">
                         <label for="addCategoryProd">Categoría:</label>
-                        <select id="tipoBizcocho" name="categoria" required class="form-input">
+                        <select id="addCategoryProd" name="categoria" required class="form-input">
                             <option value="" disabled selected>-- Elija una categoría --</option>
                             <option value="Vaso">Vaso</option>
                             <option value="Taza">Taza</option>
@@ -169,9 +169,50 @@
                 
             </div>
         </div>
-        <!--div class="modal-overlay" id="modal-editar">         
+        <div class="modal-overlay show" id="modal-editar">    
+            <div class="modal-content">
+                <button id="closeModal" onclick="closeModal('modal-editar')">&times;</button>
+                <form action="" id="form-productos">
+                    <h3>Editar datos del Producto</h3>
+                    <div class="form-group">
+                        <label for="editCodeProd">Codigo del Producto:</label>
+                        <input id="editCodeProd" type="number" value="0" min="0" step="1" class="form-input no-edition" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="editCategoryProd">Categoría:</label>
+                        <input id="editCategoryProd" name="categoria" class="form-input no-edition" readonly>
+    
+                        <label for="editSizeProd">Tamaño:</label>
+                        <input id="editSizeProd" class="form-input no-edition" readonly>  
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="editModelProd">Modelo:</label>
+                        <textarea class="form-input" id="editModelProd" placeholder="Modificar datos del modelo" required></textarea>
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="editDecorProd">Decoración:</label>
+                        <textarea class="form-input" id="editDecorProd" placeholder="Modificar datos de la decoración" required></textarea>
+                    </div>
+                    <div class="form-group form-long">
+                        <label for="editColorProd">Color:</label>
+                        <textarea class="form-input" id="editColorProd" placeholder="Modificar datos del color" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="editPrecioProd">Precio Unitario (MXN)</label>
+                        <input type="number" id="editPrecioProd" value="0" min="0" class="form-input">
+
+                        <label for="editCantBodProd">Cantidad en Bodega</label>
+                        <input type="number" id="editCantBodProd" value="0" min="0" step="1" class="form-input">
+                    </div>
+                    <div class="form-group form-btn">
+                        <button type="button" id="btnEditProducto">Editar</button>
+                    </div>
+                </form>
+                
+            </div>     
         </div>
-        <div id="modal-eliminar" class="modal-overlay">
+        <!--div id="modal-eliminar" class="modal-overlay">
         </div--> 
     </section>
     <!--footer></footer-->

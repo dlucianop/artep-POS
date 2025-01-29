@@ -240,6 +240,17 @@ input[type="number"] {
     border: solid #2E8B57;
 }
 
+#btnEditProducto{
+    background-color: #B8860B;
+}
+
+#btnEditProducto:hover{
+    color: #B8860B;
+    background-color: #fff;
+    cursor: pointer;
+    border: solid #B8860B;
+}
+
 #closeModal{
     text-align: center;
     padding: 10px 15px;
