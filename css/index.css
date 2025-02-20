@@ -3,44 +3,74 @@
     padding: 0;
 }
 
+body {
+    display: flex;
+    flex-direction: row;
+}
+
 #nav-menu {
     opacity: 0;
     z-index: 1000;
     display: flex;
     flex-direction: column;
     height: 100vh;
-    width: 30vh;
     justify-content: space-around;
     animation: fade-nav ease 1.5s forwards;
+    position: fixed;
 }
 
-#nav-menu > a {
-    background-color: #602112;
+#nav-menu > a, .selected-btn {
     color: transparent;
     width: 25vh;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 5px 0;
-    padding: 20px 15px;
+    padding: 20px 10px;
     text-decoration: none;
     border-radius: 5px 0 0 5px;
     transform: translateX(-18vh);
+    transition: transform 0.5s;
 }
 
-.menu-btn > img {
+.menu-btn > img, .selected-btn > img {
     width: 6vh;
     height: auto;
 }
 
+.menu-btn {
+    background-color: #954e38;
+}
+
 #nav-menu > a:hover {
-    transition: transform 0.5s;
     color: white;
     transform: translateX(0vh);
 }
 
+.selected-btn {
+    background-color: #390101;
+}
 
+/*********************** Content Section **************************/
+
+#content-section {
+    opacity: 0;
+    display: flex;
+    width: 100%;
+    height: 100vh;
+    padding-left: 10vh;
+    background-color: #e2b492;
+    animation: fade-content ease 1.5s forwards;
+    justify-content: center;
+}
+
+
+/*************** Animations *********************/
 @keyframes fade-nav {
     from { opacity: 0; transform: translateX(-100%)}
     to { opacity: 1; transform: translateX(0)}
+}
+
+@keyframes fade-content {
+    from { opacity: 0; transform: translateX(100%)}
+    to { opacity: 1; transform: translateX(0%)}
 }
