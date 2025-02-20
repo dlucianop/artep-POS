@@ -1,193 +1,46 @@
 *{
-    font-family: "Roboto Mono", serif;
-}
-
-body {
-    padding: 0;
     margin: 0;
+    padding: 0;
 }
 
-header{
-    position: relative;
-    background: #300907;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    overflow: hidden;
-    height: 15vh;
-}
-
-.menu-icon {
+#nav-menu {
+    opacity: 0;
+    z-index: 1000;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    cursor: pointer;
-    align-items: center;
-    height: 90px;
-    width: 100px;
-    margin: 0 30px;
-}
-
-.bar {
-    height: 10px;
-    background-color: red;
-    width: 80%;
-    margin: 12px 0;
-    transition: all 0.3s ease;
-}
-
-.open .bar:nth-child(1) {
-    width: 50%;
-    margin-left: 50px;
-    transform: rotate(45deg) translateY(42.5px);
-    transition: transform 0.3s ease; 
-}
-
-.open .bar:nth-child(2) {
-    opacity: 0;
-}
-
-.open .bar:nth-child(3) {
-    width: 50%;
-    margin-left: 50px;
-    transform: rotate(-45deg) translateY(-42.5px); 
-    transition: transform 0.3s ease;
-}
-
-.notification-icon > img, .logo-header > img{
-    margin: 10px 30px;
-}
-
-.logo-header > img{
-    width: 100px;
-    height: auto;
-    border-radius: 50%;
-}
-
-.notification-icon > img{
-    width: 60px;
-    height: auto;
-}
-
-/*-----------Para las notificaciones*/
-
-.no-active{
-    display: block;
-}
-
-.active{
-    display: none;
-}
-
-/*----------------NAVIGATION-------------------*/
-.sidebar {
-    margin: 0;
-    padding: 0;
-    width: 160px;
-    background-color: #602112;
-    color: #ecf0f1;
     height: 100vh;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
-    position: fixed;
-    overflow-y: auto;
-    padding-bottom: 20px; 
+    width: 30vh;
+    justify-content: space-around;
+    animation: fade-nav ease 1.5s forwards;
 }
 
-.sidebar > ul{
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.btnMenu, .selected-page{
-    padding: 5px 0px;
+#nav-menu > a {
+    background-color: #602112;
+    color: transparent;
+    width: 25vh;
     display: flex;
     align-items: center;
-    border: solid transparent;
-    border-bottom: solid white;
-    transition: background 0.4s ease-in-out;
-}
-
-.menu-img{
-    width: 40px;
-    height: auto;
-    margin: 5px;
-}
-
-.txtMenu{
-    font-size: smaller;
-    color: white;
+    justify-content: space-between;
+    margin: 5px 0;
+    padding: 20px 15px;
     text-decoration: none;
-    width: 100%;
-    text-align: center;
+    border-radius: 5px 0 0 5px;
+    transform: translateX(-18vh);
 }
 
-.btnMenu:hover{
-    background: #865c52;
-    cursor: pointer;
-    border-top: solid white;
-}
-
-.selected-page{
-    background: #865c52;
-    border-top: solid white;
-}
-
-.selected-page > a{
-    pointer-events: none;
-}
-
-.content-container {
-    margin-left: 200px;
-    min-height: 100vh;
+.menu-btn > img {
+    width: 6vh;
     height: auto;
-    background: #c98b6e;
 }
 
-input, select{
-    text-align: center;
-    vertical-align: middle;
+#nav-menu > a:hover {
+    transition: transform 0.5s;
+    color: white;
+    transform: translateX(0vh);
 }
 
-h1{
-    padding: 0;
-    margin: 0;
-}
 
-a{
-    display: flex;
-    align-items: center;
-    justify-content: space-evenly;
-}
-
-.logo-principal{
-    width: 100%; 
-    border-radius: 50%; 
-    margin-top: 20px;
-}
-
-/************************** PANTALLA DE CARGA *****************************/
-.loader-container{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.loader {
-    margin-top: 20px;
-}
-  
-.loader img {
-    width: 200px;
-    animation: spin 3s linear infinite;
-}
-
-@keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+@keyframes fade-nav {
+    from { opacity: 0; transform: translateX(-100%)}
+    to { opacity: 1; transform: translateX(0)}
 }
