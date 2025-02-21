@@ -36,15 +36,15 @@
             <form action="" id="form-info-client">
                 <div class="form-group">
                     <label for="id-sale">No. de venta: </label>
-                    <input type="text" id="id-sale" placeholder="0">
+                    <input type="text" id="id-sale" placeholder="0" disabled>
                 </div>
                 <div class="form-group">
                     <label for="sale-date">Fecha: </label>
-                    <input type="text" id="sale-date" placeholder="dd/mmm/aaaa" readonly>
+                    <input type="text" id="sale-date" placeholder="dd/mmm/aaaa" disabled>
                 </div>
                 <div class="form-group">
                     <label for="sale-time">Hora: </label>
-                    <input type="text" id="sale-time" placeholder="12:00:00" readonly>
+                    <input type="text" id="sale-time" placeholder="12:00:00" disabled>
                 </div>
                 <div class="form-group">
                     <label for="client-name">Cliente: </label>
@@ -101,7 +101,7 @@
                     </thead>
                     <tbody>
                         <tr id="rowvoid">
-                            <td colspan="5" style="height: 35vh;"></td>
+                            <td colspan="5"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -120,28 +120,39 @@
                 </div>
                 <div class="info-total" id="info-total">
                     <form action="" id="total-pay-form">
-                        <div class="pay-form-field">
-                            <label for="monto-pagar" id="label-total">MONTO A PAGAR: </label>
+                        <div class="total-field">
+                            <label for="monto">Monto: </label>
                             <div class="pay-form-data">
-                                <h1>$</h1>
-                                <input type="number" id="monto-pagar" disabled value="0.00">
-                                <h1>MXN</h1>
+                                <label>$
+                                    <input type="number" id="monto" disabled value="0.00">
+                                </label>
                             </div>
                         </div>
-                        <div class="pay-form-field">
-                            <label for="monto-recibido">Monto recibido: </label>
+                        <div class="total-field">
+                            <label for="descuento">
+                                <input type="number" min="0" max="100">% descuento: 
+                            </label>
                             <div class="pay-form-data">
-                                <h1>$</h1>
-                                <input type="number" id="monto-recibido">
-                                <h1>MXN</h1>
+                                <label>$
+                                    <input type="number" id="monto" disabled value="0.00">
+                                </label>
                             </div>
                         </div>
-                        <div class="pay-form-field">
-                            <label for="cambio">Cambio: </label>
+                        <div class="total-field">
+                            <label for="pago">Pago: </label>
                             <div class="pay-form-data">
-                                <h1>$</h1>
-                                <input type="number" disabled id="cambio" value="0.00">
-                                <h1>MXN</h1>
+                                <label>$
+                                    <input type="number" id="pago">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="total">Total: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="total" disabled>
+                                </label>
+                                
                             </div>
                         </div>
                     </form>
