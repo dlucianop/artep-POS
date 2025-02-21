@@ -1,0 +1,56 @@
+/***********************Informacion del cliente***********************/
+#info-client{
+    opacity: 0;
+    margin-top: 25vh;
+    padding: 20px;
+    width: 160vh;
+    background-color: #e2b492;
+    animation: fade-client ease 2s forwards;
+}
+
+#client-collapse {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+/*#client-collapse > img {
+    width: 5vh;
+    height: auto;
+}*/
+
+#form-info-client{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 20px;
+    gap: 20px 80px;
+}
+
+.form-group{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    font-weight: bold;
+}
+
+.form-group > input {
+    width: 60vh;
+    padding: 5px 0;
+    padding-left: 10px;
+}
+
+/***********************Carrito***********************/
+#info-sale{
+    width: 165vh;
+    border: solid red;
+}
+
+
+/************* Animations **********/
+
+@keyframes fade-client {
+    from { opacity: 0; transform: translateY(-100%)}
+    to { opacity: 1; transform: translateY(0)}
+}
