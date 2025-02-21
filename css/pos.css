@@ -126,6 +126,35 @@
     width: 50%;
 }
 
+#actions1, #actions2{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    height: 50%;
+    border: 2px solid #300907;
+}
+
+#actions1 > button{
+    padding: 10px 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#actions2 > button {
+    padding: 10px 75px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#actions1 > button img, #actions2 > button img {
+    width: 4vh;
+    height: auto;
+}
+
+
 /************* Total **********/
 
 #info-total {
