@@ -33,75 +33,92 @@
     </div>
     <div id="content-section">
         <div class="info-client" id="info-client">
-            <div id="client-collapse" class="client-collapse">
-                <h3>Información del Cliente</h3>
-                <!--img src="../img/down.png" alt="" id="btnCollapse"-->
-            </div>
             <form action="" id="form-info-client">
                 <div class="form-group">
-                    <label for="client-name">Nombre: </label>
-                    <input type="text" id="client-name" placeholder="Introducir nombre del cliente">
+                    <label for="id-sale">No. de venta: </label>
+                    <input type="text" id="id-sale" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="sale-date">Fecha: </label>
+                    <input type="text" id="sale-date" placeholder="dd/mmm/aaaa" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="sale-time">Hora: </label>
+                    <input type="text" id="sale-time" placeholder="12:00:00" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="client-name">Cliente: </label>
+                    <input type="text" id="client-name" placeholder="Nombre">
                 </div>
                 <div class="form-group">
                     <label for="client-phone">Teléfono: </label>
-                    <input type="text" id="client-phone" placeholder="Introducir teléfono del cliente">
+                    <input type="number" id="client-phone" placeholder="0" min="1000000000" step="1">
                 </div>
                 <div class="form-group">
-                    <label for="client-mail">Correo: </label>
-                    <input type="text" id="client-mail" placeholder="Introducir correo del cliente">
+                    <label for="client-name">Correo: </label>
+                    <input type="text" id="client-name" placeholder="nombre@algo.com">
                 </div>
                 <div class="form-group">
-                    <label for="client-direction">Dirección: </label>
-                    <input type="text" id="client-direction" placeholder="Introducir dirección del cliente">
+                    <label for="client-name">Domicilio: </label>
+                    <input type="text" id="client-name" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="client-name">RFC: </label>
+                    <input type="text" id="client-name" placeholder="0">
+                </div>
+            </form>
+            <form action="" id="form-info-payment">
+                <div class="form-group">
+                    <label for="payment-method">Método de pago: </label>
+                    <select id="payment-method">
+                        <option value="">----Seleccionar----</option>
+                        <option value="efectivo">Efectivo</option>
+                        <option value="transferencia">Transferencia Bancaria</option>
+                        <option value="tarjeta">Tarjeta de Débito/Crédito</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment-form">Forma de pago:  </label>
+                    <select id="payment-form">
+                        <option value="">----Seleccionar----</option>
+                        <option value="una-exhibicion">Pago en una sola exhibición</option>
+                        <option value="plazos">Pago a plazos</option>
+                    </select>
                 </div>
             </form>
         </div>
         <div class="info-sale" id="info-sale">
-            <input type="text" placeholder="+ Agregar producto" id="addProduct-input">
-            <div class="products-details" id="products-details">
-                <div class="info-products" id="info-products">
-                    <table id="table-products" class="table-products">
-                        <thead>
-                            <tr>
-                                <th>Codigo</th>
-                                <th>Descripcion</th>
-                                <th>Precio Unitario</th>
-                                <th>Cantidad</th>
-                                <th>Importe</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="rowvoid">
-                                <td colspan="5" style="height: 35vh;"></td>
-                            </tr>
-
-                            
-                        </tbody>
-                    </table>
+            <div class="info-products" id="info-products">
+                <table id="table-products" class="table-products">
+                    <thead>
+                        <tr>
+                            <th>Codigo</th>
+                            <th>Descripcion</th>
+                            <th>Precio Unitario</th>
+                            <th>Cantidad</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="rowvoid">
+                            <td colspan="5" style="height: 35vh;"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="actions-total">
+                <div class="info-actions" id="info-actions">
+                    <div>
+                        <button>Agregar</button>
+                        <button>Borrar</button>
+                        <button>Editar</button>
+                    </div>
+                    <div>
+                        <button>Cancelar/Borrar</button>
+                        <button>Imprimir</button>
+                    </div>
                 </div>
-                <div class="info-total">
-                    <form action="" id="pay-form-method">
-                        <div class="pay-form-field p-method">
-                            <label for="payment-method">Método de pago: </label>
-                            <select id="payment-method">
-                                <option value="">----Seleccionar----</option>
-                                <option value="efectivo">Efectivo</option>
-                                <option value="transferencia">Transferencia Bancaria</option>
-                                <option value="tarjeta">Tarjeta de Débito/Crédito</option>
-                            </select>
-                        </div>
-                        <div class="pay-form-field p-form">
-                            <label for="payment-form">Forma de pago:  </label>
-                            <select id="payment-form">
-                                <option value="">----Seleccionar----</option>
-                                <option value="una-exhibicion">Pago en una sola exhibición</option>
-                                <option value="plazos">Pago a plazos</option>
-                            </select>
-                        </div>
-                        <div class="btnImpresion" id="btnImpresion">
-                            <button>Imprimir recibo</button>
-                        </div>
-                    </form>
+                <div class="info-total" id="info-total">
                     <form action="" id="total-pay-form">
                         <div class="pay-form-field">
                             <label for="monto-pagar" id="label-total">MONTO A PAGAR: </label>

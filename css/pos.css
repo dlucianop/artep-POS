@@ -1,11 +1,12 @@
 /***********************Informacion del cliente***********************/
 #info-client{
+    padding: 20px 0;
     opacity: 0;
-    margin-top: 25vh;
-    padding: 20px;
-    width: 160vh;
+    width: 90%;
     background-color: #e2b492;
+    padding-left: 50vh;
     animation: fade-client ease 2s forwards;
+    border: 2px solid #390101;
 }
 
 #client-collapse {
@@ -20,37 +21,123 @@
     height: auto;
 }*/
 
-#form-info-client{
+#form-info-client, #form-info-payment{
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    margin-top: 20px;
-    gap: 20px 80px;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 10px;
+    gap: 5px 20px;
 }
 
 .form-group{
+    width: 50vh;
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
     font-weight: bold;
 }
 
-.form-group > input {
-    width: 60vh;
+.form-group > input, .form-group > select {
+    width: 90%;
     padding: 5px 0;
     padding-left: 10px;
 }
 
 /***********************Carrito***********************/
 #info-sale{
-    width: 165vh;
-    border: solid red;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    width: 95%;
+    padding-left: 50vh;
+    padding-top: 20px;
+    background-color: #e2b492;
+    animation: fade-sale ease 2s forwards;
+    border: 2px solid #390101;
 }
 
+/********************************** TABLA DE PRODUCTOS EN VENTAs ************************************/
+#products-details{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+#info-products{
+    width: 90%;
+    height: auto;
+    justify-content: center;
+}
+
+#table-products{
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+#table-products > tbody{
+    min-height: 100px;
+}
+
+#table-products > thead tr th{
+    background-color: #300907;
+    color: white;
+    border: 2px solid white;
+    padding: 5px 0;
+}
+
+#table-products > tbody tr td{
+    width: 0;
+    background-color: whitesmoke;
+    color: #300907;
+    border: 2px solid #300907;
+}
+/*
+#table-products td:nth-child(2) {
+    padding: 10px 0;
+    width: 450px;
+}
+
+#table-products td:nth-child(3), #table-products td:nth-child(5) {
+    width: 100px;
+}
+
+#table-products td:nth-child(4) {
+    width: 250px;
+}*/
+
+#actions-total {
+    width: 90%;
+    display: flex;
+    flex-direction: row;
+    border: solid yellow;
+    justify-content: space-around;
+}
+
+/************* Actions **********/
+#info-actions {
+    border: solid red;
+    width: 60%;
+}
+
+/************* Total **********/
+
+#info-total {
+    border: solid blue;
+    width: 30%;
+}
 
 /************* Animations **********/
 
 @keyframes fade-client {
     from { opacity: 0; transform: translateY(-100%)}
+    to { opacity: 1; transform: translateY(0)}
+}
+
+@keyframes fade-sale {
+    from { opacity: 0; transform: translateY(100%)}
     to { opacity: 1; transform: translateY(0)}
 }
