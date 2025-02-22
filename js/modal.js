@@ -1,13 +1,15 @@
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     resetModalInputs(modal);
-    modal.classList.add('show');
+    document.getElementById(modalId).style.display = 'block';
+    document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     resetModalInputs(modal);
-    modal.classList.remove('show');
+    document.getElementById(modalId).style.animation = "fadeOut ease 0.5s forwards";
+    document.getElementById(modalId).style.display = 'none';
 }
 
 function resetModalInputs(modal) {
