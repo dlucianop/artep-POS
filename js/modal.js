@@ -1,34 +1,44 @@
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
-    resetModalInputs(modal);
     document.getElementById(modalId).style.display = 'block';
     document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
+    const inputs = modal.querySelectorAll('input');
+
+    let hasChanges = false;
+
+    inputs.forEach(input => {
+        if (input.value.trim() !== "" && input.value.trim() !== "0") {
+            hasChanges = true;
+        }
+    });
+
+    if (hasChanges) {
+        const confirmClose = confirm("Tienes cambios sin guardar. ¿Seguro que quieres cerrar el modal?");
+        if (!confirmClose) return;
+    }
+
     resetModalInputs(modal);
-    document.getElementById(modalId).style.animation = "fadeOut ease 0.5s forwards";
-    document.getElementById(modalId).style.display = 'none';
+    modal.style.animation = "fadeOut ease 0.5s forwards";
+
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 500);
 }
 
 function resetModalInputs(modal) {
-    const inputs = modal.querySelectorAll('input');
-    inputs.forEach(input => {
-        if (input.type === 'number' && input.value !== '0') {
-            input.value = "";
-        } else if (input.type === 'text' && input.value !== '') {
-            input.value = '';
-        }
+    modal.querySelectorAll('input').forEach(input => {
+        input.value = input.type === 'number' ? "0" : "";
     });
 
-    const selects = modal.querySelectorAll('select');
-    selects.forEach(select => {
-        if (select.selectedIndex !== 0) {
-            select.selectedIndex = 0;
-        }
+    modal.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
     });
 }
+
 
 function openEditModal(bizcocho) {
     const modal = document.getElementById('modal-editar');
