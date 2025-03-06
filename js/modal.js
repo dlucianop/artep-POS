@@ -1,5 +1,4 @@
 function openModal(modalId) {
-    const modal = document.getElementById(modalId);
     document.getElementById(modalId).style.display = 'block';
     document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }
@@ -7,19 +6,9 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     const inputs = modal.querySelectorAll('input');
-
-    let hasChanges = false;
-
-    inputs.forEach(input => {
-        if (input.value.trim() !== "" && input.value.trim() !== "0") {
-            hasChanges = true;
-        }
-    });
-
-    if (hasChanges) {
-        const confirmClose = confirm("Tienes cambios sin guardar. ¿Seguro que quieres cerrar el modal?");
-        if (!confirmClose) return;
-    }
+    /*
+    NO hacer uso de IFS, provocan errores al momento de hacer sobreescrituras
+    }*/
 
     resetModalInputs(modal);
     modal.style.animation = "fadeOut ease 0.5s forwards";
@@ -31,8 +20,12 @@ function closeModal(modalId) {
 
 function resetModalInputs(modal) {
     modal.querySelectorAll('input').forEach(input => {
-        input.value = input.type === 'number' ? "0" : "";
+        input.value = input.type === 'number' ? null : null;
     });
+
+    const resultados = document.getElementById("search-results");
+    resultados.style.display = "none";
+    resultados.innerHTML = "";
 
     modal.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
