@@ -80,7 +80,7 @@
 }
 
 #table-products > tbody{
-    min-height: 100px;
+    min-height: 60px;
 }
 
 #table-products > thead tr th{

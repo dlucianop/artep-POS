@@ -36,15 +36,15 @@
             <form action="" id="form-info-client">
                 <div class="form-group">
                     <label for="id-sale">No. de venta: </label>
-                    <input type="text" id="id-sale" placeholder="0" disabled>
+                    <input type="text" id="id-sale" placeholder="0" readonly>
                 </div>
                 <div class="form-group">
                     <label for="sale-date">Fecha: </label>
-                    <input type="text" id="sale-date" placeholder="dd/mmm/aaaa" disabled>
+                    <input type="text" id="sale-date" readonly>
                 </div>
                 <div class="form-group">
-                    <label for="sale-time">Hora: </label>
-                    <input type="text" id="sale-time" placeholder="12:00:00" disabled>
+                    <label for="sale-hour">Hora: </label>
+                    <input type="text" id="sale-hour" readonly>
                 </div>
                 <div class="form-group">
                     <label for="client-name">Cliente: </label>
@@ -55,16 +55,16 @@
                     <input type="number" id="client-phone" placeholder="0" min="1000000000" step="1">
                 </div>
                 <div class="form-group">
-                    <label for="client-name">Correo: </label>
-                    <input type="text" id="client-name" placeholder="nombre@algo.com">
+                    <label for="client-mail">Correo: </label>
+                    <input type="text" id="client-mail" placeholder="nombre@algo.com">
                 </div>
                 <div class="form-group">
-                    <label for="client-name">Domicilio: </label>
-                    <input type="text" id="client-name" placeholder="0">
+                    <label for="client-address">Domicilio: </label>
+                    <input type="text" id="client-address" placeholder="0">
                 </div>
                 <div class="form-group">
-                    <label for="client-name">RFC: </label>
-                    <input type="text" id="client-name" placeholder="0">
+                    <label for="sale-entrega">Fecha de entrega: </label>
+                    <input type="date" id="sale-entrega">
                 </div>
             </form>
             <form action="" id="form-info-payment">
@@ -231,5 +231,6 @@
     <script src="../js/window-lock.js"></script>
     <script src="../js/modal.js"></script>
     <script src="../js/pos.js"></script>
+    <script src="../js/hour-date.js"></script>
 </body>
 </html>
