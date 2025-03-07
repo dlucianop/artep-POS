@@ -95,6 +95,7 @@
     background-color: whitesmoke;
     color: #300907;
     border: 2px solid #300907;
+    text-align: center;
 }
 /*
 #table-products td:nth-child(2) {

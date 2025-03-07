@@ -30,7 +30,6 @@ function updateDate() {
 
     date.value = dateFormat;
 
-    // Calcular el tiempo hasta la próxima medianoche
     const nowTime = now.getTime();
     const midnight = new Date(now);
     midnight.setHours(24, 0, 0, 0);
@@ -38,14 +37,12 @@ function updateDate() {
 
     setTimeout(() => {
         updateDate();
-        setInterval(updateDate, 24 * 60 * 60 * 1000); // Cada 24 horas
+        setInterval(updateDate, 24 * 60 * 60 * 1000);
     }, timeUntilMidnight);
 }
 
-// Ejecutar inmediatamente
 updateHour();
 updateDate();
 
-// Actualizar la hora cada segundo
 setInterval(updateHour, 1000);
 
