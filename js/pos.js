@@ -2,6 +2,8 @@ const { join } = require('path');
 const crudJS = join(__dirname, '..', 'js', 'crud-productos.js');
 const { createProducto, readProductos, updateProducto, deleteProducto } = require(crudJS);
 const input = document.getElementById("product-by-search");
+const pago = document.getElementById("pago");
+const porcentaje_descuento = document.getElementById("porcentaje-descuento");
 
 let productos = [];
 
@@ -152,11 +154,61 @@ function agregarProductoCarrito() {
       <td>${form_productName}</td>
       <td>$${price.toFixed(2)}</td>
       <td>${quantity}</td>
-      <td>$${(price * quantity).toFixed(2)}</td>
+      <td class='importe'>$${(price * quantity).toFixed(2)}</td>
   `;
 
   tableBody.appendChild(newRow);
 
-  closeModal('addProductModal')
+  closeModal('addProductModal');
+  totalVenta();
   alert("Producto agregado al carrito.");
 }
+
+function totalVenta() {
+  const montoInput = document.getElementById("monto");
+  const porcentajeDescuentoInput = document.getElementById("porcentaje-descuento");
+  const descuentoAplicadoInput = document.getElementById("descuento");
+  const totalInput = document.getElementById("total");
+
+  const importes = document.querySelectorAll('.importe');
+
+  let total = 0;
+  importes.forEach(importe => {
+    const valorLimpio = importe.textContent.replace(/[^0-9.-]+/g, '');
+    console.log(valorLimpio);
+    total += parseFloat(valorLimpio) || 0;
+  });
+  montoInput.value = total;
+
+
+
+  const porcentajeDescuento = parseFloat(porcentajeDescuentoInput.value) || 0;
+
+  const descuentoAplicado = total * porcentajeDescuento / 100;
+
+  const totalConDescuento = total - descuentoAplicado;
+
+  descuentoAplicadoInput.value = descuentoAplicado.toFixed(2);
+  totalInput.value = totalConDescuento.toFixed(2);
+
+  updateCambio();
+}
+
+function updateCambio() {
+  const pagoValue = parseFloat(document.getElementById("pago").value) || 0;
+  const totalValue = parseFloat(document.getElementById("total").value) || 0;
+  const cambioInput = document.getElementById("cambio");
+
+  const cambio = pagoValue - totalValue;
+
+  cambioInput.value = cambio.toFixed(2);
+}
+
+document.getElementById("porcentaje-descuento").addEventListener("input", function(e) {
+  const productoPrice = parseFloat(document.getElementById("monto").value) || 0;
+  totalVenta(productoPrice);
+});
+
+document.getElementById("pago").addEventListener("input", function(e) {
+  updateCambio();
+});

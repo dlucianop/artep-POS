@@ -123,7 +123,7 @@
                         <button>
                             <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Borrar Venta
                         </button>
-                        <button>
+                        <button id="btn-imprimir">
                             <img src="../img/pos-actions/printer.png" alt="">Imprimir Ticket
                         </button>
                     </div>
@@ -134,17 +134,17 @@
                             <label for="monto">Monto: </label>
                             <div class="pay-form-data">
                                 <label>$
-                                    <input type="number" id="monto" disabled value="0.00">
+                                    <input type="number" id="monto" readonly placeholder="0.00">
                                 </label>
                             </div>
                         </div>
                         <div class="total-field">
-                            <label for="descuento">
-                                <input type="number" min="0" max="100">% descuento: 
+                            <label for="porcentaje-descuento">
+                                <input type="number" min="0" max="100" id="porcentaje-descuento" value="0">% descuento: 
                             </label>
                             <div class="pay-form-data">
-                                <label>$
-                                    <input type="number" id="monto" disabled value="0.00">
+                                <label for="descuento">$
+                                    <input type="number" id="descuento" readonly value="0.00">
                                 </label>
                             </div>
                         </div>
@@ -157,10 +157,19 @@
                             </div>
                         </div>
                         <div class="total-field">
-                            <label for="total">Total: </label>
+                            <label for="total">TOTAL: </label>
                             <div class="pay-form-data">
                                 <label>$
-                                    <input type="number" id="total" disabled>
+                                    <input type="number" id="total" readonly value="0.00">
+                                </label>
+                                
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="cambio">Cambio: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="cambio" readonly value="0.00">
                                 </label>
                                 
                             </div>
