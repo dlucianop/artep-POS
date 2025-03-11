@@ -1,20 +1,29 @@
 {
   "name": "artep-pos",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ."
   },
-  "author": "dlucianop31",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dlucianop/artep-POS.git"
+  },
+  "keywords": [],
+  "author": "dlucianop",
   "license": "ISC",
-  "description": "",
   "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dlucianop/artep-POS/issues"
+  },
+  "homepage": "https://github.com/dlucianop/artep-POS#readme",
+  "description": "",
   "dependencies": {
+    "electron": "^35.0.1",
+    "jquery": "^3.7.1",
+    "jquery-ui-dist": "^1.13.3",
     "jspdf": "^3.0.0",
     "sqlite3": "^5.1.7"
-  },
-  "devDependencies": {
-    "electron": "^33.4.1"
   }
 }
