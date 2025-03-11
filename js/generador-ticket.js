@@ -1,29 +1,47 @@
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
-const { app } = require('electron');
+const { jsPDF } = require("jspdf");
+const fs = require("fs");
+const path = require("path");
+const { dialog } = require("electron"); // Agregar esto
 
-function generarPDF(ticketData) {
-  const downloadsPath = app.getPath('downloads');
-  const pdfPath = path.join(downloadsPath, 'ticket.pdf');
+function generarRecibo() {
+  const doc = new jsPDF();
 
-  const doc = new PDFDocument();
+  const cliente = "Juan Pérez";
+  const fecha = new Date().toLocaleDateString();
+  const concepto = "Pago de servicio de cerámica";
+  const monto = "$150.00 USD";
+  const empresa = "Taller Artep";
 
-  const stream = fs.createWriteStream(pdfPath);
-  doc.pipe(stream);
-  doc.fontSize(18).text("Ticket", { align: "center" });
-  doc.moveDown();
-  doc.fontSize(12).text("Contenido del ticket...");
-  
-  if (ticketData) {
-    doc.text(ticketData);
-  }
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("RECIBO DE PAGO", 80, 20);
 
-  doc.end();
+  doc.setFontSize(12);
+  doc.text(`Empresa: ${empresa}`, 20, 40);
+  doc.text(`Fecha: ${fecha}`, 20, 50);
+  doc.text(`Cliente: ${cliente}`, 20, 60);
+  doc.text(`Concepto: ${concepto}`, 20, 70);
+  doc.text(`Monto: ${monto}`, 20, 80);
 
-  stream.on('finish', () => {
-    console.log('PDF generado en:', pdfPath);
+  doc.line(20, 100, 100, 100);
+  doc.text("Firma", 20, 110);
+
+  // Obtener el PDF como Uint8Array
+  const pdfBytes = doc.output("arraybuffer");
+
+  // Ruta donde se guardará el PDF
+  const rutaGuardado = path.join(__dirname, "recibo_pago.pdf");
+
+  // Guardar el archivo usando fs
+  fs.writeFile(rutaGuardado, Buffer.from(pdfBytes), (err) => {
+    if (err) {
+      dialog.showErrorBox("Error", "No se pudo guardar el recibo: " + err.message);
+    } else {
+      dialog.showMessageBoxSync({
+        type: "info",
+        title: "Éxito",
+        message: `Recibo guardado en: ${rutaGuardado}`
+      });
+    }
   });
 }
-
-module.exports = { generarPDF };

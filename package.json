@@ -11,7 +11,7 @@
   "description": "",
   "type": "commonjs",
   "dependencies": {
-    "pdfkit": "^0.16.0",
+    "jspdf": "^3.0.0",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
