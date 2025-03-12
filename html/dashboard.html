@@ -2,79 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Dashboard | Artep Ceramica</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerámica Artep | Dashboard</title>
     <link rel="stylesheet" href="../css/index.css">
-    <link rel="stylesheet" href="../css/constructor.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <nav class="sidebar">
-        <ul>
-            <li class="btnMenu">
-                <a href="punto-de-venta.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/point-of-sale.png" alt="" class="menu-img no-active">Punto de venta
-                </a>
-            </li>
-            <li class="btnMenu">
-                <a href="produccion.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/production-line.png" alt="" class="menu-img no-active">Panel de Producción
-                </a>
-            </li>
-            <li class="btnMenu">
-                <a href="inv-piezas.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/fire.png" alt="" class="menu-img no-active">Inventario de Bizcochos
-                </a>
-            </li>
-            <li class="btnMenu">
-                <a href="inv-productos.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/vase.png" alt="" class="menu-img no-active">Inventario de Productos
-                </a>
-            </li>
-            <li class="btnMenu">
-                <a href="ventas.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/history.png" alt="" class="menu-img no-active">Historial de Ventas
-                </a>
-            </li>
-            <li class="selected-page">
-                <a class="txtMenu">
-                    <img src="../img/dashboard1.png" alt="" class="menu-img no-active">Dashboard
-                </a>
-            </li>
-            <li class="btnMenu">
-                <a href="configuracion.html" class="txtMenu link" onclick="showLoader(this, event)">
-                    <img src="../img/settings.png" alt="" class="menu-img no-active">Configuración
-                </a>
-            </li>
-            <li>
-                <img src="../img/logo-artep.jpeg" alt="" class="logo-principal">
-            </li>
-        </ul>
-    </nav>
-    <section class="content-container loader-container" style="display: none;">
-        <div id="loader" class="loader">
-            <img src="../img/clay-crafting.png" alt="Cargando...">
-        </div>
-    </section>
-    <section class="content-container section" id="dashboard">
-        <div class="constructor-container">
-            <div class="gear-container">
-                <img src="../img/gear-a.png" alt="Gear 1" class="gear gear1">
-                <img src="../img/gear2-a.png" alt="Gear 2" class="gear gear2">
-              </div>          
-            <h1>¡Estamos trabajando en ello!</h1>
-            <p>Esta página está en construcción. Vuelva pronto para descubrir las actualizaciones y novedades.</p>
-            <p>Gracias por su paciencia.</p>
-            <div class="contact">
-                <p>¿Tienes dudas? Contáctame:</p>
-                <p>📞 Teléfono: <a href="tel:+527121174402">+52 (712)117-4402</a></p>
-                <p>📧 Correo: <a href="mailto:3112dlp@gmail.com">3112dlp@gmail.com</a></p>
-            </div>
-        </div>
-    </section>
-
-    <script src="../js/load-page.js"></script>
+    <div id="nav-menu">
+        <a href="index.html" class="menu-btn">Punto de Venta
+            <img src="../img/nav-icons/point-of-sale.png" alt="">
+        </a>
+        <a href="produccion.html" class="menu-btn">Panel de Producción
+            <img src="../img/nav-icons/production-line.png" alt="">
+        </a>
+        <a href="bizcochos.html" class="menu-btn">Inventario de Bizcochos
+            <img src="../img/nav-icons/fire.png" alt="">
+        </a>
+        <a href="productos.html" class="menu-btn">Inventario de Productos
+            <img src="../img/nav-icons/vase.png" alt="">
+        </a>
+        <a href="ventas.html" class="menu-btn">Historial de Ventas
+            <img src="../img/nav-icons/history.png" alt="">
+        </a>
+        <a href="dashboard.html" class="selected-btn">Dashboard
+            <img src="../img/nav-icons/dashboard1.png" alt="">
+        </a>
+        <a href="configuracion.html" class="menu-btn">Configuración
+            <img src="../img/nav-icons/settings.png" alt="">
+        </a>
+    </div>
+    <div id="content-section">
+    </div>
+    <script src="../js/window-lock.js"></script>
 </body>
 </html>

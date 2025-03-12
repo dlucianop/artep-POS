@@ -1,32 +1,37 @@
 function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    resetModalInputs(modal);
-    modal.classList.add('show');
+    document.getElementById(modalId).style.display = 'block';
+    document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
+    const inputs = modal.querySelectorAll('input');
+    /*
+    NO hacer uso de IFS, provocan errores al momento de hacer sobreescrituras
+    }*/
+
     resetModalInputs(modal);
-    modal.classList.remove('show');
+    modal.style.animation = "fadeOut ease 0.5s forwards";
+
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 500);
 }
 
 function resetModalInputs(modal) {
-    const inputs = modal.querySelectorAll('input');
-    inputs.forEach(input => {
-        if (input.type === 'number' && input.value !== '0') {
-            input.value = "";
-        } else if (input.type === 'text' && input.value !== '') {
-            input.value = '';
-        }
+    modal.querySelectorAll('input').forEach(input => {
+        input.value = input.type === 'number' ? null : null;
     });
 
-    const selects = modal.querySelectorAll('select');
-    selects.forEach(select => {
-        if (select.selectedIndex !== 0) {
-            select.selectedIndex = 0;
-        }
+    const resultados = document.getElementById("search-results");
+    resultados.style.display = "none";
+    resultados.innerHTML = "";
+
+    modal.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
     });
 }
+
 
 function openEditModal(bizcocho) {
     const modal = document.getElementById('modal-editar');

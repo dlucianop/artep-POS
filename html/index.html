@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cerámica Artep | Punto de Venta</title>
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/pos.css">
+</head>
+<body>
+    <div id="nav-menu">
+        <a class="selected-btn">Punto de Venta
+            <img src="../img/nav-icons/point-of-sale1.png" alt="">
+        </a>
+        <a href="produccion.html" class="menu-btn">Panel de Producción
+            <img src="../img/nav-icons/production-line.png" alt="">
+        </a>
+        <a href="bizcochos.html" class="menu-btn">Inventario de Bizcochos
+            <img src="../img/nav-icons/fire.png" alt="">
+        </a>
+        <a href="productos.html" class="menu-btn">Inventario de Productos
+            <img src="../img/nav-icons/vase.png" alt="">
+        </a>
+        <a href="ventas.html" class="menu-btn">Historial de Ventas
+            <img src="../img/nav-icons/history.png" alt="">
+        </a>
+        <a href="dashboard.html" class="menu-btn">Dashboard
+            <img src="../img/nav-icons/dashboard.png" alt="">
+        </a>
+        <a href="configuracion.html" class="menu-btn">Configuración
+            <img src="../img/nav-icons/settings.png" alt="">
+        </a>
+    </div>
+    <div id="content-section">
+        <div class="info-client" id="info-client">
+            <form action="" id="form-info-client">
+                <div class="form-group">
+                    <label for="id-sale">No. de venta: </label>
+                    <input type="text" id="id-sale" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="sale-date">Fecha: </label>
+                    <input type="text" id="sale-date" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="sale-hour">Hora: </label>
+                    <input type="text" id="sale-hour" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="client-name">Cliente: </label>
+                    <input type="text" id="client-name" placeholder="Nombre">
+                </div>
+                <div class="form-group">
+                    <label for="client-phone">Teléfono: </label>
+                    <input type="number" id="client-phone" placeholder="0" min="1000000000" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="client-mail">Correo: </label>
+                    <input type="text" id="client-mail" placeholder="nombre@algo.com">
+                </div>
+                <div class="form-group">
+                    <label for="client-address">Domicilio: </label>
+                    <input type="text" id="client-address" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label for="sale-entrega">Fecha de entrega: </label>
+                    <input type="date" id="sale-entrega" required>
+                </div>
+            </form>
+            <form action="" id="form-info-payment">
+                <div class="form-group">
+                    <label for="payment-method">Método de pago: </label>
+                    <select id="payment-method">
+                        <option value="">----Seleccionar----</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
+                        <option value="Tarjeta de Débito/Crédito">Tarjeta de Débito/Crédito</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payment-form">Forma de pago:  </label>
+                    <select id="payment-form">
+                        <option value="">----Seleccionar----</option>
+                        <option value="Pago en una sola exhibición">Pago en una sola exhibición</option>
+                        <option value="Pago a plazos">Pago a plazos</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="info-sale" id="info-sale">
+            <div class="info-products" id="info-products">
+                <table id="table-products" class="table-products">
+                    <thead>
+                        <tr>
+                            <th>Codigo</th>
+                            <th>Descripcion</th>
+                            <th>Precio Unitario</th>
+                            <th>Cantidad</th>
+                            <th>Importe</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="rowvoid">
+                            <td colspan="5"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="actions-total">
+                <div class="info-actions" id="info-actions">
+                    <div id="actions1">
+                        <button onclick="openModal('addProductModal'); revisarAlmacen()">
+                            <img src="../img/pos-actions/add.png" alt="">Agregar Producto
+                        </button>
+                        <button id="deleteProductBtn" disabled onclick="deleteProduct()">
+                            <img src="../img/pos-actions/minus.png" alt="">Borrar Producto
+                        </button>
+                        <button id="editProductBtn" disabled onclick="openModal('editProductModal')">
+                            <img src="../img/pos-actions/edit.png" alt="">Editar Producto
+                        </button>
+                    </div>
+                    <div id="actions2">
+                        <button>
+                            <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Borrar Venta
+                        </button>
+                        <button id="btn-imprimir" onclick="generarRecibo()">
+                            <img src="../img/pos-actions/printer.png" alt="">Imprimir Ticket
+                        </button>
+                    </div>
+                </div>
+                <div class="info-total" id="info-total">
+                    <form action="" id="total-pay-form">
+                        <div class="total-field">
+                            <label for="monto">Monto: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="monto" readonly placeholder="0.00">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="porcentaje-descuento">
+                                <input type="number" min="0" max="100" id="porcentaje-descuento" value="0">% descuento: 
+                            </label>
+                            <div class="pay-form-data">
+                                <label for="descuento">$
+                                    <input type="number" id="descuento" readonly value="0.00">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="pago">Pago: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="pago">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="total">TOTAL: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="total" readonly value="0.00">
+                                </label>
+                                
+                            </div>
+                        </div>
+                        <div class="total-field">
+                            <label for="cambio">Cambio: </label>
+                            <div class="pay-form-data">
+                                <label>$
+                                    <input type="number" id="cambio" readonly value="0.00">
+                                </label>
+                                
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Modales -->
+        <div>
+            <div id="addProductModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('addProductModal')">&times;</span>
+                    
+                    <div id="modal-content-1">
+                        <input type="text" placeholder="Buscar producto" id="product-by-search">
+                        <div id="search-results" class="dropdown-list"></div>
+                    </div>
+                    
+                    <div id="modal-content-2">
+                        <form action="" id="modalAdd-form">
+                            <div class="product-form-field">
+                                <label for="productCode">Código del Producto: </label>
+                                <input type="text" id="productCode" placeholder="Código del Producto" required>
+                            </div>
+        
+                            <div class="product-form-field">
+                                <label for="productCategory">Categoria: </label>
+                                <input type="text" id="productCategory" required>
+                            </div>
+
+                            <div class="product-form-field">
+                                <label for="productModel">Modelo: </label>
+                                <input type="text" id="productModel" required>
+                            </div>
+
+                            <div class="product-form-field">
+                                <label for="productSize">Tamaño: </label>
+                                <input type="text" id="productSize" required>
+                            </div>
+
+                            <div class="product-form-field">
+                                <label for="productDecoration">Decoración: </label>
+                                <input type="text" id="productDecoration" required>
+                            </div>
+
+                            <div class="product-form-field">
+                                <label for="productColor">Color: </label>
+                                <input type="text" id="productColor" required>
+                            </div>
+        
+                            <div class="product-form-field">
+                                <label for="productPrice">Precio Unitario: </label>
+                                <input type="number" id="productPrice" placeholder="0" min="1" required>
+                            </div>
+        
+                            <div class="product-form-field">
+                                <label for="productStock">Productos en Bodega: </label>
+                                <input type="number" id="productStock" placeholder="0" min="1" step="1" required>
+                            </div>
+        
+                            <div class="product-form-field">
+                                <label for="productQuantity">Pedido/Cantidad: </label>
+                                <input type="number" id="productQuantity" placeholder="0" min="1" step="1" required>
+                            </div>
+        
+                            <button type="button" onclick="agregarProductoCarrito()">
+                                <img src="../img/pos-actions/add.png" alt="">Agregar Producto
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="editProductModal" class="modal">
+                <div class="modal-content">
+                    <span class="close" onclick="closeModal('editProductModal')">&times;</span>
+                    <form id="editProductForm">
+                        <input type="text" id="editProductName" placeholder="Nombre del Producto">
+                        <input type="number" id="editProductPrice" placeholder="Precio Unitario">
+                        <input type="number" id="editProductQuantity" placeholder="Cantidad">
+                        <button type="submit">Guardar Cambios</button>
+                  </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="../js/window-lock.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/pos.js"></script>
+    <script src="../js/hour-date.js"></script>
+    <script src="../js/generador-ticket.js"></script>
+</body>
+</html>
