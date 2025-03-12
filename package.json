@@ -12,6 +12,7 @@
   "type": "commonjs",
   "dependencies": {
     "jspdf": "^3.0.0",
+    "jspdf-autotable": "^5.0.2",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
