@@ -169,7 +169,6 @@ function generarRecibo() {
     const nombre = `VentaNo${idVenta}_${currentDate}.pdf`;
     const rutaGuardado = path.join(os.homedir(), "Downloads", nombre);
 
-    // Guardar el archivo usando fs (esto funciona en entornos Node/Electron)
     fs.writeFile(rutaGuardado, Buffer.from(pdfBytes), (err) => {
         if (err) {
         alert("No se pudo guardar el recibo: " + err.message);

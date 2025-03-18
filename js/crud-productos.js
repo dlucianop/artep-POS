@@ -105,7 +105,7 @@ function updateProducto(producto, callback) {
                 return callback(err, null);
             }
 
-            console.log(`Producto con codigo ${producto.code} actualizado correctamente.`);
+            console.log(`Producto con codigo ${producto.codeE} actualizado correctamente.`);
 
             const updatedProducto = {
                 id: producto.codeE,

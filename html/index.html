@@ -63,7 +63,7 @@
                     <input type="text" id="client-address" placeholder="0">
                 </div>
                 <div class="form-group">
-                    <label for="sale-entrega">Fecha de entrega: </label>
+                    <label for="sale-entrega">*Fecha de entrega: </label>
                     <input type="date" id="sale-entrega" required>
                 </div>
             </form>
@@ -94,9 +94,9 @@
                         <tr>
                             <th>Codigo</th>
                             <th>Descripcion</th>
-                            <th>Precio Unitario</th>
+                            <th>Precio Unitario($)</th>
                             <th>Cantidad</th>
-                            <th>Importe</th>
+                            <th>Importe($)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -123,7 +123,7 @@
                         <button>
                             <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Borrar Venta
                         </button>
-                        <button id="btn-imprimir" onclick="generarRecibo()">
+                        <button id="btn-imprimir" onclick="imprimirRecibo()" type="submit">
                             <img src="../img/pos-actions/printer.png" alt="">Imprimir Ticket
                         </button>
                     </div>
@@ -198,7 +198,30 @@
         
                             <div class="product-form-field">
                                 <label for="productCategory">Categoria: </label>
-                                <input type="text" id="productCategory" required>
+                                <select name="" id="productCategory">
+                                    <option value="" disabled selected>-- Elija una categoría --</option>
+                                    <option value="Vaso">Vaso</option>
+                                    <option value="Taza">Taza</option>
+                                    <option value="Plato">Plato</option>
+                                    <option value="Jarrón">Jarrón</option>
+                                    <option value="Termo">Termo</option>
+                                    <option value="Maceta">Maceta</option>
+                                    <option value="Cuenco">Cuenco</option>
+                                    <option value="Decoración de pared">Decoración de pared</option>
+                                    <option value="Escultura">Escultura</option>
+                                    <option value="Figuras">Figuras</option>
+                                    <option value="Lámpara">Lámpara</option>
+                                    <option value="Florero">Florero</option>
+                                    <option value="Tetera">Tetera</option>
+                                    <option value="Vasija">Vasija</option>
+                                    <option value="Ladrillo decorativo">Ladrillo decorativo</option>
+                                    <option value="Azulejos">Azulejos</option>
+                                    <option value="Plato de sobremesa">Plato de sobremesa</option>
+                                    <option value="Tazón">Tazón</option>
+                                    <option value="Salero y/o pimentero">Salero y/o pimentero</option>
+                                    <option value="Candelabro">Candelabro</option>
+                                </select>
+                                <!--input type="text" id="productCategory" required-->
                             </div>
 
                             <div class="product-form-field">
@@ -208,7 +231,21 @@
 
                             <div class="product-form-field">
                                 <label for="productSize">Tamaño: </label>
-                                <input type="text" id="productSize" required>
+                                <select name="" id="productSize">
+                                    <option value="" disabled selected>-- Elija un tamaño --</option>
+                                    <option value="Mini">Mini</option>
+                                    <option value="Pequeño">Pequeño</option>
+                                    <option value="Mediano">Mediano</option>
+                                    <option value="Grande">Grande</option>
+                                    <option value="Extra Grande">Extra Grande</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                </select>
+                                <!--input type="text" id="productSize" required-->
                             </div>
 
                             <div class="product-form-field">

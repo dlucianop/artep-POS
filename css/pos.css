@@ -268,7 +268,7 @@
     width: 100%;
 }
 
-.product-form-field > input{
+.product-form-field > input, .product-form-field > select{
     width: 75%;
     padding: 5px 0;
     padding-left: 10px;
