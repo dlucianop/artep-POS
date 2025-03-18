@@ -3,7 +3,6 @@ const dbJS = path.join(__dirname,'..', 'js', 'connection.js');
 const { openDataBase, closeDatabase } = require(dbJS);
 
 function createProducto(producto, callback){
-    console.log(producto);
     const db = openDataBase();
     const query = `
         INSERT INTO inventario_productos
