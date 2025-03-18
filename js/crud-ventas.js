@@ -133,4 +133,113 @@ function deleteVenta(datos_venta, callback){
     );
 }
 
-module.exports = { createVenta, readVentas, updateVenta, deleteVenta }
+/**          DETALLES DE VENTA      */
+function createVentaDETALLES(detalles_venta, callback){
+    const db = openDataBase();
+    const query = `
+        INSERT INTO detalles_venta
+            id_detalle, id_venta, code, category, model, price, num_piezas_pedido)
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    db.run(query, 
+        [
+            detalles_venta.id_detalleV, 
+            detalles_venta.id_ventaV,
+            detalles_venta.codeV,
+            detalles_venta.categoryV,
+            detalles_venta.modelV, 
+            detalles_venta.priceV, 
+            detalles_venta.num_piezas_pedidoV
+        ], 
+        function (err) {
+            if (err) {
+                console.error(`[ERROR-detalle] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                callback(err, null);
+                return;
+            }
+
+            setTimeout(() => {
+                const newDetalle = {
+                    id_detalle: detalles_venta.id_detalleV, 
+                    id_venta: detalles_venta.id_ventaV,
+                    code: detalles_venta.codeV,
+                    category: detalles_venta.categoryV,
+                    model: detalles_venta.modelV, 
+                    price: detalles_venta.priceV, 
+                    pedido: detalles_venta.num_piezas_pedidoV
+                };
+                console.log(`Detalle de venta Registrada con exito: ${newDetalle.id_detalle}`);
+                closeDatabase(db);
+                callback(null, newVenta);
+            }, 500);
+        }
+    );
+}
+
+function readVentasDetalle(detalles_venta, callback) {
+    const db = openDataBase();
+    const query = `
+        SELECT *
+        FROM detalles_venta
+        WHERE id_venta = ?;
+    `;
+
+    try {
+        db.all(query, [], (err, rows) => {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                callback(err, null);
+                return;
+            }
+            console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
+            callback(null, rows);
+        });
+    } catch (err) {
+        console.error(`[CRITICAL] Error inesperado: ${err.message}`);
+        callback(err, null);
+    } finally {
+        closeDatabase(db);
+        console.log('[INFO] Conexión a la base de datos cerrada.');
+    }
+}
+
+function updateVentaDetalle(detalles_venta, callback) {
+    /*en proceso */
+}
+
+function deleteVentaDetalle(detalles_venta, callback){
+    const db = openDataBase();
+    const query = `
+        DELETE
+        FROM detalles_venta
+        WHERE id_venta = ?;
+    `;
+
+    db.run(
+        query,
+        [
+            detalles_venta.id_ventaV
+        ],
+        function (err) {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                return callback(err, null);
+            }
+
+            console.log(`Venta con codigo ${datos_venta.id_ventaV} eliminada correctamente.`);
+
+            const deleteddetalles = {
+                id_venta: detalles_venta.id_ventaV, 
+            };
+
+            closeDatabase(db);
+            callback(null, deleteddetalles);
+        }
+    );
+}
+
+
+module.exports = { createVenta, readVentas, updateVenta, deleteVenta, createVentaDETALLES, readVentasDetalle, updateVentaDetalle, deleteVentaDetalle }
