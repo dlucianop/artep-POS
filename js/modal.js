@@ -6,9 +6,6 @@ function openModal(modalId) {
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     const inputs = modal.querySelectorAll('input');
-    /*
-    NO hacer uso de IFS, provocan errores al momento de hacer sobreescrituras
-    }*/
 
     resetModalInputs(modal);
     modal.style.animation = "fadeOut ease 0.5s forwards";

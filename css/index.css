@@ -88,3 +88,26 @@ body {
     from { opacity: 1; display: block; }
     to { opacity: 0; display: none; }
 }
+
+#simple-toast {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 24px 48px;
+    border-radius: 50px;
+    font-family: Arial;
+    font-size: 28px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 9999;
+    min-width: 300px;
+    text-align: center;
+    pointer-events: none; 
+}
+
+#simple-toast.show-toast {
+    opacity: 1;
+}

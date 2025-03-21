@@ -138,7 +138,7 @@ function createVentaDETALLES(detalles_venta, callback){
     const db = openDataBase();
     const query = `
         INSERT INTO detalles_venta
-            id_detalle, id_venta, code, category, model, price, num_piezas_pedido)
+            (id_detalle, id_venta, code, category, model, price, num_piezas_pedido)
         VALUES (?, ?, ?, ?, ?, ?, ?);
     `;
 
