@@ -64,8 +64,14 @@ function renderResults(filteredProducts) {
                     document.getElementById("productDecoration").value = `${producto.decoration}`;
                     document.getElementById("productColor").value = `${producto.color}`;
                     document.getElementById("productPrice").value = `${producto.price}`;
-                    document.getElementById("productStock").value = `${producto.stock}`;
-                    document.getElementById("productQuantity").value = 1;
+
+                    document.getElementById("product-stock-disponible").value = `${producto.stock_disponible}`;
+                    document.getElementById("product-stock-apartado").value = `${producto.stock_apartado}`;
+                    document.getElementById("product-stock-real").value = `${producto.stock_real}`;
+                    document.getElementById("product-stock-proceso").value = `${producto.stock_en_proceso}`;
+                    document.getElementById("product-stock-min").value = `${producto.stock_min}`;
+                    document.getElementById("product-stock-max").value = `${producto.stock_max}`;
+                    document.getElementById("product-stock-critico").value = `${producto.stock_critico}`;
                 });
                 ul.appendChild(li);
             });
