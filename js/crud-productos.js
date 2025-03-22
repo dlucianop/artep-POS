@@ -8,7 +8,7 @@ function createProducto(producto, callback){
     const db = openDataBase();
     const query = `
         INSERT INTO inventario_productos 
-            ("code", "category", "model", "size", "decoration", "color", "price", "stock_disponible", "stock_apartado", "stock_real", "stock_en_proceso", "stock_min", "stock_max", "stock_critico") 
+            ("code", "category", "model", "size", "decoration", "color", "price", "stock_total", "stock_apartado", "stock_disponible", "stock_en_proceso", "stock_min", "stock_max", "stock_critico") 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
 
@@ -21,9 +21,9 @@ function createProducto(producto, callback){
             producto.decorationA, 
             producto.colorA,
             producto.priceA,
-            producto.stock_disponibleA,
+            producto.stock_totalA,
             producto.stock_apartadoA,
-            producto.stock_realA,
+            producto.stock_disponibleA,
             producto.stock_en_procesoA,
             producto.stock_minA,
             producto.stock_maxA,
@@ -46,9 +46,9 @@ function createProducto(producto, callback){
                     decoracion: producto.decorationA,
                     color: producto.colorA,
                     precio: producto.priceA,
-                    disponible: producto.stock_disponibleA,
+                    total: producto.stock_totalA,
                     apartado: producto.stock_apartadoA,
-                    real: producto.stock_realA,
+                    disponible: producto.stock_disponibleA,
                     proceso: producto.stock_en_procesoA,
                     min: producto.stock_minA,
                     max: producto.stock_maxA,
@@ -90,7 +90,7 @@ function updateProducto(producto, callback) {
     const db = openDataBase();
     const query = `
         UPDATE inventario_productos
-        SET category = ?, model = ?, size = ?, decoration = ?, color = ?, price = ?, stock_disponible = ?, stock_apartado = ?, stock_real = ?, stock_en_proceso = ?, stock_min = ?, stock_max = ?, stock_critico = ?
+        SET category = ?, model = ?, size = ?, decoration = ?, color = ?, price = ?, stock_total = ?, stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_min = ?, stock_max = ?, stock_critico = ?
         WHERE code = ?;
     `;
     db.run(
@@ -102,9 +102,9 @@ function updateProducto(producto, callback) {
             producto.decorationE, 
             producto.colorE,
             producto.priceE,
-            producto.stock_disponibleE,
+            producto.stock_totalE,
             producto.stock_apartadoE,
-            producto.stock_realE,
+            producto.stock_disponibleE,
             producto.stock_en_procesoE,
             producto.stock_minE,
             producto.stock_maxE,
@@ -127,9 +127,9 @@ function updateProducto(producto, callback) {
                 decoracion: producto.decorationE,
                 color: producto.colorE,
                 precio: producto.priceE,
-                disponible: producto.stock_disponibleE,
+                total: producto.stock_totalE,
                 apartado: producto.stock_apartadoE,
-                real: producto.stock_realE,
+                disponible: producto.stock_disponibleE,
                 proceso: producto.stock_en_procesoE,
                 min: producto.stock_minE,
                 max: producto.stock_maxE,

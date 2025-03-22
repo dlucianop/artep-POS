@@ -34,41 +34,49 @@
     <div id="content-section">
         <div class="info-client" id="info-client">
             <form action="" id="form-info-client">
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="id-sale">No. de venta: </label>
                     <input type="text" id="id-sale" placeholder="0" required>
+                    <span class="tooltiptext">Número de la venta.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="sale-date">Fecha: </label>
                     <input type="text" id="sale-date" readonly>
+                    <span class="tooltiptext">Fecha en que se realiza la venta.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="sale-hour">Hora: </label>
                     <input type="text" id="sale-hour" readonly>
+                    <span class="tooltiptext">Hora en que se realiza la venta.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="client-name">Cliente: </label>
                     <input type="text" id="client-name" placeholder="Nombre">
+                    <span class="tooltiptext">Nombre del cliente que realiza la compra.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="client-phone">Teléfono: </label>
                     <input type="number" id="client-phone" placeholder="0" min="1000000000" step="1">
+                    <span class="tooltiptext">Número de teléfono del cliente para contacto.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="client-mail">Correo: </label>
                     <input type="text" id="client-mail" placeholder="nombre@algo.com">
+                    <span class="tooltiptext">Correo electrónico del cliente para confirmaciones.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="client-address">Domicilio: </label>
                     <input type="text" id="client-address" placeholder="0">
+                    <span class="tooltiptext">Domicilio del cliente para la entrega del pedido.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="sale-entrega">*Fecha de entrega: </label>
                     <input type="date" id="sale-entrega" required>
+                    <span class="tooltiptext">Fecha estimada para la entrega del pedido.</span>
                 </div>
             </form>
             <form action="" id="form-info-payment">
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="payment-method">Método de pago: </label>
                     <select id="payment-method">
                         <option value="">----Seleccionar----</option>
@@ -76,14 +84,16 @@
                         <option value="Transferencia Bancaria">Transferencia Bancaria</option>
                         <option value="Tarjeta de Débito/Crédito">Tarjeta de Débito/Crédito</option>
                     </select>
+                    <span class="tooltiptext">Método de pago seleccionado por el cliente.</span>
                 </div>
-                <div class="form-group">
+                <div class="form-group tooltip">
                     <label for="payment-form">Forma de pago:  </label>
                     <select id="payment-form">
                         <option value="">----Seleccionar----</option>
                         <option value="Pago en una sola exhibición">Pago en una sola exhibición</option>
                         <option value="Pago a plazos">Pago a plazos</option>
                     </select>
+                    <span class="tooltiptext">Forma en que se realizará el pago del pedido.</span>
                 </div>
             </form>
         </div>
@@ -132,46 +142,49 @@
                     <form action="" id="total-pay-form">
                         <div class="total-field">
                             <label for="monto">Monto: </label>
-                            <div class="pay-form-data">
+                            <div class="pay-form-data tooltip">
                                 <label>$
                                     <input type="number" id="monto" readonly placeholder="0.00">
                                 </label>
+                                <span class="tooltiptext">Monto total de los productos.</span>
                             </div>
                         </div>
                         <div class="total-field">
                             <label for="porcentaje-descuento">
                                 <input type="number" min="0" max="100" id="porcentaje-descuento" value="0">% descuento: 
                             </label>
-                            <div class="pay-form-data">
+                            <div class="pay-form-data tooltip">
                                 <label for="descuento">$
                                     <input type="number" id="descuento" readonly value="0.00">
                                 </label>
+                                <span class="tooltiptext">Descuento aplicado a la compra.</span>
                             </div>
                         </div>
                         <div class="total-field">
                             <label for="pago">Pago: </label>
-                            <div class="pay-form-data">
+                            <div class="pay-form-data tooltip">
                                 <label>$
                                     <input type="number" id="pago">
                                 </label>
+                                <span class="tooltiptext">Cantidad de dinero entregada por el cliente.</span>
                             </div>
                         </div>
                         <div class="total-field">
                             <label for="total">TOTAL: </label>
-                            <div class="pay-form-data">
+                            <div class="pay-form-data tooltip">
                                 <label>$
                                     <input type="number" id="total" readonly value="0.00">
                                 </label>
-                                
+                                <span class="tooltiptext">Monto total a pagar después de aplicar descuentos.</span>
                             </div>
                         </div>
                         <div class="total-field">
                             <label for="cambio">Cambio: </label>
-                            <div class="pay-form-data">
+                            <div class="pay-form-data tooltip">
                                 <label>$
                                     <input type="number" id="cambio" readonly value="0.00">
                                 </label>
-                                
+                                <span class="tooltiptext">Dinero que se le devuelve al cliente si pagó de más.</span>
                             </div>
                         </div>
                     </form>
@@ -221,7 +234,6 @@
                                     <option value="Salero y/o pimentero">Salero y/o pimentero</option>
                                     <option value="Candelabro">Candelabro</option>
                                 </select>
-                                <!--input type="text" id="productCategory" required-->
                             </div>
 
                             <div class="product-form-field">
@@ -240,9 +252,10 @@
                             </div>
         
                             <div id="product-stocks">
-                                <div class="product-form-field">
+                                <div class="product-form-field tooltip">
                                     <label for="productPrice">Precio Unit. ($): </label>
                                     <input type="number" id="productPrice" placeholder="0" min="1" required>
+                                    <span class="tooltiptext">Costo individual de cada producto.</span>
                                 </div>
 
                                 <div class="product-form-field">
@@ -261,44 +274,19 @@
                                         <option value="5">5</option>
                                         <option value="6">6</option>
                                     </select>
-                                    <!--input type="text" id="productSize" required-->
                                 </div>
 
-                                <div class="product-form-field">
-                                    <label for="product-stock-disponible">Stock Disponible: </label>
+                                <div class="product-form-field tooltip">
+                                    <label for="product-stock-disponible">Stock Disponible:</label>
                                     <input type="number" id="product-stock-disponible" placeholder="0" step="1" min="0" value="0">
+                                    <span class="tooltiptext">Este campo muestra el stock disponible para la venta.</span>
                                 </div>
 
-                                <div class="product-form-field">
-                                    <label for="product-stock-apartado">Stock Apartado:</label>
-                                    <input type="number" id="product-stock-apartado" placeholder="0" step="1" min="0" value="0">
+                                <div class="product-form-field tooltip">
+                                    <label for="product-stock-pedido">Pedido:</label>
+                                    <input type="number" id="product-stock-pedido" placeholder="1" step="1" min="1" value="0">
+                                    <span class="tooltiptext">Cantidad de productos del pedido.</span>
                                 </div>
-
-                                <div class="product-form-field">
-                                    <label for="product-stock-real">Stock Real:</label>
-                                    <input type="number" id="product-stock-real" placeholder="0" step="1" min="0" value="0">
-                                </div>
-
-                                <div class="product-form-field">
-                                    <label for="product-stock-proceso">Stock en Proceso:</label>
-                                    <input type="number" id="product-stock-proceso" placeholder="0" step="1" min="0" value="0">
-                                </div>
-
-                                <div class="product-form-field">
-                                    <label for="product-stock-min">Stock Minimo:</label>
-                                    <input type="number" id="product-stock-min" placeholder="0" step="1" min="0" value="0">
-                                </div>
-
-                                <div class="product-form-field">
-                                    <label for="product-stock-max">Stock Maximo:</label>
-                                    <input type="number" id="product-stock-max" placeholder="0" step="1" min="0" value="0">
-                                </div>
-
-                                <div class="product-form-field">
-                                    <label for="product-stock-critico">Stock Critico:</label>
-                                    <input type="number" id="product-stock-critico" placeholder="0" step="1" min="0" value="0">
-                                </div>
-
                                 
                             </div>
 

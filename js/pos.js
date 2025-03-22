@@ -66,12 +66,7 @@ function renderResults(filteredProducts) {
                     document.getElementById("productPrice").value = `${producto.price}`;
 
                     document.getElementById("product-stock-disponible").value = `${producto.stock_disponible}`;
-                    document.getElementById("product-stock-apartado").value = `${producto.stock_apartado}`;
-                    document.getElementById("product-stock-real").value = `${producto.stock_real}`;
-                    document.getElementById("product-stock-proceso").value = `${producto.stock_en_proceso}`;
-                    document.getElementById("product-stock-min").value = `${producto.stock_min}`;
-                    document.getElementById("product-stock-max").value = `${producto.stock_max}`;
-                    document.getElementById("product-stock-critico").value = `${producto.stock_critico}`;
+                    document.getElementById("product-stock-pedido").value = 1;
                 });
                 ul.appendChild(li);
             });
@@ -182,15 +177,24 @@ function agregarProductoCarrito() {
     let form_productDecoration = document.getElementById("productDecoration").value;
     let form_productColor = document.getElementById("productColor").value;
     let form_productPrice = document.getElementById("productPrice").value;
-    let form_productStock = document.getElementById("productStock").value;
-    let form_productQuantity = document.getElementById("productQuantity").value;
+    
+    let form_stockDisponible = document.getElementById("product-stock-disponible").value;
+    let form_pedido = document.getElementById("product-stock-pedido").value || 1;
 
-    if (!code || !form_productCategory || !form_productPrice || !form_productQuantity || !form_productModel || !form_productSize || !form_productDecoration || !form_productColor) {
+    if (!code || !form_productCategory || !form_productPrice || !form_stockDisponible || !form_productModel || !form_productSize || !form_productDecoration || !form_productColor) {
         showToast("Por favor, complete todos los campos antes de agregar el producto.", ICONOS.advertencia);
         return;
-    } else{
-        if(parseFloat(form_productPrice) <= 0 || parseInt(form_productStock) < 0 || parseInt(form_productQuantity) <= 0) {
-            showToast("Por favor, introduzca valores validos.", ICONOS.advertencia);
+    } else {
+        if (parseFloat(form_productPrice) <= 0) {
+            showToast("El precio debe ser mayor a $0.", ICONOS.advertencia);
+            return;
+        }
+        if (parseInt(form_stockDisponible) < 0) {
+            showToast("El stock disponible no puede ser negativo. Puede dejarlo en 0 (cero).", ICONOS.advertencia);
+            return;
+        }
+        if (parseInt(form_pedido) < 1) {
+            showToast("El pedido debe tener al menos 1 producto.", ICONOS.advertencia);
             return;
         }
     }
@@ -206,12 +210,12 @@ function agregarProductoCarrito() {
         <td>${code}</td>
         <td>${form_productName}</td>
         <td>${parseFloat(form_productPrice).toFixed(2)}</td>
-        <td>${parseInt(form_productQuantity)}</td>
-        <td>${(parseFloat(form_productPrice).toFixed(2) * parseInt(form_productQuantity)).toFixed(2)}</td>
+        <td>${parseInt(form_pedido)}</td>
+        <td>${(parseFloat(form_productPrice).toFixed(2) * parseInt(form_pedido)).toFixed(2)}</td>
     `;
 
     tableBody.appendChild(newRow);
-    agregarProducto(parseInt(code), form_productCategory, form_productModel, form_productSize, form_productDecoration, form_productColor, parseFloat(form_productPrice), parseInt(form_productStock), parseInt(form_productQuantity));
+    agregarProducto(parseInt(code), form_productCategory, form_productModel, form_productSize, form_productDecoration, form_productColor, parseFloat(form_productPrice), parseInt(form_stockDisponible), parseInt(form_pedido));
     closeModal('addProductModal');
     showToast("Producto agregado a la venta.", ICONOS.exito);
     totalVenta();
