@@ -1,24 +1,24 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const { showToast, ICONOS } = require(path.join(__dirname, "..", "js", "toast.js"));
 
-const database = path.join(__dirname,'..', 'db', 'data-artep.db');
+const database = path.join(__dirname, '..', 'db', 'data-artep.db');
 
 function openDataBase() {
-    return new sqlite3.Database(database, (err) => {
-        if (err) {
-            console.error('Error al abrir la base de datos:', err.message);
-        } else {
-            console.log('Conexion a base de datos exitosa.');
-        }
-    });
+    try {
+        return new sqlite3.Database(database);
+    } catch (err) {
+        showToast(`[BD] Error al abrir la base de datos: ${err.message}`, ICONOS.error);
+        return null;
+    }
 }
 
 function closeDatabase(db) {
     db.close((err) => {
         if (err) {
-            console.error('Error al cerrar la base de datos:', err.message);
+            showToast(`[BD] Error al cerrar la base de datos: ${err.message}`, ICONOS.error);
         } else {
-            console.log('Desconexion de base de datos exitosa');
+            console.log("[BD] Base de datos cerrada correctamente");
         }
     });
 }
