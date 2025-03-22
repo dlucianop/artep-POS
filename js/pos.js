@@ -116,6 +116,47 @@ function eliminarProducto(codigo, categoria, modelo, size) {
     );
 }
 
+function encapsularVenta() {
+    ventaData.length = 0;
+
+    let idVenta = parseInt(document.getElementById('id-sale').value.trim()) || 999999999;
+    let fecha_venta = document.getElementById('sale-date').value;
+    let hora = document.getElementById('sale-hour').value;
+    let nombre = document.getElementById('client-name').value || "-----";
+    let telefono = document.getElementById('client-phone').value || "-----";
+    let correo  = document.getElementById('client-mail').value || "-----";
+    let domicilio = document.getElementById('client-address').value || "-----";
+    let fecha_entrega = document.getElementById('sale-entrega').value || "-----";
+    let metodo_pago = document.getElementById('payment-method').value || "-----";
+    let forma_pago = document.getElementById('payment-form').value || "-----";
+
+    let monto = parseFloat(document.getElementById("monto").value) || 0;
+    let descuento = parseFloat(document.getElementById("monto").value) || 0;
+    let pago = parseFloat(document.getElementById("pago").value) || 0;
+    let total = parseFloat(document.getElementById("total").value) || 0;
+    let cambio = parseFloat(document.getElementById("cambio").value) || 0;
+
+    let venta = {
+        idVenta: idVenta,
+        fecha_venta: fecha_venta,
+        hora: hora,
+        nombre: nombre,
+        telefono: telefono,
+        correo: correo,
+        domicilio: domicilio,
+        fecha_entrega: fecha_entrega,
+        metodo_pago: metodo_pago,
+        forma_pago: forma_pago,
+        monto: monto,
+        descuento: descuento,
+        pago: pago,
+        total: total,
+        cambio: cambio
+    }
+
+    ventaData.push(venta);
+}
+
 /*----------------------------------------------------------------------------------------------------------- */
 
 function agregarProductoCarrito() {
@@ -142,7 +183,7 @@ function agregarProductoCarrito() {
         showToast("Por favor, complete todos los campos antes de agregar el producto.", ICONOS.advertencia);
         return;
     } else{
-        if(parseFloat(form_productPrice) <= 0 || parseInt(form_productStock) <= 0 || parseInt(form_productQuantity) < 0) {
+        if(parseFloat(form_productPrice) <= 0 || parseInt(form_productStock) < 0 || parseInt(form_productQuantity) <= 0) {
             showToast("Por favor, introduzca valores validos.", ICONOS.advertencia);
             return;
         }
@@ -191,3 +232,80 @@ function updateCambio() {
   
 document.getElementById("porcentaje-descuento").addEventListener("input", totalVenta);
 document.getElementById("pago").addEventListener("input", updateCambio);
+
+function imprimirRecibo() {
+    let idVenta = parseInt(document.getElementById('id-sale').value.trim());
+    let metodo_pago = document.getElementById('payment-method').value;
+    let forma_pago = document.getElementById('payment-form').value;
+
+    if (!idVenta) {
+        showToast("Falta poner el número de venta.", ICONOS.advertencia);
+        return;
+    } 
+
+    readVentas((err, data) => {
+        if (err) {
+            showToast(`Error al leer inventario: ${err}`, ICONOS.error);
+            return;
+        }
+        
+        if (data.some(venta => parseInt(venta.id_venta) === idVenta)) {
+            showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
+            return;
+        }
+    });
+
+    if (!metodo_pago) {
+        showToast("Falta agregar un método de pago.", ICONOS.advertencia);
+        return;
+    }
+    
+    if (!forma_pago) {
+        showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
+        return;
+    }
+
+    revisarAlmacen();
+    encapsularVenta();
+
+    let codigos = productos.map(item => item.code);
+    carrito.forEach(prodcar => {
+        if (codigos.includes(prodcar.codigo)) {
+            /*
+            let modelE = prodcar.modelo;
+            let decorationE = prodcar.decoracion;
+            let colorE = prodcar.color;
+            let stockE = prodcar.stock;
+            let priceE = prodcar.precio;
+            let codeE = prodcar.codigo;
+            let categoryE = prodcar.categoria;
+            let sizeE = prodcar.size;
+            let pedidosE = prodcar.pedido;
+
+            if (stockE - pedidosE < 0) {
+                stockE = 0;
+            }
+
+            updateProducto({ modelE, decorationE, colorE, stockE, priceE, pedidosE, codeE, categoryE, sizeE }, (err) => {
+                if(err){
+                    showToast(`Ocurrio un error: ${err}.`, ICONOS.error);
+                    return;
+                }
+            });*/
+        } else {
+            /* agregar producto al inventario *//*
+            let modelA = prodcar.modelo;
+            let decorationA = prodcar.decoracion;
+            let colorA = prodcar.color;
+            let stockA = prodcar.stock - prodcar.pedido;
+            let priceA = prodcar.precio;
+            let codeA = prodcar.codigo;
+            let categoryA = prodcar.categoria;
+            let sizeA = prodcar.size;*/
+        }
+    });
+
+
+    console.log(ventaData);
+    console.log(carrito);
+}
