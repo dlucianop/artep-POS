@@ -5,8 +5,8 @@ const { text } = require('stream/consumers');
 const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
 const crudV = join(__dirname, "..", "js", "crud-ventas.js");
 const toast = join(__dirname, "..", "js", "toast.js");
-const { createProducto, readProductos, updateProducto, deleteProducto, readOneProduct } = require(crudP);
-const { createVenta, readVentas, updateVenta, deleteVenta, createVentaDETALLES, readVentasDetalle, updateVentaDetalle, deleteVentaDetalle } = require(crudV);
+const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
+const { createVenta, readVentas, createVentaDETALLES } = require(crudV);
 const { showToast, ICONOS } = require(toast);
 
 let productos = [];
@@ -266,11 +266,6 @@ function imprimirRecibo() {
         return;
     }
 
-    if (!pago) {
-        showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
-        return;
-    } 
-
     readVentas((err, data) => {
         if (err) {
             showToast(`Error al leer inventario: ${err}`, ICONOS.error);
@@ -293,6 +288,11 @@ function imprimirRecibo() {
         return;
     }
 
+    if (!pago) {
+        showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
+        return;
+    } 
+
     revisarAlmacen();
     encapsularVenta();
     let id_ventaV = ventaData[0].idVenta;
@@ -313,7 +313,7 @@ function imprimirRecibo() {
             showToast(`Error creación de venta: ${err}`, ICONOS.error);
             return;
         } else{
-            showToast(`Venta registrada con exito: ${id_ventaV}`, ICONOS.exito);
+            //showToast(`Venta registrada con exito: ${id_ventaV}`, ICONOS.exito);
         }
     });
 
@@ -395,9 +395,9 @@ function imprimirRecibo() {
                 stock_apartadoA: 0,
                 stock_en_procesoA: pedido,
                 stock_totalA: pedido,
-                stock_minA: 5,
-                stock_maxA: 100,
-                stock_criticoA: 2
+                stock_minA: 0,
+                stock_maxA: 0,
+                stock_criticoA: 0
             };
 
             const createDetalle = {
@@ -410,18 +410,19 @@ function imprimirRecibo() {
 
             createProducto(newProduct, (err) => {
                 if (err) console.error(`Error creación: ${codigoProducto}`, err);
-                else console.log(`Producto creado: ${codigoProducto}`);
+                else {console.log(`Producto creado: ${codigoProducto}`); return};;
             });
 
             createVentaDETALLES(createDetalle, (err) => {
                 if (err) console.error(`Error actualización: ${codigoProducto}`, err);
-                else console.log(`Stock actualizado: ${codigoProducto}`);
+                else {console.log(`Stock actualizado: ${codigoProducto}`); return;};
             });
         }
     });
-
-    generarRecibo();
-    /*setTimeout(() => {
-        window.location.reload();
-    }, 3000);*/
+    let ruta = generarRecibo();
+    /*try {
+        showToast(`Se generó el recibo con éxito: ${ruta}`, ICONOS.exito);
+    } catch (error) {
+        showToast(`Ocurrió un problema: ${error}`, ICONOS.error);
+    }*/
 }
