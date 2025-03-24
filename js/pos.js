@@ -1,11 +1,12 @@
+const { constants } = require('buffer');
 const { group } = require('console');
 const { join } = require('path');
 const { text } = require('stream/consumers');
 const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
 const crudV = join(__dirname, "..", "js", "crud-ventas.js");
 const toast = join(__dirname, "..", "js", "toast.js");
-const { createProducto, readProductos, updateProducto, deleteProducto } = require(crudP);
-const { createVenta, readVentas, updateVenta, deleteVenta, createVentaDETALLES, readVentasDetalle, updateVentaDetalle, deleteVentaDetalle } = require(crudV);
+const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
+const { createVenta, readVentas, createVentaDETALLES } = require(crudV);
 const { showToast, ICONOS } = require(toast);
 
 let productos = [];
@@ -166,6 +167,11 @@ function agregarProductoCarrito() {
     const tableBody = document.querySelector("#table-products tbody");
     const existingRow = Array.from(tableBody.rows).find(row => row.cells[0].textContent === code);
 
+    if (!code) {
+        showToast("Debes ingresar un código de producto.", ICONOS.error);
+        return;
+    }
+
     if (existingRow) {
         showToast("El producto ya está en el carrito.", ICONOS.advertencia);
         return;
@@ -244,14 +250,21 @@ document.getElementById("porcentaje-descuento").addEventListener("input", totalV
 document.getElementById("pago").addEventListener("input", updateCambio);
 
 function imprimirRecibo() {
+    const emptyRow = document.getElementById("rowvoid");
+    if (emptyRow) {
+        showToast("No hay productos en el carrito.", ICONOS.advertencia);
+        return;
+    }
+
     let idVenta = parseInt(document.getElementById('id-sale').value.trim());
     let metodo_pago = document.getElementById('payment-method').value;
     let forma_pago = document.getElementById('payment-form').value;
+    let pago = parseFloat(document.getElementById("pago").value);
 
     if (!idVenta) {
         showToast("Falta poner el número de venta.", ICONOS.advertencia);
         return;
-    } 
+    }
 
     readVentas((err, data) => {
         if (err) {
@@ -275,47 +288,136 @@ function imprimirRecibo() {
         return;
     }
 
+    if (!pago) {
+        showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
+        return;
+    } 
+
     revisarAlmacen();
     encapsularVenta();
+    let id_ventaV = ventaData[0].idVenta;
+    let fecha_ventaV = ventaData[0].fecha_venta;
+    let horaV = ventaData[0].hora;
+    let nombreV = ventaData[0].nombre || "---";
+    let telefonoV = ventaData[0].telefono || "---";
+    let correoV = ventaData[0].correo || "---";
+    let domicilioV = ventaData[0].domicilio || "---";
+    let fecha_entregaV = ventaData[0].fecha_entrega;
+    let metodo_pagoV = ventaData[0].metodo_pago;
+    let forma_pagoV = ventaData[0].forma_pago;
+    let montoV = ventaData[0].monto;
+    let pagoV = ventaData[0].pago;
 
-    let codigos = productos.map(item => item.code);
-    carrito.forEach(prodcar => {
-        if (codigos.includes(prodcar.codigo)) {
-            /*
-            let modelE = prodcar.modelo;
-            let decorationE = prodcar.decoracion;
-            let colorE = prodcar.color;
-            let stockE = prodcar.stock;
-            let priceE = prodcar.precio;
-            let codeE = prodcar.codigo;
-            let categoryE = prodcar.categoria;
-            let sizeE = prodcar.size;
-            let pedidosE = prodcar.pedido;
-
-            if (stockE - pedidosE < 0) {
-                stockE = 0;
-            }
-
-            updateProducto({ modelE, decorationE, colorE, stockE, priceE, pedidosE, codeE, categoryE, sizeE }, (err) => {
-                if(err){
-                    showToast(`Ocurrio un error: ${err}.`, ICONOS.error);
-                    return;
-                }
-            });*/
-        } else {
-            /* agregar producto al inventario *//*
-            let modelA = prodcar.modelo;
-            let decorationA = prodcar.decoracion;
-            let colorA = prodcar.color;
-            let stockA = prodcar.stock - prodcar.pedido;
-            let priceA = prodcar.precio;
-            let codeA = prodcar.codigo;
-            let categoryA = prodcar.categoria;
-            let sizeA = prodcar.size;*/
+    createVenta({id_ventaV, fecha_ventaV, horaV, nombreV, telefonoV, correoV, domicilioV, fecha_entregaV, metodo_pagoV, forma_pagoV, montoV, pagoV}, (err) => {
+        if (err){
+            showToast(`Error creación de venta: ${err}`, ICONOS.error);
+            return;
+        } else{
+            //showToast(`Venta registrada con exito: ${id_ventaV}`, ICONOS.exito);
         }
     });
 
+    const codigos = productos.map(item => item.code);
+    carrito.forEach(prodcar => {
+        const codigoProducto = parseInt(prodcar.codigo);
+        const pedido = prodcar.pedido;
 
-    console.log(ventaData);
-    console.log(carrito);
+        if (codigos.includes(codigoProducto)) {
+            readOneProduct({ codeOne: codigoProducto }, (err, data) => {
+                if (err) {
+                    showToast(`Error lectura: ${err}`, ICONOS.error);
+                    return;
+                }
+
+                const producto = data[0];
+                
+                let nuevoDisponible = producto.stock_disponible;
+                let nuevoApartado = producto.stock_apartado;
+                let nuevoProceso = producto.stock_en_proceso;
+
+                if (nuevoDisponible >= pedido) {
+                    nuevoDisponible -= pedido;
+                    nuevoApartado += pedido;
+                } else {
+                    const faltante = pedido - nuevoDisponible;
+                    nuevoApartado += nuevoDisponible;
+                    nuevoProceso += faltante;
+                    nuevoDisponible = 0;
+                }
+
+                const updateData = {
+                    codeE: codigoProducto,
+                    stock_disponibleE: nuevoDisponible,
+                    stock_apartadoE: nuevoApartado,
+                    stock_en_procesoE: nuevoProceso,
+                    stock_totalE: nuevoDisponible + nuevoApartado + nuevoProceso,
+
+                    categoryE: producto.category,
+                    modelE: producto.model,
+                    sizeE: producto.size,
+                    decorationE: producto.decoration,
+                    colorE: producto.color,
+                    priceE: producto.price,
+                    stock_minE: producto.stock_min,
+                    stock_maxE: producto.stock_max,
+                    stock_criticoE: producto.stock_critico
+                };
+
+                const createDetalle = {
+                    id_ventaVD: id_ventaV,
+                    codeVD: codigoProducto,
+                    priceVD: producto.price,
+                    quantityVD: pedido,
+                    importeVD: producto.price * pedido,
+                }
+
+                updateProducto(updateData, (err) => {
+                    if (err) console.error(`Error actualización: ${codigoProducto}`, err);
+                    else console.log(`Stock actualizado: ${codigoProducto}`);
+                });
+
+                createVentaDETALLES(createDetalle, (err) => {
+                    if (err) console.error(`Error actualización: ${codigoProducto}`, err);
+                    else console.log(`Stock actualizado: ${codigoProducto}`);
+                });
+            });
+
+        } else {
+            const newProduct = {
+                codeA: codigoProducto,
+                categoryA: prodcar.categoria,
+                modelA: prodcar.modelo,
+                sizeA: prodcar.size,
+                decorationA: prodcar.decoracion,
+                colorA: prodcar.color,
+                priceA: prodcar.precio,
+                stock_disponibleA: 0,
+                stock_apartadoA: 0,
+                stock_en_procesoA: pedido,
+                stock_totalA: pedido,
+                stock_minA: 0,
+                stock_maxA: 0,
+                stock_criticoA: 0
+            };
+
+            const createDetalle = {
+                id_ventaVD: id_ventaV,
+                codeVD: codigoProducto,
+                priceVD: prodcar.precio,
+                quantityVD: pedido,
+                importeVD: prodcar.precio * pedido,
+            }
+
+            createProducto(newProduct, (err) => {
+                if (err) console.error(`Error creación: ${codigoProducto}`, err);
+                else {console.log(`Producto creado: ${codigoProducto}`); return};;
+            });
+
+            createVentaDETALLES(createDetalle, (err) => {
+                if (err) console.error(`Error actualización: ${codigoProducto}`, err);
+                else {console.log(`Stock actualizado: ${codigoProducto}`); return;};
+            });
+        }
+    });
+    generarRecibo();
 }
