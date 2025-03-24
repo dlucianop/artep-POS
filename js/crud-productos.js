@@ -86,6 +86,35 @@ function readProductos(callback) {
     }
 }
 
+function readOneProduct(producto, callback) {
+    const db = openDataBase();
+    const query = `
+        SELECT *
+        FROM inventario_productos
+        WHERE code = ?;
+    `;
+
+    try {
+        db.all(query, 
+            [
+                producto.codeOne
+            ], 
+        (err, rows) => {
+            if (err) {
+                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+                callback(err, null);
+                return;
+            }
+            callback(null, rows);
+        });
+    } catch (err) {
+        showToast(`[CRITICAL] Error inesperado: ${err.message}`, ICONOS.error);
+        callback(err, null);
+    } finally {
+        closeDatabase(db);
+    }
+}
+
 function updateProducto(producto, callback) {
     const db = openDataBase();
     const query = `
@@ -172,4 +201,4 @@ function deleteProducto(producto, callback){
     );
 }
 
-module.exports = { createProducto, readProductos, updateProducto, deleteProducto };
+module.exports = { createProducto, readProductos, updateProducto, deleteProducto, readOneProduct};

@@ -171,9 +171,9 @@ function generarRecibo() {
 
     fs.writeFile(rutaGuardado, Buffer.from(pdfBytes), (err) => {
         if (err) {
-        alert("No se pudo guardar el recibo: " + err.message);
+            showToast(`No se pudo guardar el recibo: ${err}`, ICONOS.error);
         } else {
-        alert(`Recibo guardado en: ${rutaGuardado}`);
+            showToast(`Recibo guardado en: ${rutaGuardado}`, ICONOS.exito);
         }
     });
 }

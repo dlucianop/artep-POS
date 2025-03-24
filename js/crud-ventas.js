@@ -7,10 +7,9 @@ function createVenta(datos_venta, callback){
     const db = openDataBase();
     const query = `
         INSERT INTO ventas
-            (id_venta, fecha_venta, hora, nombre, telefono, correo, domicilio, fecha_entrega, metodo_pago, forma_pago, descuento_porcentaje, pago)
+            (id_venta, fecha_venta, hora, nombre, telefono, correo, domicilio, fecha_entrega, metodo_pago, forma_pago, monto, pago)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
-
     db.run(query, 
         [
             datos_venta.id_ventaV, 
@@ -23,7 +22,7 @@ function createVenta(datos_venta, callback){
             datos_venta.fecha_entregaV, 
             datos_venta.metodo_pagoV, 
             datos_venta.forma_pagoV, 
-            datos_venta.descuento_porcentajeV, 
+            datos_venta.montoV, 
             datos_venta.pagoV
         ], 
         function (err) {
@@ -46,7 +45,7 @@ function createVenta(datos_venta, callback){
                     fecha_entrega: datos_venta.fecha_entregaV, 
                     metodo_pago: datos_venta.metodo_pagoV, 
                     forma_pago: datos_venta.forma_pagoV, 
-                    descuento_porcentaje: datos_venta.descuento_porcentajeV, 
+                    descuento_porcentaje: datos_venta.montoV, 
                     pago: datos_venta.pagoV
                 };
                 console.log(`Venta Registrada con exito: ${newVenta.id_venta}`);
@@ -138,19 +137,16 @@ function createVentaDETALLES(detalles_venta, callback){
     const db = openDataBase();
     const query = `
         INSERT INTO detalles_venta
-            (id_detalle, id_venta, code, category, model, price, num_piezas_pedido)
-        VALUES (?, ?, ?, ?, ?, ?, ?);
+            (id_venta, code, price, quantity, importe)
+        VALUES (?, ?, ?, ?, ?);
     `;
-
     db.run(query, 
         [
-            detalles_venta.id_detalleV, 
-            detalles_venta.id_ventaV,
-            detalles_venta.codeV,
-            detalles_venta.categoryV,
-            detalles_venta.modelV, 
-            detalles_venta.priceV, 
-            detalles_venta.num_piezas_pedidoV
+            detalles_venta.id_ventaVD,
+            detalles_venta.codeVD,
+            detalles_venta.priceVD,
+            detalles_venta.quantityVD, 
+            detalles_venta.importeVD
         ], 
         function (err) {
             if (err) {
@@ -162,17 +158,15 @@ function createVentaDETALLES(detalles_venta, callback){
 
             setTimeout(() => {
                 const newDetalle = {
-                    id_detalle: detalles_venta.id_detalleV, 
-                    id_venta: detalles_venta.id_ventaV,
-                    code: detalles_venta.codeV,
-                    category: detalles_venta.categoryV,
-                    model: detalles_venta.modelV, 
-                    price: detalles_venta.priceV, 
-                    pedido: detalles_venta.num_piezas_pedidoV
+                    id_venta: detalles_venta.id_ventaVD,
+                    code: detalles_venta.codeVD,
+                    price: detalles_venta.priceVD,
+                    quantity: detalles_venta.quantityVD, 
+                    importe: detalles_venta.importeVD
                 };
-                console.log(`Detalle de venta Registrada con exito: ${newDetalle.id_detalle}`);
+                console.log(`Detalle de venta Registrada con exito`);
                 closeDatabase(db);
-                callback(null, newVenta);
+                callback(null, newDetalle);
             }, 500);
         }
     );
