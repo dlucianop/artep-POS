@@ -31,7 +31,7 @@ function createProducto(producto, callback){
         ], 
         function (err) {
             if (err) {
-                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+               // showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
                 closeDatabase(db);
                 callback(err, null);
                 return;
@@ -54,7 +54,7 @@ function createProducto(producto, callback){
                     max: producto.stock_maxA,
                     critico: producto.stock_criticoA
                 };
-                showToast(`Producto creado con el ID: ${newProducto.id}`, ICONOS.exito);
+                //showToast(`Producto creado con el ID: ${newProducto.id}`, ICONOS.exito);
                 closeDatabase(db);
                 callback(null, newProducto);
             }, 500);
@@ -72,14 +72,14 @@ function readProductos(callback) {
     try {
         db.all(query, [], (err, rows) => {
             if (err) {
-                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+                //showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
                 callback(err, null);
                 return;
             }
             callback(null, rows);
         });
     } catch (err) {
-        showToast(`[CRITICAL] Error inesperado: ${err.message}`, ICONOS.error);
+        //showToast(`[CRITICAL] Error inesperado: ${err.message}`, ICONOS.error);
         callback(err, null);
     } finally {
         closeDatabase(db);
@@ -101,14 +101,14 @@ function readOneProduct(producto, callback) {
             ], 
         (err, rows) => {
             if (err) {
-                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+                //showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
                 callback(err, null);
                 return;
             }
             callback(null, rows);
         });
     } catch (err) {
-        showToast(`[CRITICAL] Error inesperado: ${err.message}`, ICONOS.error);
+        //showToast(`[CRITICAL] Error inesperado: ${err.message}`, ICONOS.error);
         callback(err, null);
     } finally {
         closeDatabase(db);
@@ -142,11 +142,11 @@ function updateProducto(producto, callback) {
         ],
         function (err) {
             if (err) {
-                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+                //showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
                 closeDatabase(db);
                 return callback(err, null);
             }
-            showToast(`Producto actualizado: ${producto.codeE}`, ICONOS.exito);
+            //showToast(`Producto actualizado: ${producto.codeE}`, ICONOS.exito);
 
             const updatedProducto = {
                 id: producto.codeE,
@@ -185,11 +185,11 @@ function deleteProducto(producto, callback){
         ],
         function (err) {
             if (err) {
-                showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
+                //showToast(`[ERROR] Consulta fallida: ${err.message}`, ICONOS.error);
                 closeDatabase(db);
                 return callback(err, null);
             }
-            showToast(`Producto eliminado: ${producto.codeD}`, ICONOS.exito);
+            //showToast(`Producto eliminado: ${producto.codeD}`, ICONOS.exito);
 
             const deletedProducto = {
                 id: producto.codeD,

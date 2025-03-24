@@ -195,11 +195,18 @@ function generarRecibo() {
         fs.writeFile(rutaGuardado, Buffer.from(pdfBytes), (err) => {
             if (err) {
                 console.log(`No se pudo guardar el recibo: ${err}`);
-            } else {
-                //console.log(`Recibo guardado en: ${rutaGuardado}`);
-                return rutaGuardado;
+                return;
+            }
+        
+            showToast(`Se guardo el recibo en: ${rutaGuardado}`, ICONOS.exito);
+        
+            if (typeof window !== "undefined") {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000); // Espera 1 segundo antes de recargar
             }
         });
+        
 }
 
 module.exports = generarRecibo;

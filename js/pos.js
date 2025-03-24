@@ -419,10 +419,5 @@ function imprimirRecibo() {
             });
         }
     });
-    let ruta = generarRecibo();
-    /*try {
-        showToast(`Se generó el recibo con éxito: ${ruta}`, ICONOS.exito);
-    } catch (error) {
-        showToast(`Ocurrió un problema: ${error}`, ICONOS.error);
-    }*/
+    generarRecibo();
 }
