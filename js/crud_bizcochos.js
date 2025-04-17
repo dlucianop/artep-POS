@@ -153,32 +153,36 @@ function updateBizcocho(bizcocho, callback) {
 }*/
 
 function searchBizcocho(bizcocho, callback) {
+    console.log(bizcocho);
     const db = openDataBase();
     const query = `
         SELECT * 
         FROM inventario_bizcochos
         WHERE biz_category = ? AND biz_size = ?
     `;
-    try {
-        db.all(query, 
-            [
-                bizcocho.biz_category,
-                bizcocho.biz_size,
-            ], 
+    db.all(
+        query,
+        [bizcocho.biz_category, bizcocho.biz_size],
         (err, rows) => {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
-                callback(err, null);
-                return;
+            try {
+                if (err) {
+                    console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                    callback(err, null);
+                    return;
+                }
+                if (rows.length > 0) {
+                    console.log("Coincidencias encontradas:", rows);
+                } else {
+                    console.log("No se encontraron coincidencias.");
+                }
+                callback(null, rows);
+            } catch (error) {
+                callback(error, null);
+            } finally {
+                closeDatabase(db);
             }
-            console.log("Se encontro una coincidencia.");
-            callback(null, rows);
-        });
-    } catch (error) {
-        callback(err, null);
-    } finally {
-        closeDatabase(db);
-    }
+        }
+    );
 }
 
 module.exports = { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho };

@@ -200,11 +200,11 @@ function generarRecibo() {
         
             showToast(`Se guardo el recibo en: ${rutaGuardado}`, ICONOS.exito);
         
-            if (typeof window !== "undefined") {
+            /*if (typeof window !== "undefined") {
                 setTimeout(() => {
                     window.location.reload();
-                }, 3000); // Espera 1 segundo antes de recargar
-            }
+                }, 3000);
+            }*/
         });
         
 }

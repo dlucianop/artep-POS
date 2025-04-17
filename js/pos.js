@@ -2,14 +2,18 @@ const { constants } = require('buffer');
 const { group } = require('console');
 const { join } = require('path');
 const { text } = require('stream/consumers');
+const { parseArgs } = require('util');
 const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
 const crudV = join(__dirname, "..", "js", "crud-ventas.js");
+const crudB = join(__dirname, "..", "js", "crud_bizcochos.js");
 const toast = join(__dirname, "..", "js", "toast.js");
+const { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho } = require(crudB);
 const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
 const { createVenta, readVentas, createVentaDETALLES } = require(crudV);
 const { showToast, ICONOS } = require(toast);
 
 let productos = [];
+let bizcochos = [];
 let ventaData = [];
 let carrito = [];
 const resultsContainer = document.getElementById("search-results");
@@ -21,6 +25,16 @@ function revisarAlmacen() {
             console.log(`Error al leer el inventario de Productos: ${err}`);
         } else {
             productos = data
+        }
+    });
+}
+
+function revisarAlmacenBiz() {
+    readBizcochos((err, data) => {
+        if (err){
+            console.log(`Error al leer el inventario de Bizcochos: ${err}`);
+        } else {
+            bizcochos = data
         }
     });
 }
@@ -119,44 +133,50 @@ function eliminarProducto(codigo, categoria, modelo, size) {
 }
 
 function encapsularVenta() {
-    ventaData.length = 0;
+    const get = (id, def = "") => document.getElementById(id).value.trim() || def;
+    const getNum = (id, def = 0) => parseFloat(get(id, def)) || def;
 
-    let idVenta = parseInt(document.getElementById('id-sale').value.trim()) || 999999999;
-    let fecha_venta = document.getElementById('sale-date').value;
-    let hora = document.getElementById('sale-hour').value;
-    let nombre = document.getElementById('client-name').value || "-----";
-    let telefono = document.getElementById('client-phone').value || "-----";
-    let correo  = document.getElementById('client-mail').value || "-----";
-    let domicilio = document.getElementById('client-address').value || "-----";
-    let fecha_entrega = document.getElementById('sale-entrega').value || "-----";
-    let metodo_pago = document.getElementById('payment-method').value || "-----";
-    let forma_pago = document.getElementById('payment-form').value || "-----";
+    const venta = {
+        idVenta: parseInt(get('id-sale', "999999999")) || 999999999,
+        fecha_venta: get('sale-date'),
+        hora: get('sale-hour'),
+        nombre: get('client-name', "-----"),
+        telefono: get('client-phone', "-----"),
+        correo: get('client-mail', "-----"),
+        domicilio: get('client-address', "-----"),
+        fecha_entrega: get('sale-entrega', "-----"),
+        metodo_pago: get('payment-method', "-----"),
+        forma_pago: get('payment-form', "-----"),
+        monto: getNum("monto"),
+        descuento: getNum("monto"),
+        pago: getNum("pago"),
+        total: getNum("total"),
+        cambio: getNum("cambio")
+    };
 
-    let monto = parseFloat(document.getElementById("monto").value) || 0;
-    let descuento = parseFloat(document.getElementById("monto").value) || 0;
-    let pago = parseFloat(document.getElementById("pago").value) || 0;
-    let total = parseFloat(document.getElementById("total").value) || 0;
-    let cambio = parseFloat(document.getElementById("cambio").value) || 0;
+    createVenta({
+        id_ventaV: venta.idVenta,
+        fecha_ventaV: venta.fecha_venta,
+        horaV: venta.hora,
+        nombreV: venta.nombre,
+        telefonoV: venta.telefono,
+        correoV: venta.correo,
+        domicilioV: venta.domicilio,
+        fecha_entregaV: venta.fecha_entrega,
+        metodo_pagoV: venta.metodo_pago,
+        forma_pagoV: venta.forma_pago,
+        montoV: venta.monto,
+        pagoV: venta.pago
+    }, (err) => {
+        if (err) {
+           // showToast(`Error creación de venta: ${err}`, ICONOS.error);
+        } else {
+            ventaData.length = 0;
+            console.log(`Venta creada con éxito: ${venta.idVenta}`);
+            ventaData.push(venta);
+        }
+    });
 
-    let venta = {
-        idVenta: idVenta,
-        fecha_venta: fecha_venta,
-        hora: hora,
-        nombre: nombre,
-        telefono: telefono,
-        correo: correo,
-        domicilio: domicilio,
-        fecha_entrega: fecha_entrega,
-        metodo_pago: metodo_pago,
-        forma_pago: forma_pago,
-        monto: monto,
-        descuento: descuento,
-        pago: pago,
-        total: total,
-        cambio: cambio
-    }
-
-    ventaData.push(venta);
 }
 
 /*----------------------------------------------------------------------------------------------------------- */
@@ -249,175 +269,117 @@ function updateCambio() {
 document.getElementById("porcentaje-descuento").addEventListener("input", totalVenta);
 document.getElementById("pago").addEventListener("input", updateCambio);
 
-function imprimirRecibo() {
+function validacionesVenta() {
+    return new Promise((resolve, reject) => {
+        let idVenta = parseInt(document.getElementById('id-sale').value.trim());
+        let metodo_pago = document.getElementById('payment-method').value;
+        let forma_pago = document.getElementById('payment-form').value;
+        let pago = parseFloat(document.getElementById("pago").value);
+        let fechaEntrega = document.getElementById('sale-entrega').value;
+
+        if (!idVenta) {
+            showToast("Falta poner el número de venta.", ICONOS.advertencia);
+            return reject();
+        }
+
+        readVentas((err, data) => {
+            if (err) {
+                showToast(`Error al leer inventario: ${err}`, ICONOS.error);
+                return reject();
+            }
+
+            if (data.some(venta => parseInt(venta.id_venta) === idVenta)) {
+                showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
+                return reject();
+            }
+
+            if (!metodo_pago) {
+                showToast("Falta agregar un método de pago.", ICONOS.advertencia);
+                return reject();
+            }
+
+            if (!forma_pago) {
+                showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
+                return reject();
+            }
+
+            if (!pago) {
+                showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
+                return reject();
+            }
+
+            if (!fechaEntrega) {
+                showToast("Falta poner una fecha de entrega.", ICONOS.advertencia);
+                return reject();
+            }
+
+            resolve();
+        });
+    });
+}
+
+
+async function imprimirRecibo() {
     const emptyRow = document.getElementById("rowvoid");
     if (emptyRow) {
         showToast("No hay productos en el carrito.", ICONOS.advertencia);
         return;
     }
 
-    let idVenta = parseInt(document.getElementById('id-sale').value.trim());
-    let metodo_pago = document.getElementById('payment-method').value;
-    let forma_pago = document.getElementById('payment-form').value;
-    let pago = parseFloat(document.getElementById("pago").value);
-
-    if (!idVenta) {
-        showToast("Falta poner el número de venta.", ICONOS.advertencia);
-        return;
-    }
-
-    readVentas((err, data) => {
-        if (err) {
-            showToast(`Error al leer inventario: ${err}`, ICONOS.error);
-            return;
-        }
+    try {
+        //await validacionesVenta();
+        revisarAlmacen();
+        revisarAlmacenBiz();
         
-        if (data.some(venta => parseInt(venta.id_venta) === idVenta)) {
-            showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
-            return;
-        }
-    });
+        const codigos = productos.map(item => item.code);
+        carrito.forEach(prodcar => {
+            const codigoProducto = parseInt(prodcar.codigo);
+            const pedido = prodcar.pedido;
+            const categoriaProducto = prodcar.categoria;
+            const tamañoProducto = prodcar.size;
+            if (codigos.includes(codigoProducto)) {
+                readOneProduct({ codeOne: codigoProducto }, (err, data) => {
+                    if (err) {
+                        showToast(`Error lectura: ${err}`, ICONOS.error);
+                        return;
+                    }
 
-    if (!metodo_pago) {
-        showToast("Falta agregar un método de pago.", ICONOS.advertencia);
-        return;
-    }
-    
-    if (!forma_pago) {
-        showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
-        return;
-    }
-
-    if (!pago) {
-        showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
-        return;
-    } 
-
-    revisarAlmacen();
-    encapsularVenta();
-    let id_ventaV = ventaData[0].idVenta;
-    let fecha_ventaV = ventaData[0].fecha_venta;
-    let horaV = ventaData[0].hora;
-    let nombreV = ventaData[0].nombre || "---";
-    let telefonoV = ventaData[0].telefono || "---";
-    let correoV = ventaData[0].correo || "---";
-    let domicilioV = ventaData[0].domicilio || "---";
-    let fecha_entregaV = ventaData[0].fecha_entrega;
-    let metodo_pagoV = ventaData[0].metodo_pago;
-    let forma_pagoV = ventaData[0].forma_pago;
-    let montoV = ventaData[0].monto;
-    let pagoV = ventaData[0].pago;
-
-    createVenta({id_ventaV, fecha_ventaV, horaV, nombreV, telefonoV, correoV, domicilioV, fecha_entregaV, metodo_pagoV, forma_pagoV, montoV, pagoV}, (err) => {
-        if (err){
-            showToast(`Error creación de venta: ${err}`, ICONOS.error);
-            return;
-        } else{
-            //showToast(`Venta registrada con exito: ${id_ventaV}`, ICONOS.exito);
-        }
-    });
-
-    const codigos = productos.map(item => item.code);
-    carrito.forEach(prodcar => {
-        const codigoProducto = parseInt(prodcar.codigo);
-        const pedido = prodcar.pedido;
-
-        if (codigos.includes(codigoProducto)) {
-            readOneProduct({ codeOne: codigoProducto }, (err, data) => {
-                if (err) {
-                    showToast(`Error lectura: ${err}`, ICONOS.error);
-                    return;
-                }
-
-                const producto = data[0];
-                
-                let nuevoDisponible = producto.stock_disponible;
-                let nuevoApartado = producto.stock_apartado;
-                let nuevoProceso = producto.stock_en_proceso;
-
-                if (nuevoDisponible >= pedido) {
-                    nuevoDisponible -= pedido;
-                    nuevoApartado += pedido;
+                    let productoFound = data[0];
+                    if ( productoFound.stock_disponible < pedido){
+                        /*bizcochos.forEach(bizco => {
+                            console.log(`${bizco.biz_category} y ${categoriaProducto}: `,bizco.biz_category === categoriaProducto);
+                            console.log(`${bizco.biz_size} y ${tamañoProducto}:`, bizco.biz_size === tamañoProducto);
+                        });*/
+                        
+                        const yaExiste = bizcochos.some(bizco =>
+                            bizco.biz_category === categoriaProducto &&
+                            bizco.biz_size === tamañoProducto
+                        );
+                      
+                        if (yaExiste) {
+                            //EXISTE PRODUCTO existe BIZCOCHO
+                        } else {
+                            //EXISTE PRODUCTO no existe BIZCOCHO
+                        }
+                          
+                    } else{
+                        //EXISTE PRODUCTO Y HAY STOCK
+                    }
+                });
+            } else {
+                const yaExiste = bizcochos.some(item => 
+                    item.category === categoriaProducto && item.size === tamañoProducto
+                );
+                  
+                if (yaExiste) {
+                    //No existe producto existe BIZCOCHO
                 } else {
-                    const faltante = pedido - nuevoDisponible;
-                    nuevoApartado += nuevoDisponible;
-                    nuevoProceso += faltante;
-                    nuevoDisponible = 0;
+                    //NO EXISTE PRODUCTO no existe BIZCOCHO
                 }
-
-                const updateData = {
-                    codeE: codigoProducto,
-                    stock_disponibleE: nuevoDisponible,
-                    stock_apartadoE: nuevoApartado,
-                    stock_en_procesoE: nuevoProceso,
-                    stock_totalE: nuevoDisponible + nuevoApartado + nuevoProceso,
-
-                    categoryE: producto.category,
-                    modelE: producto.model,
-                    sizeE: producto.size,
-                    decorationE: producto.decoration,
-                    colorE: producto.color,
-                    priceE: producto.price,
-                    stock_minE: producto.stock_min,
-                    stock_maxE: producto.stock_max,
-                    stock_criticoE: producto.stock_critico
-                };
-
-                const createDetalle = {
-                    id_ventaVD: id_ventaV,
-                    codeVD: codigoProducto,
-                    priceVD: producto.price,
-                    quantityVD: pedido,
-                    importeVD: producto.price * pedido,
-                }
-
-                updateProducto(updateData, (err) => {
-                    if (err) console.error(`Error actualización: ${codigoProducto}`, err);
-                    else console.log(`Stock actualizado: ${codigoProducto}`);
-                });
-
-                createVentaDETALLES(createDetalle, (err) => {
-                    if (err) console.error(`Error actualización: ${codigoProducto}`, err);
-                    else console.log(`Stock actualizado: ${codigoProducto}`);
-                });
-            });
-
-        } else {
-            const newProduct = {
-                codeA: codigoProducto,
-                categoryA: prodcar.categoria,
-                modelA: prodcar.modelo,
-                sizeA: prodcar.size,
-                decorationA: prodcar.decoracion,
-                colorA: prodcar.color,
-                priceA: prodcar.precio,
-                stock_disponibleA: 0,
-                stock_apartadoA: 0,
-                stock_en_procesoA: pedido,
-                stock_totalA: pedido,
-                stock_minA: 0,
-                stock_maxA: 0,
-                stock_criticoA: 0
-            };
-
-            const createDetalle = {
-                id_ventaVD: id_ventaV,
-                codeVD: codigoProducto,
-                priceVD: prodcar.precio,
-                quantityVD: pedido,
-                importeVD: prodcar.precio * pedido,
             }
+        });
 
-            createProducto(newProduct, (err) => {
-                if (err) console.error(`Error creación: ${codigoProducto}`, err);
-                else {console.log(`Producto creado: ${codigoProducto}`); return};;
-            });
-
-            createVentaDETALLES(createDetalle, (err) => {
-                if (err) console.error(`Error actualización: ${codigoProducto}`, err);
-                else {console.log(`Stock actualizado: ${codigoProducto}`); return;};
-            });
-        }
-    });
-    generarRecibo();
+    } catch {
+        console.log("Cancelado por validaciones.");
+    }
 }
