@@ -153,7 +153,7 @@ function updateBizcocho(bizcocho, callback) {
 }*/
 
 function searchBizcocho(bizcocho, callback) {
-    console.log(bizcocho);
+    //console.log(bizcocho);
     const db = openDataBase();
     const query = `
         SELECT * 
@@ -162,7 +162,10 @@ function searchBizcocho(bizcocho, callback) {
     `;
     db.all(
         query,
-        [bizcocho.biz_category, bizcocho.biz_size],
+        [
+            bizcocho.biz_category, 
+            bizcocho.biz_size
+        ],
         (err, rows) => {
             try {
                 if (err) {
@@ -170,10 +173,8 @@ function searchBizcocho(bizcocho, callback) {
                     callback(err, null);
                     return;
                 }
-                if (rows.length > 0) {
-                    console.log("Coincidencias encontradas:", rows);
-                } else {
-                    console.log("No se encontraron coincidencias.");
+                if (rows.length < 0) {
+                    console.log("No se encontraron coincidencias.", rows);
                 }
                 callback(null, rows);
             } catch (error) {

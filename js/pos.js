@@ -20,24 +20,33 @@ const resultsContainer = document.getElementById("search-results");
 const inputSearch = document.getElementById("product-by-search");
 
 function revisarAlmacen() {
-    readProductos((err, data) => {
-        if (err){
-            console.log(`Error al leer el inventario de Productos: ${err}`);
-        } else {
-            productos = data
-        }
+    return new Promise((resolve, reject) => {
+        readProductos((err, data) => {
+            if (err) {
+                console.log(`Error al leer el inventario de Productos: ${err}`);
+                reject(err);
+            } else {
+                productos = data;
+                resolve();
+            }
+        });
     });
 }
 
 function revisarAlmacenBiz() {
-    readBizcochos((err, data) => {
-        if (err){
-            console.log(`Error al leer el inventario de Bizcochos: ${err}`);
-        } else {
-            bizcochos = data
-        }
+    return new Promise((resolve, reject) => {
+        readBizcochos((err, data) => {
+            if (err) {
+                console.log(`Error al leer el inventario de Bizcochos: ${err}`);
+                reject(err);
+            } else {
+                bizcochos = data;
+                resolve();
+            }
+        });
     });
 }
+
 
 function filtrarProductos(listaproductos, textoS) {
     let busqueda = textoS.toLowerCase();
@@ -328,58 +337,68 @@ async function imprimirRecibo() {
 
     try {
         //await validacionesVenta();
-        revisarAlmacen();
-        revisarAlmacenBiz();
-        
+        await revisarAlmacen();
+        await revisarAlmacenBiz();
+
         const codigos = productos.map(item => item.code);
-        carrito.forEach(prodcar => {
+
+        for (const prodcar of carrito) {
             const codigoProducto = parseInt(prodcar.codigo);
             const pedido = prodcar.pedido;
             const categoriaProducto = prodcar.categoria;
             const tamañoProducto = prodcar.size;
-            if (codigos.includes(codigoProducto)) {
-                readOneProduct({ codeOne: codigoProducto }, (err, data) => {
-                    if (err) {
-                        showToast(`Error lectura: ${err}`, ICONOS.error);
-                        return;
-                    }
 
-                    let productoFound = data[0];
-                    if ( productoFound.stock_disponible < pedido){
-                        /*bizcochos.forEach(bizco => {
-                            console.log(`${bizco.biz_category} y ${categoriaProducto}: `,bizco.biz_category === categoriaProducto);
-                            console.log(`${bizco.biz_size} y ${tamañoProducto}:`, bizco.biz_size === tamañoProducto);
-                        });*/
-                        
-                        const yaExiste = bizcochos.some(bizco =>
-                            bizco.biz_category === categoriaProducto &&
-                            bizco.biz_size === tamañoProducto
-                        );
-                      
-                        if (yaExiste) {
-                            //EXISTE PRODUCTO existe BIZCOCHO
-                        } else {
-                            //EXISTE PRODUCTO no existe BIZCOCHO
-                        }
-                          
-                    } else{
-                        //EXISTE PRODUCTO Y HAY STOCK
-                    }
+            if (codigos.includes(codigoProducto)) {
+                const productoFound = await new Promise((resolve, reject) => {
+                    readOneProduct({ codeOne: codigoProducto }, (err, data) => {
+                        if (err) return reject(err);
+                        resolve(data[0]);
+                    });
                 });
-            } else {
-                const yaExiste = bizcochos.some(item => 
-                    item.category === categoriaProducto && item.size === tamañoProducto
-                );
-                  
-                if (yaExiste) {
-                    //No existe producto existe BIZCOCHO
+
+                if (productoFound.stock_disponible < pedido) {
+                    const yaExiste = bizcochos.some(bizco =>
+                        bizco.biz_category === categoriaProducto &&
+                        bizco.biz_size === tamañoProducto
+                    );
+
+                    if (yaExiste) {
+                        const bizcoData = await new Promise((resolve, reject) => {
+                            searchBizcocho({ biz_category: categoriaProducto, biz_size: tamañoProducto }, (err, data) => {
+                                if (err) return reject(err);
+                                resolve(data);
+                            });
+                        });
+
+                        //console.log(bizcoData[0].stock_disponible);
+                        //console.log("Si hay producto, pero no hay stock, se usara stock de bizocho");
+                    } else {
+                        //console.log("Si hay producto, pero no hay stock, no existe bizochos, SE VA A ORDEN DIRECTAMENTE");
+                    }
                 } else {
-                    //NO EXISTE PRODUCTO no existe BIZCOCHO
+                    //console.log("Si hay productop con suficiente stock");
+                }
+            } else {
+                const yaExiste = bizcochos.some(bizco =>
+                    bizco.biz_category === categoriaProducto &&
+                    bizco.biz_size === tamañoProducto
+                );
+
+                if (yaExiste) {
+                    const bizcoData = await new Promise((resolve, reject) => {
+                        searchBizcocho({ biz_category: categoriaProducto, biz_size: tamañoProducto }, (err, data) => {
+                            if (err) return reject(err);
+                            resolve(data);
+                        });
+                    });
+                    //console.log("NO EXISTE PRODUCTO se usara stock de bizocho");
+                } else {
+                    //console.log("CREAR ORDEN DESDE 0");
                 }
             }
-        });
+        }
 
-    } catch {
-        console.log("Cancelado por validaciones.");
+    } catch (error) {
+        showToast(`Error: ${error}`, ICONOS.error);
     }
 }
