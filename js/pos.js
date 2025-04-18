@@ -1,3 +1,4 @@
+const { rejects } = require('assert');
 const { constants } = require('buffer');
 const { group } = require('console');
 const { join } = require('path');
@@ -357,6 +358,13 @@ async function imprimirRecibo() {
                 });
 
                 if (productoFound.stock_disponible < pedido) {
+                    const updatedProducto = await new Promise((resolve, reject) => {
+                        updateProducto({}, (err, data) => {
+                            if (err) return reject(err);
+                            resolve(data[0])
+                        });
+                    });
+
                     const yaExiste = bizcochos.some(bizco =>
                         bizco.biz_category === categoriaProducto &&
                         bizco.biz_size === tamañoProducto
@@ -366,17 +374,42 @@ async function imprimirRecibo() {
                         const bizcoData = await new Promise((resolve, reject) => {
                             searchBizcocho({ biz_category: categoriaProducto, biz_size: tamañoProducto }, (err, data) => {
                                 if (err) return reject(err);
-                                resolve(data);
+                                resolve(data[0]);
                             });
                         });
 
-                        //console.log(bizcoData[0].stock_disponible);
-                        //console.log("Si hay producto, pero no hay stock, se usara stock de bizocho");
+                        //console.log(bizcoData.stock_disponible);
+                        //console.log("Si hay producto, pero no hay stock suficiente, se usara stock de bizocho");
+                        
                     } else {
-                        //console.log("Si hay producto, pero no hay stock, no existe bizochos, SE VA A ORDEN DIRECTAMENTE");
+                        //console.log("Si hay producto, pero no hay stock suficiente, no existe bizochos, SE VA A ORDEN DIRECTAMENTE");
                     }
                 } else {
-                    //console.log("Si hay productop con suficiente stock");
+                    //PRODUCTO CON STOCK SUFICIENTE
+                    const updatedProducto = await new Promise((resolve, reject) => {
+                        let new_stock_apartado = parseInt(productoFound.stock_apartado) + parseInt(pedido);
+                        let new_stock_disponible = parseInt(productoFound.stock_disponible) - parseInt(pedido);
+
+                        updateProducto({
+                            categoryE: productoFound.category, 
+                            modelE: productoFound.model, 
+                            sizeE: productoFound.size, 
+                            decorationE: productoFound.decoration, 
+                            colorE: productoFound.color,
+                            priceE: productoFound.price,
+                            stock_totalE: productoFound.stock_total,
+                            stock_apartadoE: new_stock_apartado,
+                            stock_disponibleE: new_stock_disponible,
+                            stock_en_procesoE: productoFound.stock_en_proceso,
+                            stock_minE: productoFound.stock_min,
+                            stock_maxE: productoFound.stock_max,
+                            stock_criticoE: productoFound.stock_critico,
+                            codeE: productoFound.code
+                        }, (err, data) => {
+                            if (err) return reject(err);
+                            resolve(data[0]);
+                        });
+                    });
                 }
             } else {
                 const yaExiste = bizcochos.some(bizco =>
@@ -388,7 +421,7 @@ async function imprimirRecibo() {
                     const bizcoData = await new Promise((resolve, reject) => {
                         searchBizcocho({ biz_category: categoriaProducto, biz_size: tamañoProducto }, (err, data) => {
                             if (err) return reject(err);
-                            resolve(data);
+                            resolve(data[0]);
                         });
                     });
                     //console.log("NO EXISTE PRODUCTO se usara stock de bizocho");
