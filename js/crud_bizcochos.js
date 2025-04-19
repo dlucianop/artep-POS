@@ -6,32 +6,37 @@ function createBizcocho(bizcocho, callback) {
     const db = openDataBase();
     const query = `
         INSERT INTO inventario_bizcochos
-        (tipo_bizcocho, size_bizcocho, bizcochos_en_bodega, bizcochos_en_proceso) 
-        VALUES (?, ?, ?, ?);
+            (biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
+        VALUES (?, ?, 0, ?, ?, ?, 0, 0, 0);
     `;
 
-    db.run(query, [bizcocho.categoria, bizcocho.tamano, bizcocho.cantidadBodega, bizcocho.cantidadProduccion], function (err) {
+    db.run(query, [
+        bizcocho.biz_category,
+        bizcocho.biz_size,
+        bizcocho.stock_apartado,
+        bizcocho.stock_disponible,
+        bizcocho.stock_en_proceso,
+    ], function (err) {
         if (err) {
-            alert(`ERROR al insertar el producto: ${err.message}`);
             console.error(`[ERROR] Consulta fallida: ${err.message}`);
             closeDatabase(db);
-            callback(err, null);
-            return;
+            return callback(err);
         }
 
-        setTimeout(() => {
-            const newBizcocho = {
-                id: this.lastID,
-                tipo_bizcocho: bizcocho.categoria,
-                size_bizcocho: bizcocho.tamano,
-                bizcochos_en_bodega: bizcocho.cantidadBodega,
-                bizcochos_en_proceso: bizcocho.cantidadProduccion
-            };
+        const newBizcocho = {
+            id: this.lastID,
+            biz_category: bizcocho.biz_category,
+            biz_size: bizcocho.biz_size,
+            stock_disponible: bizcocho.stock_disponible,
+            stock_en_proceso: bizcocho.stock_en_proceso,
+            stock_min: bizcocho.stock_min,
+            stock_max: bizcocho.stock_max,
+            stock_critico: bizcocho.stock_critico
+        };
 
-            console.log(`Producto creado con el ID: ${this.lastID}`);
-            closeDatabase(db);
-            callback(null, newBizcocho);
-        }, 500);
+        console.log(`Bizcocho insertado correctamente. ID: ${this.lastID}`);
+        closeDatabase(db);
+        callback(null, newBizcocho);
     });
 }
 
@@ -42,7 +47,6 @@ function readBizcochos(callback) {
         SELECT *
         FROM inventario_bizcochos
     `;
-
     try {
         db.all(query, [], (err, rows) => {
             if (err) {
@@ -50,7 +54,6 @@ function readBizcochos(callback) {
                 callback(err, null);
                 return;
             }
-
             console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
             callback(null, rows);
         });
@@ -59,7 +62,6 @@ function readBizcochos(callback) {
         callback(err, null);
     } finally {
         closeDatabase(db);
-        console.log('[INFO] Conexión a la base de datos cerrada.');
     }
 }
 
@@ -69,20 +71,21 @@ function updateBizcocho(bizcocho, callback) {
     const db = openDataBase();
     const query = `
         UPDATE inventario_bizcochos
-        SET bizcochos_en_bodega = ?, bizcochos_en_proceso = ?
-        WHERE id_bizcocho = ?
-        AND tipo_bizcocho = ?
-        AND size_bizcocho = ?;
+        SET stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_min = ?, stock_max = ?, stock_critico = ?
+        WHERE biz_category = ? AND biz_size = ?;
     `;
 
     db.run(
         query,
         [
-            bizcocho.cantidadBodega,
-            bizcocho.cantidadProduccion,
-            bizcocho.id,
-            bizcocho.categoria,
-            bizcocho.tamano,
+            bizcocho.stock_apartado,
+            bizcocho.stock_disponible, 
+            bizcocho.stock_en_proceso, 
+            bizcocho.stock_min, 
+            bizcocho.stock_max, 
+            bizcocho.stock_critico,
+            bizcocho.biz_category,
+            bizcocho.biz_size,
         ],
         function (err) {
             if (err) {
@@ -91,15 +94,18 @@ function updateBizcocho(bizcocho, callback) {
                 return callback(err, null);
             }
 
-            console.log(`Bizcocho con ID ${bizcocho.id} actualizado correctamente.`);
-
             const updatedBizcocho = {
-                id: bizcocho.id,
-                tipo_bizcocho: bizcocho.categoria,
-                size_bizcocho: bizcocho.tamano,
-                bizcochos_en_bodega: bizcocho.cantidadBodega,
-                bizcochos_en_proceso: bizcocho.cantidadProduccion,
+                id: this.lastID,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
+                stock_disponible: bizcocho.stock_disponible,
+                stock_en_proceso: bizcocho.stock_en_proceso,
+                stock_min: bizcocho.stock_min,
+                stock_max: bizcocho.stock_max,
+                stock_critico: bizcocho.stock_critico
             };
+
+            console.log(`Bizcocho actualizado correctamente. ID: ${this.lastID}`);
 
             closeDatabase(db);
             callback(null, updatedBizcocho);
@@ -107,8 +113,7 @@ function updateBizcocho(bizcocho, callback) {
     );
 }
 
-
-function deleteBizcocho(bizcocho, callback){
+/*function deleteBizcocho(bizcocho, callback){
     console.log("Datos del bizcocho a eliminar:", bizcocho);
     const db = openDataBase();
     const query = `
@@ -144,6 +149,40 @@ function deleteBizcocho(bizcocho, callback){
             callback(null, deletedBizcocho);
         }
     );
+}*/
+
+function searchBizcocho(bizcocho, callback) {
+    //console.log(bizcocho);
+    const db = openDataBase();
+    const query = `
+        SELECT * 
+        FROM inventario_bizcochos
+        WHERE biz_category = ? AND biz_size = ?
+    `;
+    db.all(
+        query,
+        [
+            bizcocho.biz_category, 
+            bizcocho.biz_size
+        ],
+        (err, rows) => {
+            try {
+                if (err) {
+                    console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                    callback(err, null);
+                    return;
+                }
+                if (rows.length < 0) {
+                    console.log("No se encontraron coincidencias.", rows);
+                }
+                callback(null, rows);
+            } catch (error) {
+                callback(error, null);
+            } finally {
+                closeDatabase(db);
+            }
+        }
+    );
 }
 
-module.exports = { createBizcocho, readBizcochos, updateBizcocho, deleteBizcocho };
+module.exports = { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho };

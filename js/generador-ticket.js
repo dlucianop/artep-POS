@@ -203,7 +203,7 @@ function generarRecibo() {
             if (typeof window !== "undefined") {
                 setTimeout(() => {
                     window.location.reload();
-                }, 3000); // Espera 1 segundo antes de recargar
+                }, 3000);
             }
         });
         
