@@ -6,18 +6,16 @@ function createBizcocho(bizcocho, callback) {
     const db = openDataBase();
     const query = `
         INSERT INTO inventario_bizcochos
-            (biz_category, biz_size, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
-        VALUES (?, ?, ?, ?, ?, ?, ?);
+            (biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
+        VALUES (?, ?, 0, ?, ?, ?, 0, 0, 0);
     `;
 
     db.run(query, [
         bizcocho.biz_category,
         bizcocho.biz_size,
+        bizcocho.stock_apartado,
         bizcocho.stock_disponible,
         bizcocho.stock_en_proceso,
-        bizcocho.stock_min,
-        bizcocho.stock_max,
-        bizcocho.stock_critico
     ], function (err) {
         if (err) {
             console.error(`[ERROR] Consulta fallida: ${err.message}`);
@@ -73,13 +71,14 @@ function updateBizcocho(bizcocho, callback) {
     const db = openDataBase();
     const query = `
         UPDATE inventario_bizcochos
-        SET stock_disponible = ?, stock_en_proceso = ?, stock_min = ?, stock_max = ?, stock_critico = ?
+        SET stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_min = ?, stock_max = ?, stock_critico = ?
         WHERE biz_category = ? AND biz_size = ?;
     `;
 
     db.run(
         query,
         [
+            bizcocho.stock_apartado,
             bizcocho.stock_disponible, 
             bizcocho.stock_en_proceso, 
             bizcocho.stock_min, 
