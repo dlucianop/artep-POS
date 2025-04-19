@@ -4,7 +4,6 @@ const { group } = require('console');
 const { join } = require('path');
 const { text } = require('stream/consumers');
 const { parseArgs } = require('util');
-const generarRecibo = require('./generador-ticket');
 const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
 const crudV = join(__dirname, "..", "js", "crud-ventas.js");
 const crudB = join(__dirname, "..", "js", "crud_bizcochos.js");
@@ -15,7 +14,6 @@ const { createProducto, readProductos, updateProducto, readOneProduct } = requir
 const { createVenta, readVentas, createVentaDETALLES } = require(crudV);
 const { createOrden, readOrdenbyFASE } = require(crudO);
 const { showToast, ICONOS } = require(toast);
-
 let productos = [];
 let bizcochos = [];
 let ventaData = [];
@@ -520,9 +518,9 @@ async function imprimirRecibo() {
                         createBizcocho({
                             biz_category:      categoria,
                             biz_size:          size,
-                            stock_apartado:pedido,
-                            stock_disponible:0,
-                            stock_en_proceso:0,
+                            stock_apartado: 0,
+                            stock_disponible: 0,
+                            stock_en_proceso: pedido,
                             code:          codigo
                         }, (err) => err ? rej(err) : res())
                     );
