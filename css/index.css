@@ -108,6 +108,40 @@ body {
     pointer-events: none; 
 }
 
-#simple-toast.show-toast {
+#confirm-toast{
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 24px 48px;
+    border-radius: 50px;
+    font-family: Arial;
+    font-size: 28px;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    z-index: 9999;
+    min-width: 300px;
+    text-align: center;
+    pointer-events: none; 
+}
+
+#simple-toast.show-toast, #confirm-toast.show-toast{
     opacity: 1;
+    pointer-events: all;
+}
+
+#toast-confirm-ok, #toast-confirm-cancel {
+    text-align: center;
+    padding: 5px 0;
+    width: 10vh;
+}
+
+#toast-confirm-ok:hover, 
+#toast-confirm-cancel:hover {
+    cursor: pointer;
+    background-color: #390101;
+    color: white;
+    transition: background-color 0.3s, color 0.3s;
 }

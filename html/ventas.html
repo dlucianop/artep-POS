@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerámica Artep | Historial de Ventas</title>
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/ventas.css">
 </head>
 <body>
     <div id="nav-menu">
         <a href="index.html" class="menu-btn">Punto de Venta
             <img src="../img/nav-icons/point-of-sale.png" alt="">
         </a>
-        <!--a href="produccion.html" class="menu-btn">Panel de Producción
+        <a href="produccion.html" class="menu-btn">Panel de Producción
             <img src="../img/nav-icons/production-line.png" alt="">
-        </a-->
+        </a>
         <a href="bizcochos.html" class="menu-btn">Inventario de Bizcochos
             <img src="../img/nav-icons/fire.png" alt="">
         </a>
@@ -31,7 +32,30 @@
         </a-->
     </div>
     <div id="content-section">
+        <div class="sales-header">
+            <h2>Historial de Ventas</h2>
+        </div>
+    
+        <table id="table-ventas">
+            <thead>
+                <tr>
+                    <th>No. de Venta</th>
+                    <th>Fecha Venta</th>
+                    <th>Monto($)</th>
+                    <th>Fecha de Entrega</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaVentasBody">
+            </tbody>
+        </table>
     </div>
     <script src="../js/window-lock.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/script-ventas.js"></script>
+
+    <!-- Toast de notificación -->
+    <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
 </body>
 </html>

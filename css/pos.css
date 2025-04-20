@@ -381,7 +381,11 @@
     background-color: #eee;
 }
   
-
+.cantidad-venta-input{
+    text-align: center;
+    padding: 5px 0;
+    width: 20vh;
+}
 
 /************* Animations **********/
 

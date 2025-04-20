@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerámica Artep | Inventario de Bizochos</title>
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/bizcochos.css">
 </head>
 <body>
     <div id="nav-menu">
         <a href="index.html" class="menu-btn">Punto de Venta
             <img src="../img/nav-icons/point-of-sale.png" alt="">
         </a>
-        <!--a href="produccion.html" class="menu-btn">Panel de Producción
+        <a href="produccion.html" class="menu-btn">Panel de Producción
             <img src="../img/nav-icons/production-line.png" alt="">
-        </a-->
+        </a>
         <a href="bizcochos.html" class="selected-btn">Inventario de Bizcochos
             <img src="../img/nav-icons/fire1.png" alt="">
         </a>
@@ -31,7 +32,51 @@
         </a-->
     </div>
     <div id="content-section">
+        <div class="inventory-header">
+            <h2>Inventario de Bizcochos</h2>
+            <div class="toggle-mode">
+                <input type="checkbox" id="modoToggle">
+                <label for="modoToggle">MODO AUTOMÁTICO</label>
+            </div>
+            <button onclick="abrirFormulario()">+ Agregar Bizcocho</button>
+        </div>
+
+        <table id="table-bizcochos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Categoría</th>
+                    <th>Tamaño</th>
+                    <th>Disponible</th>
+                    <th>Apartado</th>
+                    <th>En Proceso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaBizcochosBody">
+                <!-- Se llena con JS -->
+            </tbody>
+        </table>
     </div>
+
+    <!-- MODAL -->
+    <!--div id="formModal" class="modal hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle">Agregar Bizcocho</h3>
+            <input type="text" id="categoria" placeholder="Categoría">
+            <input type="text" id="size" placeholder="Tamaño">
+            <input type="number" id="stock_disponible" placeholder="Stock Disponible">
+            <input type="number" id="stock_apartado" placeholder="Stock Apartado">
+            <input type="number" id="stock_en_proceso" placeholder="Stock En Proceso">
+            <div class="btn-row">
+                <button onclick="guardarBizcocho()">Guardar</button>
+                <button onclick="cerrarFormulario()">Cancelar</button>
+            </div>
+        </div>
+    </div-->
+
     <script src="../js/window-lock.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/script-Bizcocho.js"></script>
 </body>
 </html>

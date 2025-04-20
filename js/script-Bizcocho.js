@@ -12,10 +12,12 @@ function fillTableBizcochos(bizcochos){
         const row = document.createElement('tr');
         row.id = 'biz-' + bizcocho.id_bizcocho;
         row.innerHTML = `
-        <td>${bizcocho.tipo_bizcocho || 'N/A'}</td>
-        <td>${bizcocho.size_bizcocho || 'N/A'}</td>
-        <td>${bizcocho.bizcochos_en_bodega || 0}</td>
-        <td>${bizcocho.bizcochos_en_proceso || 0}</td>
+        <td>${bizcocho.id_biz || 'N/A'}</td>
+        <td>${bizcocho.biz_category || 'N/A'}</td>
+        <td>${bizcocho.biz_size || 0}</td>
+        <td>${bizcocho.stock_disponible || 0}</td>
+        <td>${bizcocho.stock_apartado || 0}</td>
+        <td>${bizcocho.stock_en_proceso || 0}</td>
         <td class="col-btn">
             <button type="button" onclick='openEditModal(${JSON.stringify(bizcocho)})'>Editar</button>
             <button type="button" onclick='deleteModal(${JSON.stringify(bizcocho)})'>Eliminar</button>
@@ -32,7 +34,6 @@ readBizcochos((err, data) => {
     } else {
         fillTableBizcochos(data);
     }
-    
 });
 
 /******************************** AGREGAR BIZCOCHO **********************************/

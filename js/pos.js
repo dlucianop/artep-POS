@@ -14,7 +14,7 @@ const { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho } = requir
 const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
 const { createVenta, readVentas, createVentaDETALLES,  readVentasDetalle } = require(crudV);
 const { createOrden, readOrdenbyFASE } = require(crudO);
-const { showToast, ICONOS } = require(toast);
+const { showToast, showConfirmToast, ICONOS } = require(toast);
 const { generarRecibos } = require(ticket);
 let productos = [];
 let bizcochos = [];
@@ -202,14 +202,53 @@ function agregarProductoCarrito() {
         <td>${code}</td>
         <td>${form_productName}</td>
         <td>${parseFloat(form_productPrice).toFixed(2)}</td>
-        <td>${parseInt(form_pedido)}</td>
-        <td>${(parseFloat(form_productPrice).toFixed(2) * parseInt(form_pedido)).toFixed(2)}</td>
+        <td>
+            <input id="cantidad_${code}" class="cantidad-venta-input" type="number" min="1" value="${parseInt(form_pedido)}"
+                onchange="actualizarTotal('${code}', ${parseFloat(form_productPrice).toFixed(2)})">
+        </td>
+        <td id="total_${code}">${(parseFloat(form_productPrice).toFixed(2) * parseInt(form_pedido)).toFixed(2)}</td>
+        <td class="col-btn">
+            <button type="button" onclick="eliminarProdCarrito(${code})">🗑️ Eliminar</button>
+        </td>
     `;
 
     tableBody.appendChild(newRow);
     agregarProducto(parseInt(code), form_productCategory, form_productModel, form_productSize, form_productDecoration, form_productColor, parseFloat(form_productPrice), parseInt(form_stockDisponible), parseInt(form_pedido));
     closeModal('addProductModal');
     showToast("Producto agregado a la venta.", ICONOS.exito);
+    totalVenta();
+}
+
+function eliminarProdCarrito(id) {
+    showConfirmToast(`¿Eliminar producto #${id} del carrito?`, (confirmed) => {
+        if (!confirmed) return;
+
+        const row = Array.from(document.querySelectorAll('#table-products tr')).find(tr => {
+            return tr.children[0].textContent == id;
+        });
+        if (row) row.remove();
+
+        const index = carrito.findIndex(p => p.codigo === parseInt(id));
+        if (index !== -1) carrito.splice(index, 1);
+
+        totalVenta();
+        showToast("Producto eliminado del carrito.", ICONOS.info);
+    });
+}
+
+
+function actualizarTotal(code, precio) {
+    const input = document.getElementById(`cantidad_${code}`);
+    const cantidad = parseInt(input.value) || 0;
+
+    const totalCell = document.getElementById(`total_${code}`);
+    totalCell.textContent = (precio * cantidad).toFixed(2);
+
+    const productoEnCarrito = carrito.find(p => p.codigo === parseInt(code));
+    if (productoEnCarrito) {
+        productoEnCarrito.pedido = cantidad;
+    }
+
     totalVenta();
 }
 
@@ -281,6 +320,18 @@ function validacionesVenta() {
 
             resolve();
         });
+    });
+}
+
+function cancelarVenta() {
+    showConfirmToast("¿Desea limpiar la pantalla de venta?", (confirmed) => {
+        if (!confirmed) return;
+
+        showToast("Venta limpiada 😄", ICONOS.info);
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
     });
 }
 
