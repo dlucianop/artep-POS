@@ -540,14 +540,17 @@ async function imprimirRecibo() {
             }
         }
 
-        /*lo de antes ya funciona ya solo me falta lo ultimo */
         try {
             const detalles_venta = await new Promise((res, rej) =>
                 readVentasDetalle({ id_ventaVD: ventaActual.idVenta }, (err, data) => err ? rej(err) : res(data))
             );
             await generarRecibos({ venta_datos: detalles_venta });
             showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-        
+            if (typeof window !== "undefined") {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000);
+            }
         } catch (error) {
             showToast("Hubo un error al generar el recibo.", ICONOS.error);
             console.error("Error al generar recibo:", error);
