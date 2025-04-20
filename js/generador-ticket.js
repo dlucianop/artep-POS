@@ -11,45 +11,49 @@ function truncateText(doc, text, maxWidth) {
     return truncated;
 }
 
-function generarRecibo() {
-    const idVenta = document.getElementById('id-sale').value || 999999;
-        const saleDate = document.getElementById('sale-date').value;
-        const saleHour = document.getElementById('sale-hour').value;
-        const clientName = document.getElementById('client-name').value || "-----";
-        const clientPhone = document.getElementById('client-phone').value || "-----";
-        const clientMail = document.getElementById('client-mail').value || "-----";
-        const clientAddress = document.getElementById('client-address').value || "-----";
-        const saleEntrega = document.getElementById('sale-entrega').value || "-----";
-        const paymentMethod = document.getElementById('payment-method').value || "-----";
-        const paymentForm = document.getElementById('payment-form').value || "-----";
-        const empresa = "Cerámica Artep";
-    
-        const table = document.getElementById("table-products");
-        const tbody = table.querySelector("tbody");
-        const rows = tbody.querySelectorAll("tr:not(#rowvoid)");
-        const productos = [];
-        rows.forEach(row => {
-            const cells = row.querySelectorAll("td");
-            if (cells.length >= 5) {
+function generarRecibos(venta) {
+    return new Promise((resolve, reject) => {
+        try {
+            const idVenta = venta.venta_datos[0].noDeVenta;
+            const saleDate = venta.venta_datos[0].fecha_venta;
+            const saleHour = venta.venta_datos[0].hora_venta;
+            const clientName = venta.venta_datos[0].cliente_name;
+            const clientPhone = venta.venta_datos[0].telefono;
+            const clientMail = venta.venta_datos[0].correo;
+            const clientAddress = venta.venta_datos[0].domicilio;
+            const saleEntrega = venta.venta_datos[0].fecha_entrega;
+            const paymentMethod = venta.venta_datos[0].metodo_pago;
+            const paymentForm = venta.venta_datos[0].forma_pago;
+            const empresa = "Cerámica Artep";
+            
+            const productos = [];
+            venta.venta_datos.forEach(productoVenta => {
                 productos.push({
-                    codigo: cells[0].textContent.trim(),
-                    descripcion: cells[1].textContent.trim(),
-                    precioUnitario: cells[2].textContent.trim(),
-                    cantidad: cells[3].textContent.trim(),
-                    importe: cells[4].textContent.trim(),
+                    codigo: productoVenta.codigo,
+                    descripcion: productoVenta.nombre,
+                    precioUnitario: productoVenta.precioUnit,
+                    cantidad: productoVenta.cantidad,
+                    importe: productoVenta.importe,
                 });
-            }
-        });
+            });
+            
+            const monto = venta.venta_datos[0].monto;
+            const pago = venta.venta_datos[0].pago;
+            const cambio = venta.venta_datos[0].cambio; 
+
+
+            console.log(idVenta);
+            console.log(productos);
+            resolve();
+        } catch (err) {
+            reject(err);
+        }
+    });
     
-        const monto = document.getElementById("monto").value;
-        const descuento = document.getElementById("descuento").value;
-        const pago = document.getElementById("pago").value;
-        const total = document.getElementById("total").value;
-        const cambio = document.getElementById("cambio").value;
     
         // Crear documento PDF aqui-------------------------------------------------------
     
-        const doc = new jsPDF();
+       /* const doc = new jsPDF();
     
         const pageWidth = doc.internal.pageSize.getWidth();
         const pageHeightt = doc.internal.pageSize.getHeight()*0.8;
@@ -205,8 +209,8 @@ function generarRecibo() {
                     window.location.reload();
                 }, 3000);
             }
-        });
+        });*/
         
 }
 
-module.exports = generarRecibo;
+module.exports = { generarRecibos }

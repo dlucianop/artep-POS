@@ -172,11 +172,20 @@ function createVentaDETALLES(detalles_venta, callback){
 }
 
 function readVentasDetalle(detalles_venta, callback) {
+    console.log(detalles_venta.id_ventaVD);
     const db = openDataBase();
     const query = `
-        SELECT *
-        FROM detalles_venta
-        WHERE id_venta = ?;
+        SELECT 
+            v.id_venta AS noDeVenta, v.fecha_venta, v.hora AS hora_venta, 
+            v.nombre AS cliente_name, v.telefono, v.correo, v.domicilio, v.fecha_entrega, v.metodo_pago, v.forma_pago,
+            ip.code AS codigo, ip.category || ' MOD.' || ip.model || ' TAM.' || ip.size || ' DECOR.' || ip.decoration || ' COL.' || ip.color AS nombre, dv.price AS precioUnit, dv.quantity AS cantidad, dv.importe,
+            v.monto, v.pago, (v.pago - v.monto) AS cambio
+        FROM ventas v
+        INNER JOIN detalles_venta dv
+        ON v.id_venta = dv.id_venta
+        INNER JOIN inventario_productos ip
+        ON ip.code = dv.code
+        WHERE v.id_venta = ?;
     `;
 
     try {

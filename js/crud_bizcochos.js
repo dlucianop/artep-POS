@@ -67,7 +67,7 @@ function readBizcochos(callback) {
 
 
 function updateBizcocho(bizcocho, callback) {
-    console.log("Datos del bizcocho a actualizar:", bizcocho);
+    //console.log("Datos del bizcocho a actualizar:", bizcocho);
     const db = openDataBase();
     const query = `
         UPDATE inventario_bizcochos
