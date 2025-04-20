@@ -34,7 +34,6 @@ readBizcochos((err, data) => {
     } else {
         fillTableBizcochos(data);
     }
-    
 });
 
 /******************************** AGREGAR BIZCOCHO **********************************/
