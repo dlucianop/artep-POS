@@ -107,11 +107,12 @@
                             <th>Precio Unitario($)</th>
                             <th>Cantidad</th>
                             <th>Importe($)</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr id="rowvoid">
-                            <td colspan="5"></td>
+                            <td colspan="6"></td>
                         </tr>
                     </tbody>
                 </table>
@@ -122,16 +123,16 @@
                         <button onclick="openModal('addProductModal'); revisarAlmacen()">
                             <img src="../img/pos-actions/add.png" alt="">Agregar Producto
                         </button>
-                        <button id="deleteProductBtn" disabled onclick="deleteProduct()">
+                        <!--button id="deleteProductBtn" disabled onclick="deleteProduct()">
                             <img src="../img/pos-actions/minus.png" alt="">Borrar Producto
                         </button>
                         <button id="editProductBtn" disabled onclick="openModal('editProductModal')">
                             <img src="../img/pos-actions/edit.png" alt="">Editar Producto
-                        </button>
+                        </button-->
                     </div>
                     <div id="actions2">
-                        <button>
-                            <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Borrar Venta
+                        <button onclick="cancelarVenta()" type="submit">
+                            <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Limpiar Venta
                         </button>
                         <button id="btn-imprimir" onclick="imprimirRecibo()" type="submit">
                             <img src="../img/pos-actions/printer.png" alt="">Imprimir Ticket
@@ -318,5 +319,15 @@
 
     <!-- Toast de notificación -->
     <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
+
+    <!-- Confirmación personalizada -->
+    <div id="confirm-toast" class="hidden-toast">
+        <span id="confirm-msg">¿Estás seguro?</span>
+        <div class="confirm-buttons">
+            <button id="btn-confirm-ok">Sí</button>
+            <button id="btn-confirm-cancel">Cancelar</button>
+        </div>
+    </div>
+
 </body>
 </html>
