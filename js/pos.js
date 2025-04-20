@@ -4,21 +4,21 @@ const { group } = require('console');
 const { join } = require('path');
 const { text } = require('stream/consumers');
 const { parseArgs } = require('util');
-const generarRecibo = require('./generador-ticket');
 const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
 const crudV = join(__dirname, "..", "js", "crud-ventas.js");
 const crudB = join(__dirname, "..", "js", "crud_bizcochos.js");
 const crudO = join(__dirname, "..", "js", "crud-produccion.js");
 const toast = join(__dirname, "..", "js", "toast.js");
+const ticket = join(__dirname, "..", "js", "generador-ticket.js");
 const { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho } = require(crudB);
 const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
-const { createVenta, readVentas, createVentaDETALLES } = require(crudV);
+const { createVenta, readVentas, createVentaDETALLES,  readVentasDetalle } = require(crudV);
 const { createOrden, readOrdenbyFASE } = require(crudO);
 const { showToast, ICONOS } = require(toast);
-
+const { generarRecibos } = require(ticket);
 let productos = [];
 let bizcochos = [];
-let ventaData = [];
+//let ventaData = [];
 let carrito = [];
 const resultsContainer = document.getElementById("search-results");
 const inputSearch = document.getElementById("product-by-search");
@@ -520,9 +520,9 @@ async function imprimirRecibo() {
                         createBizcocho({
                             biz_category:      categoria,
                             biz_size:          size,
-                            stock_apartado:pedido,
-                            stock_disponible:0,
-                            stock_en_proceso:0,
+                            stock_apartado: 0,
+                            stock_disponible: 0,
+                            stock_en_proceso: pedido,
                             code:          codigo
                         }, (err) => err ? rej(err) : res())
                     );
@@ -540,8 +540,22 @@ async function imprimirRecibo() {
             }
         }
 
-        generarRecibo()
-        showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+        try {
+            const detalles_venta = await new Promise((res, rej) =>
+                readVentasDetalle({ id_ventaVD: ventaActual.idVenta }, (err, data) => err ? rej(err) : res(data))
+            );
+            await generarRecibos({ venta_datos: detalles_venta });
+            showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+            if (typeof window !== "undefined") {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000);
+            }
+        } catch (error) {
+            showToast("Hubo un error al generar el recibo.", ICONOS.error);
+            console.error("Error al generar recibo:", error);
+        }
+        
 
     } catch (error) {
         console.log(`Error: ${error}`);
