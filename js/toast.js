@@ -2,6 +2,7 @@ const ICONOS = {
     advertencia: "⚠️",
     error: "❌",
     exito: "✅",
+    success: "✅",
     info: "ℹ️",
     prohibido: "⛔",
     reloj: "⏳",

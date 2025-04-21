@@ -1,26 +1,43 @@
 const { join } = require('path');
 const crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js');
 const { createBizcocho, readBizcochos, updateBizcocho, deleteBizcocho } = require(crudJS);
+const toast = join(__dirname, "..", "js", "toast.js");
+const { showToast, showConfirmToast, ICONOS } = require(toast);
+
+window.addEventListener('DOMContentLoaded', initBizcochos);
+
+async function initBizcochos() {
+    try {
+        const bizcochos = await new Promise((res, rej) => {
+            readBizcochos((err, data) => err ? rej(err) : res(data));
+        });
+        window.bizcochos = bizcochos;
+        fillTableBizcochos(bizcochos);
+        console.log('Se cargaron datos.');
+    } catch (error) {
+        console.error('Error al cargar bizcochos:', error);
+        showToast("Error al cargar inventario", ICONOS.error);
+    }
+}
 
 function fillTableBizcochos(bizcochos){
     const tableBody = document.querySelector('#table-bizcochos tbody');
     tableBody.innerHTML = '';
-
     const fragment = document.createDocumentFragment();
 
-    bizcochos.forEach(bizcocho =>{
+    bizcochos.forEach(b => {
         const row = document.createElement('tr');
-        row.id = 'biz-' + bizcocho.id_bizcocho;
+        row.id = 'biz-' + b.id_biz;
         row.innerHTML = `
-        <td>${bizcocho.id_biz || 'N/A'}</td>
-        <td>${bizcocho.biz_category || 'N/A'}</td>
-        <td>${bizcocho.biz_size || 0}</td>
-        <td>${bizcocho.stock_disponible || 0}</td>
-        <td>${bizcocho.stock_apartado || 0}</td>
-        <td>${bizcocho.stock_en_proceso || 0}</td>
+        <td>${b.id_biz}</td>
+        <td>${b.biz_category}</td>
+        <td>${b.biz_size}</td>
+        <td>${b.stock_disponible}</td>
+        <td>${b.stock_apartado}</td>
+        <td>${b.stock_en_proceso}</td>
         <td class="col-btn">
-            <button type="button" onclick='openEditModal(${JSON.stringify(bizcocho)})'>Editar</button>
-            <button type="button" onclick='deleteModal(${JSON.stringify(bizcocho)})'>Eliminar</button>
+            <button onclick="renderBizco(${b.id_biz});">✏️ Editar</button>
+            <button onclick="eliminarBizcocho(${b.id_biz});">🗑️ Eliminar</button>
         </td>
         `;
         fragment.appendChild(row);
@@ -28,135 +45,99 @@ function fillTableBizcochos(bizcochos){
     tableBody.appendChild(fragment);
 }
 
-readBizcochos((err, data) => {
-    if (err) {
-        document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
+function eliminarBizcocho(id) {
+    showConfirmToast(
+        `¿Seguro que quieres eliminar el bizcocho #${id}?`,
+        async () => {
+        try {
+            await new Promise((res, rej) =>
+                deleteBizcocho(id, err => err ? rej(err) : res())
+            );
+            showToast("Bizcocho eliminado", ICONOS.success);
+            initBizcochos();
+        } catch (err) {
+            console.error(err);
+            showToast("Error al eliminar", ICONOS.error);
+        }
+        }
+    );
+}
+
+function prepareNewBizco() {
+    const form = document.getElementById('formBiz');
+    form.reset();
+    form.dataset.mode = 'create';
+    openModal('editBizcoModal');
+}
+  
+function renderBizco(id) {
+    const b = window.bizcochos.find(x => x.id_biz === id);
+    if (!b) return showToast("Bizcocho no encontrado", ICONOS.error);
+  
+    const form = document.getElementById('formBiz');
+    form.dataset.mode = 'edit';
+    document.getElementById('bizId').value        = b.id_biz;
+    document.getElementById('bizCategory').value  = b.biz_category;
+    document.getElementById('bizSize').value      = b.biz_size;
+    document.getElementById('stockDisp').value    = b.stock_disponible;
+    document.getElementById('stockApr').value     = b.stock_apartado;
+    document.getElementById('stockProc').value    = b.stock_en_proceso;
+  
+    openModal('editBizcoModal');
+}
+
+function guardarBizcocho(event) {
+    event.preventDefault();
+    const form = document.getElementById('formBiz');
+    const mode = form.dataset.mode;
+    const id      = document.getElementById('bizId').value.trim();
+    const payload = {
+        id_biz:           +id,
+        biz_category:    document.getElementById('bizCategory').value,
+        biz_size:        document.getElementById('bizSize').value,
+        stock_disponible:+document.getElementById('stockDisp').value,
+        stock_apartado:  +document.getElementById('stockApr').value,
+        stock_en_proceso:+document.getElementById('stockProc').value
+    };
+  
+    const dupId = window.bizcochos.some(b => b.id_biz === payload.id_biz);
+    if (mode === 'create' && dupId) {
+        return showToast(`Ya existe un bizcocho con ID ${payload.id_biz}.`, ICONOS.advertencia);
+    }
+
+    const dupCatSize = window.bizcochos.some(b =>
+        b.biz_category === payload.biz_category &&
+        b.biz_size     === payload.biz_size &&
+        (mode === 'create' || b.id_biz !== payload.id_biz)
+    );
+    if (dupCatSize) {
+        return showToast(
+            `Ya existe un bizcocho de categoría “${payload.biz_category}” y tamaño “${payload.biz_size}”.`,
+            ICONOS.advertencia
+        );
+    }
+  
+    if (mode === 'create') {
+        createBizcocho(payload, (err, created) => {
+            if (err) {
+            console.error("Error al crear bizcocho:", err);
+            return showToast("Error al agregar", ICONOS.error);
+            }
+            showToast("Bizcocho agregado", ICONOS.success);
+            closeModal('editBizcoModal');
+            initBizcochos();
+        });
+    } else if (mode === 'edit') {
+        updateBizcocho(payload, (err, updated) => {
+            if (err) {
+            console.error("Error al actualizar bizcocho:", err);
+            return showToast("Error al actualizar", ICONOS.error);
+            }
+            showToast("Bizcocho actualizado", ICONOS.success);
+            closeModal('editBizcoModal');
+            initBizcochos();
+        });
     } else {
-        fillTableBizcochos(data);
-    }
-});
-
-/******************************** AGREGAR BIZCOCHO **********************************/
-function reloadTable() {
-    readBizcochos((err, data) => {
-        if (err) {
-            document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
-        } else {
-            fillTableBizcochos(data);
-        }
-    });
-}
-
-
-function saveNewBizcocho() {
-    const categoria = document.getElementById('tipoBizcocho').value;
-    const tamano = document.getElementById('sizeBizcocho').value;
-    const cantidadBodega = parseInt(document.getElementById('cantidadBodega').value, 10) || 0;
-    const cantidadProduccion = parseInt(document.getElementById('cantidadProduccion').value, 10) || 0;
-    
-    if (!categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-
-    createBizcocho({ categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
-        if (err) {
-            alert(`Error al agregar bizcocho: ${err}`);
-        } else {
-            alert('¡Bizcocho agregado correctamente!');
-            reloadTable();
-            closeModal('modal-agregar');
-        }
-    });
-}
-
-function updateOldBizcocho(){
-    const id = parseInt(document.getElementById('editId').value, 10) || 0;
-    const categoria = document.getElementById('editCategoria').value;
-    const tamano = document.getElementById('editSize').value;
-    const cantidadBodega = parseInt(document.getElementById('editCantidadBodega').value, 10) || 0;
-    const cantidadProduccion = parseInt(document.getElementById('editCantidadProduccion').value, 10) || 0;
-
-    if (id < 0 || !categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-
-    updateBizcocho({ id, categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
-        if (err) {
-            alert(`Error al editar bizcocho: ${err}`);
-        } else {
-            alert('¡Bizcocho modificado correctamente!');
-            reloadTable();
-            closeModal('modal-editar');
-        }
-    });
-}
-
-function confirmDeleteBizcocho(){
-    const id = parseInt(document.getElementById('deleteId').value, 10) || 0;
-    const categoria = document.getElementById('deleteCategoria').value;
-    const tamano = document.getElementById('deleteSize').value;
-    const cantidadBodega = parseInt(document.getElementById('deleteCantidadBodega').value, 10) || 0;
-    const cantidadProduccion = parseInt(document.getElementById('deleteCantidadProduccion').value, 10) || 0;
-
-    if (id < 0 || !categoria || !tamano || cantidadBodega < 0 || cantidadProduccion < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-
-    const isSure = confirm('¿Está muy seguro de que quiere eliminar este bizcocho? Esta acción no se puede deshacer.');
-    
-    if (!isSure) {
-        alert('Acción de eliminación cancelada.');
-        closeModal('modal-eliminar');
-        return;
-    }
-
-    deleteBizcocho({ id, categoria, tamano, cantidadBodega, cantidadProduccion }, (err) => {
-        if (err) {
-            alert(`Error al borrar bizcocho: ${err}`);
-        } else {
-            alert('Se elimino el bizcocho del inventario.');
-            reloadTable();
-            closeModal('modal-eliminar');
-        }
-    });
-}
-
-/***********************************SEARCH FILTERS */
-document.getElementById("filter-type").addEventListener("change", function() {
-    filterTable();
-});
-  
-document.getElementById("filter-size").addEventListener("change", function() {
-    filterTable();
-});
-  
-function filterTable() {
-    var typeFilter = document.getElementById("filter-type").value.toLowerCase();
-    var sizeFilter = document.getElementById("filter-size").value.toLowerCase();
-    var table = document.getElementById("table-bizcochos");
-    var rows = table.getElementsByTagName("tr");
-  
-    for (var i = 1; i < rows.length; i++) {
-        var cells = rows[i].getElementsByTagName("td");
-        var matchFound = true;
-  
-        if (typeFilter && cells[0].innerText.toLowerCase() !== typeFilter) {
-            matchFound = false;
-        }
-  
-        if (sizeFilter && cells[1].innerText.toLowerCase() !== sizeFilter) {
-            matchFound = false;
-        }
-  
-        if (matchFound) {
-            rows[i].style.display = "";
-        } else {
-            rows[i].style.display = "none";
-        }
+        console.warn("GuardarBizcocho: modo desconocido", mode);
     }
 }
-  
-  
