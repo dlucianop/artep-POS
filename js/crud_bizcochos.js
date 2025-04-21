@@ -110,23 +110,21 @@ function updateBizcocho(bizcocho, callback) {
     );
 }
 
-/*function deleteBizcocho(bizcocho, callback){
+function deleteBizcocho(bizcocho, callback){
     console.log("Datos del bizcocho a eliminar:", bizcocho);
     const db = openDataBase();
     const query = `
         DELETE FROM inventario_bizcochos
-        WHERE id_bizcocho = ? AND tipo_bizcocho = ? AND size_bizcocho = ?;
+        WHERE id_biz = ?
     `;
 
     db.run(
         query,
         [
-            bizcocho.id,
-            bizcocho.categoria,
-            bizcocho.tamano,
+            bizcocho.id_bizcocho
         ],
         function (err) {
-            if (err) {
+            if (err) {console.log(query, bizcocho.id_bizcocho);
                 console.error(`[ERROR] Consulta fallida: ${err.message}`);
                 closeDatabase(db);
                 return callback(err, null);
@@ -146,10 +144,9 @@ function updateBizcocho(bizcocho, callback) {
             callback(null, deletedBizcocho);
         }
     );
-}*/
+}
 
 function searchBizcocho(bizcocho, callback) {
-    //console.log(bizcocho);
     const db = openDataBase();
     const query = `
         SELECT * 
@@ -182,4 +179,4 @@ function searchBizcocho(bizcocho, callback) {
     );
 }
 
-module.exports = { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho };
+module.exports = { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho };

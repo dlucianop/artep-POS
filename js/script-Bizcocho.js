@@ -51,7 +51,7 @@ function eliminarBizcocho(id) {
         async () => {
         try {
             await new Promise((res, rej) =>
-                deleteBizcocho(id, err => err ? rej(err) : res())
+                deleteBizcocho({ id_bizcocho:id }, err => err ? rej(err) : res())
             );
             showToast("Bizcocho eliminado", ICONOS.success);
             initBizcochos();
