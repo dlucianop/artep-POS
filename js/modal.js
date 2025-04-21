@@ -1,5 +1,5 @@
 function openModal(modalId) {
-    console.log(modalId);
+    //console.log(modalId);
     document.getElementById(modalId).style.display = 'block';
     document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }

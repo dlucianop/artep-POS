@@ -48,18 +48,27 @@ function fillTableBizcochos(bizcochos){
 function eliminarBizcocho(id) {
     showConfirmToast(
         `¿Seguro que quieres eliminar el bizcocho #${id}?`,
-        async () => {
-        try {
-            await new Promise((res, rej) =>
-                deleteBizcocho({ id_bizcocho:id }, err => err ? rej(err) : res())
-            );
-            showToast("Bizcocho eliminado", ICONOS.success);
-            initBizcochos();
-        } catch (err) {
-            console.error(err);
-            showToast("Error al eliminar", ICONOS.error);
-        }
-        }
+        async (confirmado) => {
+            if (!confirmado) {
+                showToast("Eliminación cancelada", ICONOS.info);
+                return;
+            }
+
+            try {
+                await new Promise((resolve, reject) => {
+                    deleteBizcocho(
+                        { id_bizcocho: id }, 
+                        (err) => err ? reject(err) : resolve()
+                    );
+                });
+                showToast("Bizcocho eliminado", ICONOS.success);
+                initBizcochos();
+            } catch (err) {
+                console.error("[ERROR] eliminarBizcocho:", err);
+                showToast("Error al eliminar", ICONOS.error);
+            }
+        },
+        ICONOS.peligro
     );
 }
 

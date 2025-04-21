@@ -4,7 +4,7 @@ const ICONOS = {
     exito: "✅",
     success: "✅",
     info: "ℹ️",
-    prohibido: "⛔",
+    peligro: "⛔",
     reloj: "⏳",
     check: "✔️",
     carga: "🔄",
@@ -27,11 +27,15 @@ function showToast(message, icono = ICONOS.info) {
 
 function showConfirmToast(message, onConfirm, icono = ICONOS.pregunta) {
     const toast = document.getElementById('simple-toast');
+    let timeoutId;
+    
     toast.innerHTML = `
-        ${icono} ${message}
-        <div style="margin-top: 8px;">
-            <button id="toast-confirm-ok">Aceptar</button>
-            <button id="toast-confirm-cancel">Cancelar</button>
+        <div class="toast-content">
+            ${icono} ${message}
+            <div class="toast-buttons">
+                <button id="toast-confirm-ok">Aceptar</button>
+                <button id="toast-confirm-cancel">Cancelar</button>
+            </div>
         </div>
     `;
     toast.classList.add('show-toast');
@@ -39,6 +43,9 @@ function showConfirmToast(message, onConfirm, icono = ICONOS.pregunta) {
     const limpiar = () => {
         toast.classList.remove('show-toast');
         toast.innerHTML = '';
+        clearTimeout(timeoutId);
+        document.getElementById('toast-confirm-ok')?.removeEventListener('click', aceptar);
+        document.getElementById('toast-confirm-cancel')?.removeEventListener('click', cancelar);
     };
 
     const aceptar = () => {
@@ -51,14 +58,10 @@ function showConfirmToast(message, onConfirm, icono = ICONOS.pregunta) {
         onConfirm(false);
     };
 
-    setTimeout(() => {
-        cancelar();
-    }, 20000);
+    timeoutId = setTimeout(cancelar, 15000);
 
-    setTimeout(() => {
-        document.getElementById('toast-confirm-ok')?.addEventListener('click', aceptar);
-        document.getElementById('toast-confirm-cancel')?.addEventListener('click', cancelar);
-    }, 100);
+    document.getElementById('toast-confirm-ok').addEventListener('click', aceptar);
+    document.getElementById('toast-confirm-cancel').addEventListener('click', cancelar);
 }
 
 module.exports = { showToast, showConfirmToast, ICONOS }
