@@ -1,162 +1,285 @@
-const { join } = require('path');
-const crudJS = join(__dirname, '..', 'js', 'crud-productos.js');
-const { createProducto, readProductos, updateProducto, deleteProducto } = require(crudJS);
-
-function fillTableProductos(productos){
-    const tableBody = document.querySelector('#table-productos tbody');
-    tableBody.innerHTML = '';
-
-    const fragment = document.createDocumentFragment();
-
-    productos.forEach(producto =>{
-        const row = document.createElement('tr');
-        row.id = 'prod-' + producto.code;
-        row.innerHTML = `
-        <td>${producto.code || 0}</td>
-        <td>${producto.category || 'N/A'}</td>
-        <td>${producto.model || 'N/A'}</td>
-        <td>${producto.size || 'N/A'}</td>
-        <td>${producto.decoration || 'N/A'}</td>
-        <td>${producto.color || 'N/A'}</td>
-        <td>${producto.stock || 0}</td>
-        <td>${producto.price || 0}</td>
-        <td class="col-btns">
-            <button type="button" onclick='openEditModalProd(${JSON.stringify(producto)})'>Editar</button>
-            <button type="button" onclick='deleteModalProd(${JSON.stringify(producto)})'>Eliminar</button>
-        </td>
-        `;
-        fragment.appendChild(row);
-    });
-    tableBody.appendChild(fragment);
-}
-
-readProductos((err, data) => {
-    if (err) {
-        document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
-    } else {
-        fillTableProductos(data);
-    }
-    
-});
-
-function reloadTable() {
-    readProductos((err, data) => {
-        if (err) {
-            document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
-        } else {
-            fillTableProductos(data);
-        }
-    });
-}
-
-function saveNewProducto(){
-    const codeA = parseInt(document.getElementById('addCodeProd').value, 10) || 0;
-    const categoryA = document.getElementById('addCategoryProd').value;
-    const sizeA = document.getElementById('addSizeProd').value;
-    const modelA = document.getElementById('addModelProd').value;
-    const decorationA = document.getElementById('addDecorProd').value;
-    const colorA = document.getElementById('addColorProd').value;
-    const priceA = parseFloat(document.getElementById('addPrecioProd').value, 10) || 0;
-    const stockA = parseInt(document.getElementById('addCantBodProd').value, 10) || 0;
-
-    if( !codeA || !categoryA || !sizeA || !modelA || !decorationA || !colorA || priceA < 0 || stockA < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-    
-    createProducto({ codeA, categoryA, sizeA, modelA, decorationA, colorA, priceA, stockA }, (err) => {
-        if(err){
-            alert(`Error al agregar producto: ${err}`);
-        } else{
-            alert('¡Producto agregado correctamente!');
-            reloadTable();
-            closeModal('modal-agregar');
-        }
-    });
-}
-
-function updateOldProducto(){
-    const codeE = parseInt(document.getElementById('editCodeProd').value, 10) || 0;
-    const categoryE = document.getElementById('editCategoryProd').value;
-    const sizeE = document.getElementById('editSizeProd').value;
-    const modelE = document.getElementById('editModelProd').value;
-    const decorationE = document.getElementById('editDecorProd').value;
-    const colorE = document.getElementById('editColorProd').value;
-    const priceE = parseFloat(document.getElementById('editPrecioProd').value, 10) || 0;
-    const stockE = parseInt(document.getElementById('editCantBodProd').value, 10) || 0;
-    
-    if( !codeE || !categoryE || !sizeE || !modelE || !decorationE || !colorE || priceE < 0 || stockE < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
+async function imprimirRecibo() {
+    const emptyRow = document.getElementById("rowvoid");
+    if (emptyRow) {
+        showToast("No hay productos en el carrito.", ICONOS.advertencia);
         return;
     }
 
-    updateProducto({ codeE, categoryE, sizeE, modelE, decorationE, colorE, priceE, stockE }, (err) => {
-        if(err){
-            alert(`Error al editar producto: ${err}`);
-        } else{
-            alert('¡Producto modificado correctamente!');
-            reloadTable();
-            closeModal('modal-editar')
-        }
-    });
-}
+    try {
+        await validacionesVenta();
+        await revisarAlmacen();
+        await revisarAlmacenBiz();
 
-function confirmDeleteProducto(){
-    const codeD = parseInt(document.getElementById('deleteCodeProd').value, 10) || 0;
-    const categoryD = document.getElementById('deleteCategoryProd').value;
-    const sizeD = document.getElementById('deleteSizeProd').value;
-    const modelD = document.getElementById('deleteModelProd').value;
-    const decorationD = document.getElementById('deleteDecorProd').value;
-    const colorD = document.getElementById('deleteColorProd').value;
-    const priceD = parseFloat(document.getElementById('deletePrecioProd').value, 10) || 0;
-    const stockD = parseInt(document.getElementById('deleteCantBodProd').value, 10) || 0;
+        const codigos = productos.map(item => item.code);
+        const get     = (id, def = "") => document.getElementById(id).value.trim() || def;
+        const getNum  = (id, def = 0) => parseFloat(get(id, def)) || def;
 
-    if( !codeD || !categoryD || !sizeD || !modelD || !decorationD || !colorD || priceD < 0 || stockD < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
+        const ventaActual = {
+            idVenta:       parseInt(get('id-sale', "999999999"), 10) || 999999999,
+            fecha_venta:   get('sale-date'),
+            hora:          get('sale-hour'),
+            nombre:        get('client-name', "-----"),
+            telefono:      get('client-phone', "-----"),
+            correo:        get('client-mail', "-----"),
+            domicilio:     get('client-address', "-----"),
+            fecha_entrega: get('sale-entrega', "-----"),
+            metodo_pago:   get('payment-method', "-----"),
+            forma_pago:    get('payment-form', "-----"),
+            monto:         getNum('monto'),
+            pago:          getNum('pago')
+        };
 
-    const isSure = confirm('¿Está muy seguro de que quiere eliminar este producto? Esta acción no se puede deshacer.');
-    
-    if (!isSure) {
-        alert('Acción de eliminación cancelada.');
-        closeModal('modal-eliminar');
-        return;
-    }
+        await new Promise((res, rej) =>
+            createVenta({
+                id_ventaV:      ventaActual.idVenta,
+                fecha_ventaV:   ventaActual.fecha_venta,
+                horaV:          ventaActual.hora,
+                nombreV:        ventaActual.nombre,
+                telefonoV:      ventaActual.telefono,
+                correoV:        ventaActual.correo,
+                domicilioV:     ventaActual.domicilio,
+                fecha_entregaV: ventaActual.fecha_entrega,
+                metodo_pagoV:   ventaActual.metodo_pago,
+                forma_pagoV:    ventaActual.forma_pago,
+                montoV:         ventaActual.monto,
+                pagoV:          ventaActual.pago
+            }, (err, data) => err ? rej(err) : res(data))
+        );
 
-    deleteProducto({ codeD, categoryD, sizeD, modelD, decorationD, colorD, priceD, stockD }, (err) => {
-        if (err) {
-            alert(`Error al borrar producto: ${err}`);
-        } else {
-            alert('Se elimino el producto del inventario.');
-            reloadTable();
-            closeModal('modal-eliminar');
-        }
-    });
-}
+        for (const prodcar of carrito) {
+            const codigo    = parseInt(prodcar.codigo, 10);
+            const pedido    = parseInt(prodcar.pedido, 10);
+            const precio    = parseFloat(prodcar.precio);
+            const categoria = prodcar.categoria;
+            const size      = prodcar.size;
 
-document.getElementById("searchInput").addEventListener("input", function() {
-    filterTable();
-});
+            await new Promise((res, rej) =>
+                createVentaDETALLES({
+                    id_ventaVD:   ventaActual.idVenta,
+                    codeVD:       codigo,
+                    priceVD:      precio,
+                    quantityVD:   pedido,
+                    importeVD:    precio * pedido
+                }, (err) => err ? rej(err) : res())
+            );
 
-function filterTable() {
-    var searchValue = document.getElementById("searchInput").value.toLowerCase();
-    var table = document.getElementById("table-productos");
-    var rows = table.getElementsByTagName("tr");
+            if (codigos.includes(codigo)) {
+                const producto = await new Promise((res, rej) =>
+                    readOneProduct(codigo, (err, data) => {  // <-- Solo pasa el código
+                        if (err) return rej(err);
+                        if (!data) return rej(new Error("Producto no encontrado"));
+                        res(data);
+                    })
+                );
 
-    for (var i = 1; i < rows.length; i++) {
-        var cells = rows[i].getElementsByTagName("td");
-        var matchFound = false;
+                let dispoP = parseInt(producto.stock_disponible, 10);
+                let apartP = parseInt(producto.stock_apartado, 10);
+                let procP  = parseInt(producto.stock_en_proceso, 10);
 
-        var searchColumns = [0, 1, 2, 3, 4, 5]; // columnas de CODE y NOMBRE
-        
-        for (var j of searchColumns) {
-            if (cells[j] && cells[j].innerText.toLowerCase().includes(searchValue)) {
-                matchFound = true;
-                break;
+                const usadoP      = Math.min(dispoP, pedido);
+                const faltaProd   = pedido - usadoP;
+                dispoP -= usadoP;
+                apartP += usadoP;
+                procP  += faltaProd;
+
+                await new Promise((res, rej) =>
+                    updateProducto({
+                        price:              producto.price,
+                        stock_apartado:     apartP,
+                        stock_disponible:   dispoP,
+                        stock_en_proceso:   procP,
+                        code:               producto.code
+                    }, (err) => err ? rej(err) : res())
+                );
+
+                if (faltaProd > 0) {
+                    const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
+                    if (bizEntry) {
+                        const bizco = await new Promise((res, rej) => {
+                            searchBizcocho(
+                                categoria,
+                                size,
+                                (err, data) => {
+                                    if (err) return rej(err);
+                                    res(data || null);
+                                }
+                            );
+                        });
+
+                        let dispoB = parseInt(bizco.stock_disponible, 10);
+                        let apartB = parseInt(bizco.stock_apartado, 10);
+                        let procB  = parseInt(bizco.stock_en_proceso, 10);
+
+                        const usadoB    = Math.min(dispoB, faltaProd);
+                        const faltaBiz  = faltaProd - usadoB;
+                        dispoB -= usadoB;
+                        apartB += usadoB;
+                        procB  += faltaBiz;
+
+                        await new Promise((res, rej) =>
+                            updateBizcocho({
+                                stock_apartado: apartB,
+                                stock_disponible: dispoB, 
+                                stock_en_proceso: procB, 
+                                stock_min: bizco.stock_min, 
+                                stock_max: bizco.stock_max, 
+                                stock_critico: bizco.stock_critico,
+                                biz_category: bizco.biz_category,
+                                biz_size: bizco.biz_size,
+                            }, (err) => err ? rej(err) : res())
+                        );
+
+                        if (faltaBiz > 0) {
+                            await new Promise((res, rej) =>
+                                createOrden({
+                                    id_ventaO:         ventaActual.idVenta,
+                                    id_origenO:        codigo,
+                                    fecha_entregaO:    ventaActual.fecha_entrega,
+                                    categoriaO:        categoria,
+                                    sizeO:             size,
+                                    cantidad_inicialO: faltaBiz
+                                }, (err) => err ? rej(err) : res())
+                            );
+                        }
+
+                    } else {
+                        await new Promise((res, rej) =>
+                            createBizcocho({
+                                biz_category:       categoria,
+                                biz_size:           size,
+                                stock_apartado: 0,
+                                stock_disponible:0,
+                                stock_en_proceso:faltaProd,
+                            }, (err) => err ? rej(err) : res())
+                        );
+                        await new Promise((res, rej) =>
+                            createOrden({
+                                id_ventaO:         ventaActual.idVenta,
+                                id_origenO:        codigo,
+                                fecha_entregaO:    ventaActual.fecha_entrega,
+                                categoriaO:        categoria,
+                                sizeO:             size,
+                                cantidad_inicialO: faltaProd
+                            }, (err) => err ? rej(err) : res())
+                        );
+                    }
+                }
+
+            } else {
+                await new Promise((res, rej) =>
+                    createProducto({
+                        code:               codigo,
+                        category:           prodcar.categoria,
+                        model:              prodcar.modelo,
+                        size:               prodcar.size,
+                        decoration:         prodcar.decoracion,
+                        color:              prodcar.color,
+                        price:              precio,
+                        stock_total:        0,
+                        stock_apartado:     0,
+                        stock_disponible:   0,
+                        stock_en_proceso:   pedido,
+                        stock_min:          0,
+                        stock_max:          0,
+                        stock_critico:      0
+                    }, (err) => err ? rej(err) : res())
+                );
+
+                const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
+                if (bizEntry) {
+                    const bizco = await new Promise((res, rej) => {
+                        searchBizcocho(
+                            categoria,
+                            size,
+                            (err, data) => {
+                                if (err) return rej(err);
+                                res(data || null);
+                            }
+                        );
+                    });
+                    let dispoB = parseInt(bizco.stock_disponible, 10);
+                    let apartB = parseInt(bizco.stock_apartado, 10);
+                    let procB  = parseInt(bizco.stock_en_proceso, 10);
+
+                    if (dispoB >= pedido) {
+                        dispoB -= pedido;
+                        apartB += pedido;
+                    } else {
+                        const faltaBiz = pedido - dispoB;
+                        apartB += dispoB;
+                        procB  += faltaBiz;
+                        dispoB = 0;
+                    }
+
+                    await new Promise((res, rej) =>
+                        updateBizcocho({
+                            stock_apartado: apartB,
+                            stock_disponible: dispoB, 
+                            stock_en_proceso: procB, 
+                            stock_min: bizco.stock_min, 
+                            stock_max: bizco.stock_max, 
+                            stock_critico: bizco.stock_critico,
+                            biz_category: bizco.biz_category,
+                            biz_size: bizco.biz_size,
+                        }, (err) => err ? rej(err) : res())
+                    );
+
+                    if (procB > 0) {
+                        await new Promise((res, rej) =>
+                            createOrden({
+                                id_ventaO:         ventaActual.idVenta,
+                                id_origenO:        codigo,
+                                fecha_entregaO:    ventaActual.fecha_entrega,
+                                categoriaO:        categoria,
+                                sizeO:             size,
+                                cantidad_inicialO: procB
+                            }, (err) => err ? rej(err) : res())
+                        );
+                    }
+
+                } else {
+                    await new Promise((res, rej) =>
+                        createBizcocho({
+                            biz_category:      categoria,
+                            biz_size:          size,
+                            stock_apartado: 0,
+                            stock_disponible: 0,
+                            stock_en_proceso: pedido,
+                            code:          codigo
+                        }, (err) => err ? rej(err) : res())
+                    );
+                    await new Promise((res, rej) =>
+                        createOrden({
+                            id_ventaO:         ventaActual.idVenta,
+                            id_origenO:        codigo,
+                            fecha_entregaO:    ventaActual.fecha_entrega,
+                            categoriaO:        categoria,
+                            sizeO:             size,
+                            cantidad_inicialO: pedido
+                        }, (err) => err ? rej(err) : res())
+                    );
+                }
             }
         }
 
-        rows[i].style.display = matchFound ? "" : "none";
+        try {
+            const detalles_venta = await new Promise((res, rej) =>
+                readVentasDetalle({ id_ventaVD: ventaActual.idVenta }, (err, data) => err ? rej(err) : res(data))
+            );
+            await generarRecibos({ venta_datos: detalles_venta });
+            showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+            if (typeof window !== "undefined") {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 5000);
+            }
+        } catch (error) {
+            showToast("Hubo un error al generar el recibo.", ICONOS.error);
+            console.error("Error al generar recibo:", error);
+        }
+        
+
+    } catch (error) {
+        console.log(`Error: ${error}`);
     }
 }

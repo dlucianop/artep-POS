@@ -146,35 +146,23 @@ function deleteBizcocho(bizcocho, callback){
     );
 }
 
-function searchBizcocho(bizcocho, callback) {
-    const db = openDataBase();
+function searchBizcocho(biz_category, biz_size, callback) {
     const query = `
         SELECT * 
         FROM inventario_bizcochos
         WHERE biz_category = ? AND biz_size = ?
     `;
-    db.all(
+
+    db.get(
         query,
-        [
-            bizcocho.biz_category, 
-            bizcocho.biz_size
-        ],
-        (err, rows) => {
-            try {
-                if (err) {
-                    console.error(`[ERROR] Consulta fallida: ${err.message}`);
-                    callback(err, null);
-                    return;
-                }
-                if (rows.length < 0) {
-                    console.log("No se encontraron coincidencias.", rows);
-                }
-                callback(null, rows);
-            } catch (error) {
-                callback(error, null);
-            } finally {
-                closeDatabase(db);
+        [biz_category, biz_size],
+        (err, row) => {
+            closeDatabase(db);
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                return callback(err, null);
             }
+            callback(null, row);
         }
     );
 }
