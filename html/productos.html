@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerámica Artep | Inventario de Productos</title>
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/productos.css">
 </head>
 <body>
     <div id="nav-menu">
@@ -15,7 +16,7 @@
             <img src="../img/nav-icons/production-line.png" alt="">
         </a>
         <a href="bizcochos.html" class="menu-btn">Inventario de Bizcochos
-            <img src="../img/nav-icons/fire.png" alt="">
+            <img src="../img/nav-icons/fire1.png" alt="">
         </a>
         <a href="productos.html" class="selected-btn">Inventario de Productos
             <img src="../img/nav-icons/vase1.png" alt="">
@@ -23,15 +24,148 @@
         <a href="ventas.html" class="menu-btn">Historial de Ventas
             <img src="../img/nav-icons/history.png" alt="">
         </a>
-        <!--a href="dashboard.html" class="menu-btn">Dashboard
-            <img src="../img/nav-icons/dashboard.png" alt="">
-        </a>
-        <a href="configuracion.html" class="menu-btn">Configuración
-            <img src="../img/nav-icons/settings.png" alt="">
-        </a-->
     </div>
+
     <div id="content-section">
+        <div class="inventory-header">
+            <h2>Inventario de Productos</h2>
+            <div class="toggle-mode">
+                <input type="checkbox" id="modoToggle">
+                <label for="modoToggle">MODO AUTOMÁTICO</label>
+            </div>
+            <button type="button" onclick="prepareNewProd()">➕ Agregar Producto</button>
+        </div>
+
+        <table id="table-productos">
+            <thead>
+                <tr>
+                    <th rowspan="2">Código</th>
+                    <th colspan="5">Nombre</th>
+                    <th rowspan="2">Precio Unit.($)</th>
+                    <th rowspan="2">Disponible</th>
+                    <th rowspan="2">Apartado</th>
+                    <th rowspan="2">En Proceso</th>
+                    <th rowspan="2">Acciones</th>
+                </tr>
+                <tr>
+                    <th>Categoría</th>
+                    <th>Modelo</th>
+                    <th>Tamaño</th>
+                    <th>Decoración</th>
+                    <th>Color</th>
+                </tr>
+            </thead>
+            <tbody id="tablaProductosBody">
+            </tbody>
+        </table>
     </div>
+
+    <!-- MODAL -->
+    <div id="editProductoModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editProductoModal')">&times;</span>
+            <form id="formProd" data-mode="" onsubmit="guardarProducto(event)">
+                <input id="prodCode" type="hidden">
+
+                <div class="prod-form-field">
+                    <label for="prodCategory">Categoría:</label>
+                    <select id="prodCategory" required>
+                        <option value="" disabled selected>-- Elija una categoría --</option>
+                        <option value="Vaso">Vaso</option>
+                        <option value="Taza">Taza</option>
+                        <option value="Plato">Plato</option>
+                        <option value="Jarrón">Jarrón</option>
+                        <option value="Termo">Termo</option>
+                        <option value="Maceta">Maceta</option>
+                        <option value="Cuenco">Cuenco</option>
+                        <option value="Decoración de pared">Decoración de pared</option>
+                        <option value="Escultura">Escultura</option>
+                        <option value="Figuras">Figuras</option>
+                        <option value="Lámpara">Lámpara</option>
+                        <option value="Florero">Florero</option>
+                        <option value="Tetera">Tetera</option>
+                        <option value="Vasija">Vasija</option>
+                        <option value="Ladrillo decorativo">Ladrillo decorativo</option>
+                        <option value="Azulejos">Azulejos</option>
+                        <option value="Plato de sobremesa">Plato de sobremesa</option>
+                        <option value="Tazón">Tazón</option>
+                        <option value="Salero y/o pimentero">Salero y/o pimentero</option>
+                        <option value="Candelabro">Candelabro</option>
+                    </select>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodModel">Modelo:</label>
+                    <input id="prodModel" type="text" required>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodSize">Tamaño:</label>
+                    <select id="prodSize" required>
+                        <option value="" disabled selected>-- Elija un tamaño --</option>
+                        <option value="Mini">Mini</option>
+                        <option value="Pequeño">Pequeño</option>
+                        <option value="Mediano">Mediano</option>
+                        <option value="Grande">Grande</option>
+                        <option value="Extra Grande">Extra Grande</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                    </select>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodDecoration">Decoración:</label>
+                    <input id="prodDecoration" type="text">
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodColor">Color:</label>
+                    <input id="prodColor" type="text">
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodPrice">Precio Unitario:</label>
+                    <input id="prodPrice" type="number" step="0.01" min="0" required>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodDisp">Stock Disponible:</label>
+                    <input id="prodDisp" type="number" min="0" required>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodApr">Stock Apartado:</label>
+                    <input id="prodApr" type="number" min="0" required>
+                </div>
+
+                <div class="prod-form-field">
+                    <label for="prodProc">Stock en Proceso:</label>
+                    <input id="prodProc" type="number" min="0" required>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit">Guardar</button>
+                    <button type="button" onclick="closeModal('editProductoModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../js/window-lock.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/script-productos.js"></script>
+
+    <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
+    <div id="confirm-toast" class="hidden-toast">
+        <span id="confirm-msg">¿Estás seguro?</span>
+        <div class="confirm-buttons">
+            <button id="btn-confirm-ok">Sí</button>
+            <button id="btn-confirm-cancel">Cancelar</button>
+        </div>
+    </div>
 </body>
 </html>

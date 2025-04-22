@@ -403,7 +403,11 @@ async function imprimirRecibo() {
 
             if (codigos.includes(codigo)) {
                 const producto = await new Promise((res, rej) =>
-                    readOneProduct({ codeOne: codigo }, (err, data) => err ? rej(err) : res(data[0]))
+                    readOneProduct(codigo, (err, data) => {
+                        if (err) return rej(err);
+                        if (!data) return rej(new Error("Producto no encontrado"));
+                        res(data);
+                    })
                 );
 
                 let dispoP = parseInt(producto.stock_disponible, 10);
@@ -418,29 +422,27 @@ async function imprimirRecibo() {
 
                 await new Promise((res, rej) =>
                     updateProducto({
-                        categoryE:           producto.category,
-                        modelE:              producto.model,
-                        sizeE:               producto.size,
-                        decorationE:         producto.decoration,
-                        colorE:              producto.color,
-                        priceE:              producto.price,
-                        stock_totalE:        producto.stock_total,
-                        stock_apartadoE:     apartP,
-                        stock_disponibleE:   dispoP,
-                        stock_en_procesoE:   procP,
-                        stock_minE:          producto.stock_min,
-                        stock_maxE:          producto.stock_max,
-                        stock_criticoE:      producto.stock_critico,
-                        codeE:               producto.code
+                        price:              producto.price,
+                        stock_apartado:     apartP,
+                        stock_disponible:   dispoP,
+                        stock_en_proceso:   procP,
+                        code:               producto.code
                     }, (err) => err ? rej(err) : res())
                 );
 
                 if (faltaProd > 0) {
                     const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
                     if (bizEntry) {
-                        const bizco = await new Promise((res, rej) =>
-                            searchBizcocho({ biz_category: categoria, biz_size: size }, (err, data) => err ? rej(err) : res(data[0]))
-                        );
+                        const bizco = await new Promise((res, rej) => {
+                            searchBizcocho(
+                                categoria,
+                                size,
+                                (err, data) => {
+                                    if (err) return rej(err);
+                                    res(data || null);
+                                }
+                            );
+                        });
 
                         let dispoB = parseInt(bizco.stock_disponible, 10);
                         let apartB = parseInt(bizco.stock_apartado, 10);
@@ -457,9 +459,6 @@ async function imprimirRecibo() {
                                 stock_apartado: apartB,
                                 stock_disponible: dispoB, 
                                 stock_en_proceso: procB, 
-                                stock_min: bizco.stock_min, 
-                                stock_max: bizco.stock_max, 
-                                stock_critico: bizco.stock_critico,
                                 biz_category: bizco.biz_category,
                                 biz_size: bizco.biz_size,
                             }, (err) => err ? rej(err) : res())
@@ -469,7 +468,7 @@ async function imprimirRecibo() {
                             await new Promise((res, rej) =>
                                 createOrden({
                                     id_ventaO:         ventaActual.idVenta,
-                                    id_origenO:        codigo,
+                                    id_origenO:        1, // ID correcto para 'Venta'
                                     fecha_entregaO:    ventaActual.fecha_entrega,
                                     categoriaO:        categoria,
                                     sizeO:             size,
@@ -491,7 +490,7 @@ async function imprimirRecibo() {
                         await new Promise((res, rej) =>
                             createOrden({
                                 id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        codigo,
+                                id_origenO:        1, // ID correcto
                                 fecha_entregaO:    ventaActual.fecha_entrega,
                                 categoriaO:        categoria,
                                 sizeO:             size,
@@ -504,28 +503,31 @@ async function imprimirRecibo() {
             } else {
                 await new Promise((res, rej) =>
                     createProducto({
-                        codeA:               codigo,
-                        categoryA:           prodcar.categoria,
-                        modelA:              prodcar.modelo,
-                        sizeA:               prodcar.size,
-                        decorationA:         prodcar.decoracion,
-                        colorA:              prodcar.color,
-                        priceA:              precio,
-                        stock_totalA:        0,
-                        stock_apartadoA:     0,
-                        stock_disponibleA:   0,
-                        stock_en_procesoA:   pedido,
-                        stock_minA:          0,
-                        stock_maxA:          0,
-                        stock_criticoA:      0
+                        code:               codigo,
+                        category:           prodcar.categoria,
+                        model:              prodcar.modelo,
+                        size:               prodcar.size,
+                        decoration:         prodcar.decoracion,
+                        color:              prodcar.color,
+                        price:              precio,
+                        stock_apartado:     0,
+                        stock_disponible:   0,
+                        stock_en_proceso:   pedido
                     }, (err) => err ? rej(err) : res())
                 );
 
                 const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
                 if (bizEntry) {
-                    const bizco = await new Promise((res, rej) =>
-                        searchBizcocho({ biz_category: categoria, biz_size: size }, (err, data) => err ? rej(err) : res(data[0]))
-                    );
+                    const bizco = await new Promise((res, rej) => {
+                        searchBizcocho(
+                            categoria,
+                            size,
+                            (err, data) => {
+                                if (err) return rej(err);
+                                res(data || null);
+                            }
+                        );
+                    });
                     let dispoB = parseInt(bizco.stock_disponible, 10);
                     let apartB = parseInt(bizco.stock_apartado, 10);
                     let procB  = parseInt(bizco.stock_en_proceso, 10);
@@ -545,9 +547,6 @@ async function imprimirRecibo() {
                             stock_apartado: apartB,
                             stock_disponible: dispoB, 
                             stock_en_proceso: procB, 
-                            stock_min: bizco.stock_min, 
-                            stock_max: bizco.stock_max, 
-                            stock_critico: bizco.stock_critico,
                             biz_category: bizco.biz_category,
                             biz_size: bizco.biz_size,
                         }, (err) => err ? rej(err) : res())
@@ -557,7 +556,7 @@ async function imprimirRecibo() {
                         await new Promise((res, rej) =>
                             createOrden({
                                 id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        codigo,
+                                id_origenO:        1,
                                 fecha_entregaO:    ventaActual.fecha_entrega,
                                 categoriaO:        categoria,
                                 sizeO:             size,
@@ -573,14 +572,13 @@ async function imprimirRecibo() {
                             biz_size:          size,
                             stock_apartado: 0,
                             stock_disponible: 0,
-                            stock_en_proceso: pedido,
-                            code:          codigo
+                            stock_en_proceso: pedido
                         }, (err) => err ? rej(err) : res())
                     );
                     await new Promise((res, rej) =>
                         createOrden({
                             id_ventaO:         ventaActual.idVenta,
-                            id_origenO:        codigo,
+                            id_origenO:        1,
                             fecha_entregaO:    ventaActual.fecha_entrega,
                             categoriaO:        categoria,
                             sizeO:             size,

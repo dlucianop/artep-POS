@@ -38,7 +38,7 @@
                 <input type="checkbox" id="modoToggle">
                 <label for="modoToggle">MODO AUTOMÁTICO</label>
             </div>
-            <button onclick="abrirFormulario()">+ Agregar Bizcocho</button>
+            <button onclick="prepareNewBizco()" type="button"> ➕ Agregar Bizcocho</button>
         </div>
 
         <table id="table-bizcochos">
@@ -60,23 +60,95 @@
     </div>
 
     <!-- MODAL -->
-    <!--div id="formModal" class="modal hidden">
+    <div id="editBizcoModal" class="modal">
         <div class="modal-content">
-            <h3 id="modalTitle">Agregar Bizcocho</h3>
-            <input type="text" id="categoria" placeholder="Categoría">
-            <input type="text" id="size" placeholder="Tamaño">
-            <input type="number" id="stock_disponible" placeholder="Stock Disponible">
-            <input type="number" id="stock_apartado" placeholder="Stock Apartado">
-            <input type="number" id="stock_en_proceso" placeholder="Stock En Proceso">
-            <div class="btn-row">
-                <button onclick="guardarBizcocho()">Guardar</button>
-                <button onclick="cerrarFormulario()">Cancelar</button>
+        <span class="close" onclick="closeModal('editBizcoModal')">&times;</span>
+        <form id="formBiz" data-mode="" onsubmit="guardarBizcocho(event)">
+            <div class="bizco-form-field">
+                <label for="bizId" hidden>ID Bizcocho:</label>
+                <input id="bizId" hidden>
             </div>
+    
+            <div class="bizco-form-field">
+            <label for="bizCategory">Categoría:</label>
+            <select id="bizCategory" required>
+                <option value="" disabled selected>-- Elija una categoría --</option>
+                <option value="Vaso">Vaso</option>
+                <option value="Taza">Taza</option>
+                <option value="Plato">Plato</option>
+                <option value="Jarrón">Jarrón</option>
+                <option value="Termo">Termo</option>
+                <option value="Maceta">Maceta</option>
+                <option value="Cuenco">Cuenco</option>
+                <option value="Decoración de pared">Decoración de pared</option>
+                <option value="Escultura">Escultura</option>
+                <option value="Figuras">Figuras</option>
+                <option value="Lámpara">Lámpara</option>
+                <option value="Florero">Florero</option>
+                <option value="Tetera">Tetera</option>
+                <option value="Vasija">Vasija</option>
+                <option value="Ladrillo decorativo">Ladrillo decorativo</option>
+                <option value="Azulejos">Azulejos</option>
+                <option value="Plato de sobremesa">Plato de sobremesa</option>
+                <option value="Tazón">Tazón</option>
+                <option value="Salero y/o pimentero">Salero y/o pimentero</option>
+                <option value="Candelabro">Candelabro</option>
+            </select>
+            </div>
+    
+            <div class="bizco-form-field">
+            <label for="bizSize">Tamaño:</label>
+            <select id="bizSize" required>
+                <option value="" disabled selected>-- Elija un tamaño --</option>
+                <option value="Mini">Mini</option>
+                <option value="Pequeño">Pequeño</option>
+                <option value="Mediano">Mediano</option>
+                <option value="Grande">Grande</option>
+                <option value="Extra Grande">Extra Grande</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+            </div>
+            
+            <div class="bizco-form-field">
+                <label>Stock Disponible:</label>
+                <input id="stockDisp" type="number" min="0" required>
+            </div>
+            <div class="bizco-form-field">
+                <label>Stock Apartado:</label>
+                <input id="stockApr" type="number" min="0" required>
+            </div>
+            <div class="bizco-form-field">
+                <label>Stock en Proceso:</label>
+                <input id="stockProc" type="number" min="0" required>
+            </div>
+            <div class="modal-actions">
+                <button type="submit">Guardar</button>
+                <button type="button" onclick="closeModal('editBizcoModal')">Cancelar</button>
+            </div>
+        </form>
         </div>
-    </div-->
+    </div>
+  
 
     <script src="../js/window-lock.js"></script>
     <script src="../js/modal.js"></script>
     <script src="../js/script-Bizcocho.js"></script>
+
+    <!-- Toast de notificación -->
+    <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
+
+    <!-- Confirmación personalizada -->
+    <div id="confirm-toast" class="hidden-toast">
+        <span id="confirm-msg">¿Estás seguro?</span>
+        <div class="confirm-buttons">
+            <button id="btn-confirm-ok">Sí</button>
+            <button id="btn-confirm-cancel">Cancelar</button>
+        </div>
+    </div>
 </body>
 </html>

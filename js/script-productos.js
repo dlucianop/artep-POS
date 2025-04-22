@@ -1,162 +1,196 @@
 const { join } = require('path');
 const crudJS = join(__dirname, '..', 'js', 'crud-productos.js');
 const { createProducto, readProductos, updateProducto, deleteProducto } = require(crudJS);
+const toast = join(__dirname, '..', 'js', 'toast.js');
+const { showToast, showConfirmToast, ICONOS } = require(toast);
 
-function fillTableProductos(productos){
-    const tableBody = document.querySelector('#table-productos tbody');
+window.addEventListener('DOMContentLoaded', initProductos);
+
+async function initProductos() {
+    try {
+        const productos = await new Promise((res, rej) =>
+            readProductos((err, data) => err ? rej(err) : res(data))
+        );
+        window.productos = productos;
+        fillTableProductos(productos);
+        console.log('Se cargaron productos.');
+    } catch (error) {
+        console.error('Error al cargar productos:', error);
+        showToast('Error al cargar inventario', ICONOS.error);
+    }
+}
+
+function fillTableProductos(productos) {
+    const tableBody = document.getElementById('tablaProductosBody');
     tableBody.innerHTML = '';
-
     const fragment = document.createDocumentFragment();
 
-    productos.forEach(producto =>{
+    productos.forEach(p => {
         const row = document.createElement('tr');
-        row.id = 'prod-' + producto.code;
+        row.id = 'prod-' + p.code;
         row.innerHTML = `
-        <td>${producto.code || 0}</td>
-        <td>${producto.category || 'N/A'}</td>
-        <td>${producto.model || 'N/A'}</td>
-        <td>${producto.size || 'N/A'}</td>
-        <td>${producto.decoration || 'N/A'}</td>
-        <td>${producto.color || 'N/A'}</td>
-        <td>${producto.stock || 0}</td>
-        <td>${producto.price || 0}</td>
-        <td class="col-btns">
-            <button type="button" onclick='openEditModalProd(${JSON.stringify(producto)})'>Editar</button>
-            <button type="button" onclick='deleteModalProd(${JSON.stringify(producto)})'>Eliminar</button>
-        </td>
+            <td>${p.code}</td>
+            <td>${p.category}</td>
+            <td>${p.model}</td>
+            <td>${p.size}</td>
+            <td>${p.decoration}</td>
+            <td>${p.color}</td>
+            <td>${p.price.toFixed(2)}</td>
+            <td>${p.stock_disponible}</td>
+            <td>${p.stock_apartado}</td>
+            <td>${p.stock_en_proceso}</td>
+            <td class="col-btn">
+                <button onclick="renderProducto('${p.code}');">✏️ Editar</button>
+                <button onclick="eliminarProducto('${p.code}');">🗑️ Eliminar</button>
+            </td>
         `;
         fragment.appendChild(row);
     });
+
     tableBody.appendChild(fragment);
 }
 
-readProductos((err, data) => {
-    if (err) {
-        document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
-    } else {
-        fillTableProductos(data);
-    }
-    
-});
-
-function reloadTable() {
-    readProductos((err, data) => {
-        if (err) {
-            document.querySelector('#error-message').textContent = `Error al leer inventario: ${err}`;
-        } else {
-            fillTableProductos(data);
-        }
-    });
-}
-
-function saveNewProducto(){
-    const codeA = parseInt(document.getElementById('addCodeProd').value, 10) || 0;
-    const categoryA = document.getElementById('addCategoryProd').value;
-    const sizeA = document.getElementById('addSizeProd').value;
-    const modelA = document.getElementById('addModelProd').value;
-    const decorationA = document.getElementById('addDecorProd').value;
-    const colorA = document.getElementById('addColorProd').value;
-    const priceA = parseFloat(document.getElementById('addPrecioProd').value, 10) || 0;
-    const stockA = parseInt(document.getElementById('addCantBodProd').value, 10) || 0;
-
-    if( !codeA || !categoryA || !sizeA || !modelA || !decorationA || !colorA || priceA < 0 || stockA < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-    
-    createProducto({ codeA, categoryA, sizeA, modelA, decorationA, colorA, priceA, stockA }, (err) => {
-        if(err){
-            alert(`Error al agregar producto: ${err}`);
-        } else{
-            alert('¡Producto agregado correctamente!');
-            reloadTable();
-            closeModal('modal-agregar');
-        }
-    });
-}
-
-function updateOldProducto(){
-    const codeE = parseInt(document.getElementById('editCodeProd').value, 10) || 0;
-    const categoryE = document.getElementById('editCategoryProd').value;
-    const sizeE = document.getElementById('editSizeProd').value;
-    const modelE = document.getElementById('editModelProd').value;
-    const decorationE = document.getElementById('editDecorProd').value;
-    const colorE = document.getElementById('editColorProd').value;
-    const priceE = parseFloat(document.getElementById('editPrecioProd').value, 10) || 0;
-    const stockE = parseInt(document.getElementById('editCantBodProd').value, 10) || 0;
-    
-    if( !codeE || !categoryE || !sizeE || !modelE || !decorationE || !colorE || priceE < 0 || stockE < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-
-    updateProducto({ codeE, categoryE, sizeE, modelE, decorationE, colorE, priceE, stockE }, (err) => {
-        if(err){
-            alert(`Error al editar producto: ${err}`);
-        } else{
-            alert('¡Producto modificado correctamente!');
-            reloadTable();
-            closeModal('modal-editar')
-        }
-    });
-}
-
-function confirmDeleteProducto(){
-    const codeD = parseInt(document.getElementById('deleteCodeProd').value, 10) || 0;
-    const categoryD = document.getElementById('deleteCategoryProd').value;
-    const sizeD = document.getElementById('deleteSizeProd').value;
-    const modelD = document.getElementById('deleteModelProd').value;
-    const decorationD = document.getElementById('deleteDecorProd').value;
-    const colorD = document.getElementById('deleteColorProd').value;
-    const priceD = parseFloat(document.getElementById('deletePrecioProd').value, 10) || 0;
-    const stockD = parseInt(document.getElementById('deleteCantBodProd').value, 10) || 0;
-
-    if( !codeD || !categoryD || !sizeD || !modelD || !decorationD || !colorD || priceD < 0 || stockD < 0) {
-        alert('Por favor, complete todos los campos correctamente.');
-        return;
-    }
-
-    const isSure = confirm('¿Está muy seguro de que quiere eliminar este producto? Esta acción no se puede deshacer.');
-    
-    if (!isSure) {
-        alert('Acción de eliminación cancelada.');
-        closeModal('modal-eliminar');
-        return;
-    }
-
-    deleteProducto({ codeD, categoryD, sizeD, modelD, decorationD, colorD, priceD, stockD }, (err) => {
-        if (err) {
-            alert(`Error al borrar producto: ${err}`);
-        } else {
-            alert('Se elimino el producto del inventario.');
-            reloadTable();
-            closeModal('modal-eliminar');
-        }
-    });
-}
-
-document.getElementById("searchInput").addEventListener("input", function() {
-    filterTable();
-});
-
-function filterTable() {
-    var searchValue = document.getElementById("searchInput").value.toLowerCase();
-    var table = document.getElementById("table-productos");
-    var rows = table.getElementsByTagName("tr");
-
-    for (var i = 1; i < rows.length; i++) {
-        var cells = rows[i].getElementsByTagName("td");
-        var matchFound = false;
-
-        var searchColumns = [0, 1, 2, 3, 4, 5]; // columnas de CODE y NOMBRE
-        
-        for (var j of searchColumns) {
-            if (cells[j] && cells[j].innerText.toLowerCase().includes(searchValue)) {
-                matchFound = true;
-                break;
+function eliminarProducto(code) {
+    showConfirmToast(
+        `¿Seguro que quieres eliminar el producto #${code}?`,
+        async (confirmado) => {
+            if (!confirmado) {
+                showToast("Eliminación cancelada", ICONOS.info);
+                return;
             }
+
+            try {
+                await new Promise((resolve, reject) => {
+                    deleteProducto(
+                        { code: code }, 
+                        (err) => err ? reject(err) : resolve()
+                    );
+                });
+                showToast("Producto eliminado", ICONOS.success);
+                initProductos();
+            } catch (err) {
+                console.error("[ERROR] eliminarProducto:", err);
+                showToast("Error al eliminar", ICONOS.error);
+            }
+        },
+        ICONOS.peligro
+    );
+}
+
+function prepareNewProd() {
+    const form = document.getElementById('formProd');
+    form.reset();
+    form.dataset.mode = 'create';
+    openModal('editProductoModal');
+}
+
+function renderProducto(code) {
+    const p = window.productos.find(x => x.code === parseInt(code));
+    if (!p) return showToast('Producto no encontrado', ICONOS.error);
+
+    const form = document.getElementById('formProd');
+    form.dataset.mode = 'edit';
+
+    document.getElementById('prodCode').value     = p.code;
+    document.getElementById('prodCategory').value = p.category;
+    document.getElementById('prodModel').value    = p.model;
+    document.getElementById('prodSize').value     = p.size;
+    document.getElementById('prodDecoration').value = p.decoration;
+    document.getElementById('prodColor').value    = p.color;
+
+    document.getElementById('prodPrice').value    = parseFloat(p.price);
+    document.getElementById('prodDisp').value     = parseInt(p.stock_disponible);
+    document.getElementById('prodApr').value      = parseInt(p.stock_apartado);
+    document.getElementById('prodProc').value     = parseInt(p.stock_en_proceso);
+
+    openModal('editProductoModal');
+}
+
+
+function guardarProducto(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('formProd');
+    const mode = form.dataset.mode;
+    const code = parseInt(document.getElementById('prodCode').value.trim());
+
+    const payload = {
+        code, 
+        category:         document.getElementById('prodCategory').value,
+        model:            document.getElementById('prodModel').value,
+        size:             document.getElementById('prodSize').value,
+        decoration:       document.getElementById('prodDecoration').value,
+        color:            document.getElementById('prodColor').value,
+        price:            +document.getElementById('prodPrice').value,
+        stock_disponible: +document.getElementById('prodDisp').value,
+        stock_apartado:   +document.getElementById('prodApr').value,
+        stock_en_proceso: +document.getElementById('prodProc').value
+    };
+
+    console.log(payload);
+    console.log(mode);
+
+    // MODO CREAR
+    if (mode === 'create') {
+        const dupCode = window.productos.some(p => p.code === payload.code);
+        if (dupCode) {
+            return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
         }
 
-        rows[i].style.display = matchFound ? "" : "none";
+        const dupCombo = window.productos.some(p =>
+            p.category   === payload.category &&
+            p.model      === payload.model &&
+            p.size       === payload.size &&
+            p.decoration === payload.decoration &&
+            p.color      === payload.color
+        );
+        if (dupCombo) {
+            return showToast(
+                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                ICONOS.advertencia
+            );
+        }
+
+        createProducto(payload, (err) => {
+            if (err) {
+                console.error('Error al crear producto:', err);
+                return showToast('Error al agregar', ICONOS.error);
+            }
+            showToast('Producto agregado', ICONOS.success);
+            closeModal('editProductoModal');
+            initProductos();
+        });
+
+    // MODO EDITAR
+    } else if (mode === 'edit') {
+        const dupCombo = window.productos.some(p =>
+            p.category   === payload.category &&
+            p.model      === payload.model &&
+            p.size       === payload.size &&
+            p.decoration === payload.decoration &&
+            p.color      === payload.color &&
+            p.code       !== payload.code  // Este filtro es clave para evitar duplicados en editar
+        );
+        if (dupCombo) {
+            return showToast(
+                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                ICONOS.advertencia
+            );
+        }
+
+        updateProducto(payload, (err) => {
+            if (err) {
+                console.error('Error al actualizar producto:', err);
+                return showToast('Error al actualizar', ICONOS.error);
+            }
+            showToast('Producto actualizado', ICONOS.success);
+            closeModal('editProductoModal');
+            initProductos();
+        });
+
+    // MODO DESCONOCIDO
+    } else {
+        console.warn('guardarProducto: modo desconocido', mode);
     }
 }
+

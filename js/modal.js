@@ -1,4 +1,5 @@
 function openModal(modalId) {
+    //console.log(modalId);
     document.getElementById(modalId).style.display = 'block';
     document.getElementById(modalId).style.animation = "fadeIn ease 0.5s forwards";
 }
@@ -21,9 +22,10 @@ function resetModalInputs(modal) {
     });
 
     const resultados = document.getElementById("search-results");
-    resultados.style.display = "none";
-    resultados.innerHTML = "";
-
+    if (resultados){
+        resultados.style.display = "none";
+        resultados.innerHTML = "";
+    }
     modal.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
     });
