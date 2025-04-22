@@ -283,3 +283,130 @@ async function imprimirRecibo() {
         console.log(`Error: ${error}`);
     }
 }
+
+
+
+
+
+const db = openDataBase();
+    const query = `
+        UPDATE inventario_productos
+        SET 
+            price = ?,
+            stock_apartado = ?,
+            stock_disponible = ?,
+            stock_en_proceso = ?
+        WHERE code = ?;
+    `;
+
+    db.run(query, [
+        producto.price,
+        producto.stock_apartado,
+        producto.stock_disponible,
+        producto.stock_en_proceso,
+        producto.code
+    ], function (err) {
+        closeDatabase(db);
+        if (err) return callback(err, null);
+        
+        callback(null, {
+            code: producto.code,
+            ...producto
+        });
+    });
+
+
+
+    /*
+    
+function guardarProducto(event) {
+    event.preventDefault();
+
+    const form = document.getElementById('formProd');
+    const mode = form.dataset.mode;
+    const code = parseInt(document.getElementById('prodCode').value.trim());
+
+    const payload = {
+        code, 
+        category:         document.getElementById('prodCategory').value,
+        model:            document.getElementById('prodModel').value,
+        size:             document.getElementById('prodSize').value,
+        decoration:       document.getElementById('prodDecoration').value,
+        color:            document.getElementById('prodColor').value,
+        price:            +document.getElementById('prodPrice').value,
+        stock_disponible: +document.getElementById('prodDisp').value,
+        stock_apartado:   +document.getElementById('prodApr').value,
+        stock_en_proceso: +document.getElementById('prodProc').value
+    };
+
+    console.log(payload);
+    console.log(mode);
+
+    // MODO CREAR
+    if (mode === 'create') {
+        const dupCode = window.productos.some(p => p.code === payload.code);
+        if (dupCode) {
+            return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
+        }
+
+        const dupCombo = window.productos.some(p =>
+            p.category   === payload.category &&
+            p.model      === payload.model &&
+            p.size       === payload.size &&
+            p.decoration === payload.decoration &&
+            p.color      === payload.color
+        );
+        if (dupCombo) {
+            return showToast(
+                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                ICONOS.advertencia
+            );
+        }
+
+        createProducto(payload, (err) => {
+            if (err) {
+                console.error('Error al crear producto:', err);
+                return showToast('Error al agregar', ICONOS.error);
+            }
+            showToast('Producto agregado', ICONOS.success);
+            closeModal('editProductoModal');
+            initProductos();
+        });
+
+    // MODO EDITAR
+    } else if (mode === 'edit') {
+        const dupCombo = window.productos.some(p =>
+            p.category   === payload.category &&
+            p.model      === payload.model &&
+            p.size       === payload.size &&
+            p.decoration === payload.decoration &&
+            p.color      === payload.color &&
+            p.code       !== payload.code  // Este filtro es clave para evitar duplicados en editar
+        );
+        if (dupCombo) {
+            return showToast(
+                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                ICONOS.advertencia
+            );
+        }
+
+        updateProducto(payload, (err) => {
+            if (err) {
+                console.error('Error al actualizar producto:', err);
+                return showToast('Error al actualizar', ICONOS.error);
+            }
+            showToast('Producto actualizado', ICONOS.success);
+            closeModal('editProductoModal');
+            initProductos();
+        });
+
+    // MODO DESCONOCIDO
+    } else {
+        console.warn('guardarProducto: modo desconocido', mode);
+    }
+}
+
+
+    
+    
+    */
