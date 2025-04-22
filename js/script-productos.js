@@ -139,9 +139,6 @@ async function guardarProducto(event) {
         stock_en_proceso: +document.getElementById('prodProc').value
     };
 
-    console.log(payload);
-    console.log(mode);
-
     try {
         if (mode === 'create') {
             const dupCode = window.productos.some(p => p.code === payload.code);

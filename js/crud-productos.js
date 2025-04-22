@@ -25,30 +25,34 @@ function createProducto(producto) {
         ];
   
         db.run(query, params, function (err) {
-            closeDatabase(db);
-    
-            if (err) {
-                return reject(new Error("Error al insertar producto: " + err.message));
+            try {
+                if (err) {
+                    return reject(new Error("Error al insertar producto: " + err.message));
+                }
+        
+                if (this.changes === 0) {
+                    return reject(new Error("No se insertó ningún producto"));
+                }
+        
+                const newProducto = {
+                    code: producto.code,
+                    category: producto.category,
+                    model: producto.model,
+                    size: producto.size,
+                    decoration: producto.decoration,
+                    color: producto.color,
+                    price: producto.price,
+                    stock_apartado: producto.stock_apartado || 0,
+                    stock_disponible: producto.stock_disponible || 0,
+                    stock_en_proceso: producto.stock_en_proceso || 0,
+                };
+
+                resolve(newProducto);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
             }
-    
-            if (this.changes === 0) {
-                return reject(new Error("No se insertó ningún producto"));
-            }
-    
-            const newProducto = {
-                code: producto.code,
-                category: producto.category,
-                model: producto.model,
-                size: producto.size,
-                decoration: producto.decoration,
-                color: producto.color,
-                price: producto.price,
-                stock_apartado: producto.stock_apartado || 0,
-                stock_disponible: producto.stock_disponible || 0,
-                stock_en_proceso: producto.stock_en_proceso || 0,
-            };
-    
-            resolve(newProducto);
         });
     });
 }
@@ -61,15 +65,20 @@ function readProductos() {
         `;
     
         db.all(query, (err, rows) => {
-            closeDatabase(db);
+            try {
                 if (err) {
-                return reject(new Error("Error al leer inventario de productos: " + err.message));
+                    return reject(new Error("Error al leer inventario de productos: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
             }
-    
-            if (!rows || rows.length === 0) {
-                return reject(new Error("No se encontraron productos en el inventario."));
-            }
-            resolve(rows);
         });
     });
 }
@@ -83,15 +92,20 @@ function searchProduct(code) {
         `;
         
         db.get(query, code, (err, row) => {
-            closeDatabase(db);
+            try {
                 if (err) {
-                return reject(new Error("Error al leer el producto: " + err.message));
+                    return reject(new Error("Error al leer el producto: " + err.message));
+                }
+        
+                if (!row) {
+                    return resolve([]);
+                }
+                resolve(row);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
             }
-    
-            if (!row || row.length === 0) {
-                return reject(new Error("No se encontraron coincidencias de producto"));
-            }
-            resolve(row);
         });
     });
 }
@@ -121,15 +135,20 @@ function updateProducto(producto) {
         ];
 
         db.run(query, params, function (err) {
-            closeDatabase(db);
-      
-            if (err) {
-                return reject(new Error("Error al actualizar producto: " + err.message));
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar producto: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ningún producto con ese código"));
+                }
+
+                resolve("Producto actualizado correctamente");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
             }
-            if (this.changes === 0) {
-                return reject(new Error("No se encontró ningún producto con ese código"));
-            }
-            resolve("Producto actualizado correctamente");
         });
     });
 }
@@ -143,17 +162,21 @@ function deleteProducto(code) {
         `;
 
         db.run(query, [code], function (err) {
-            closeDatabase(db);
-
-            if (err) {
-                return reject(new Error("Error al borrar producto: " + err.message));
+            try {
+                if (err) {
+                    return reject(new Error("Error al borrar producto: " + err.message));
+                }
+    
+                if (this.changes === 0) {
+                    return reject(new Error("No se borró ningún producto (¿existe ese código?)"));
+                }
+                
+                resolve(`Producto con código '${code}' eliminado correctamente`);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
             }
-
-            if (this.changes === 0) {
-                return reject(new Error("No se borró ningún producto (¿existe ese código?)"));
-            }
-
-            resolve(`Producto con código '${code}' eliminado correctamente`);
         });
     });
 }
