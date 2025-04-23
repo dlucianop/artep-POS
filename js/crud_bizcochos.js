@@ -1,6 +1,5 @@
-const path = require('path')
-const dbJS = path.join(__dirname,'..', 'js', 'connection.js');
-const { openDataBase, closeDatabase } = require(dbJS);
+const { join } = require('path');
+const { openDataBase, closeDatabase } = require(join(__dirname,'..', 'js', 'connection.js'));
 
 function createBizcocho(bizcocho) {
     console.log(bizcocho);

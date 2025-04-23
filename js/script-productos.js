@@ -1,14 +1,16 @@
 const { join } = require('path');
-const crudJS = join(__dirname, '..', 'js', 'crud-productos.js');
 const { 
     createProducto, 
     readProductos, 
     searchProduct, 
     updateProducto, 
     deleteProducto  
-} = require(crudJS);
-const toast = join(__dirname, '..', 'js', 'toast.js');
-const { showToast, showConfirmToast, ICONOS } = require(toast);
+} = require(join(__dirname, '..', 'js', 'crud-productos.js'));
+const { 
+    showToast, 
+    showConfirmToast, 
+    ICONOS 
+} = require(join(__dirname, '..', 'js', 'toast.js'));
 
 window.addEventListener('DOMContentLoaded', initProductos);
 

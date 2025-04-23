@@ -1,5 +1,5 @@
-const path = require('path');
-const { openDataBase, closeDatabase } = require(path.join(__dirname, '..', 'js', 'connection.js'));
+const { join } = require('path');
+const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'connection.js'));
 
 function createOrden(orden) {
     return new Promise((resolve, reject) => {
