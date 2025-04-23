@@ -65,6 +65,7 @@ function eliminarProducto(code) {
 
             try {
                 await deleteProducto(code);
+                console.log('📦 Se elimino un producto.');
                 showToast("Producto eliminado 📦.", ICONOS.success);
                 initProductos();
             } catch (err) {
@@ -161,6 +162,7 @@ async function guardarProducto(event) {
             }
 
             await createProducto(payload);
+            console.log('📦 Se agrego un nuevo producto.');
             showToast('Producto agregado', ICONOS.success);
             closeModal('editProductoModal');
             await initProductos();
@@ -182,6 +184,7 @@ async function guardarProducto(event) {
             }
 
             await updateProducto(payload);
+            console.log('📦 Se modifico un producto.');
             showToast('Producto actualizado', ICONOS.success);
             closeModal('editProductoModal');
             await initProductos();

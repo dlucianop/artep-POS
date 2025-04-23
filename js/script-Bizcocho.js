@@ -59,6 +59,7 @@ function eliminarBizcocho(id_biz) {
             }
             try {
                 await deleteBizcocho(id_biz);
+                console.log('📦 Se eliminaron bizcochos.');
                 showToast("Bizcocho eliminado 📦.", ICONOS.success);
                 initBizcochos();
             } catch (err) {
@@ -142,6 +143,7 @@ async function guardarBizcocho(event) {
                 );
             }
             await createBizcocho(payload);
+            console.log('📦 Se agrego un nuevo bizcocho.');
             showToast('Bizcocho agregado', ICONOS.success);
             closeModal('editBizcoModal');
             await initBizcochos();
@@ -158,6 +160,7 @@ async function guardarBizcocho(event) {
                 );
             }
             await updateBizcocho(payload);
+            console.log('📦 Se actualizco un bizcocho.');
             showToast('Bizcocho actualizado', ICONOS.success);
             closeModal('editBizcoModal');
             await initBizcochos();
