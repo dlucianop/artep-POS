@@ -1,412 +1,190 @@
-async function imprimirRecibo() {
-    const emptyRow = document.getElementById("rowvoid");
-    if (emptyRow) {
-        showToast("No hay productos en el carrito.", ICONOS.advertencia);
-        return;
-    }
-
-    try {
-        await validacionesVenta();
-        await revisarAlmacen();
-        await revisarAlmacenBiz();
-
-        const codigos = productos.map(item => item.code);
-        const get     = (id, def = "") => document.getElementById(id).value.trim() || def;
-        const getNum  = (id, def = 0) => parseFloat(get(id, def)) || def;
-
-        const ventaActual = {
-            idVenta:       parseInt(get('id-sale', "999999999"), 10) || 999999999,
-            fecha_venta:   get('sale-date'),
-            hora:          get('sale-hour'),
-            nombre:        get('client-name', "-----"),
-            telefono:      get('client-phone', "-----"),
-            correo:        get('client-mail', "-----"),
-            domicilio:     get('client-address', "-----"),
-            fecha_entrega: get('sale-entrega', "-----"),
-            metodo_pago:   get('payment-method', "-----"),
-            forma_pago:    get('payment-form', "-----"),
-            monto:         getNum('monto'),
-            pago:          getNum('pago')
-        };
-
-        await new Promise((res, rej) =>
-            createVenta({
-                id_ventaV:      ventaActual.idVenta,
-                fecha_ventaV:   ventaActual.fecha_venta,
-                horaV:          ventaActual.hora,
-                nombreV:        ventaActual.nombre,
-                telefonoV:      ventaActual.telefono,
-                correoV:        ventaActual.correo,
-                domicilioV:     ventaActual.domicilio,
-                fecha_entregaV: ventaActual.fecha_entrega,
-                metodo_pagoV:   ventaActual.metodo_pago,
-                forma_pagoV:    ventaActual.forma_pago,
-                montoV:         ventaActual.monto,
-                pagoV:          ventaActual.pago
-            }, (err, data) => err ? rej(err) : res(data))
-        );
-
-        for (const prodcar of carrito) {
-            const codigo    = parseInt(prodcar.codigo, 10);
-            const pedido    = parseInt(prodcar.pedido, 10);
-            const precio    = parseFloat(prodcar.precio);
-            const categoria = prodcar.categoria;
-            const size      = prodcar.size;
-
-            await new Promise((res, rej) =>
-                createVentaDETALLES({
-                    id_ventaVD:   ventaActual.idVenta,
-                    codeVD:       codigo,
-                    priceVD:      precio,
-                    quantityVD:   pedido,
-                    importeVD:    precio * pedido
-                }, (err) => err ? rej(err) : res())
-            );
-
-            if (codigos.includes(codigo)) {
-                const producto = await new Promise((res, rej) =>
-                    readOneProduct(codigo, (err, data) => {  // <-- Solo pasa el código
-                        if (err) return rej(err);
-                        if (!data) return rej(new Error("Producto no encontrado"));
-                        res(data);
-                    })
-                );
-
-                let dispoP = parseInt(producto.stock_disponible, 10);
-                let apartP = parseInt(producto.stock_apartado, 10);
-                let procP  = parseInt(producto.stock_en_proceso, 10);
-
-                const usadoP      = Math.min(dispoP, pedido);
-                const faltaProd   = pedido - usadoP;
-                dispoP -= usadoP;
-                apartP += usadoP;
-                procP  += faltaProd;
-
-                await new Promise((res, rej) =>
-                    updateProducto({
-                        price:              producto.price,
-                        stock_apartado:     apartP,
-                        stock_disponible:   dispoP,
-                        stock_en_proceso:   procP,
-                        code:               producto.code
-                    }, (err) => err ? rej(err) : res())
-                );
-
-                if (faltaProd > 0) {
-                    const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
-                    if (bizEntry) {
-                        const bizco = await new Promise((res, rej) => {
-                            searchBizcocho(
-                                categoria,
-                                size,
-                                (err, data) => {
-                                    if (err) return rej(err);
-                                    res(data || null);
-                                }
-                            );
-                        });
-
-                        let dispoB = parseInt(bizco.stock_disponible, 10);
-                        let apartB = parseInt(bizco.stock_apartado, 10);
-                        let procB  = parseInt(bizco.stock_en_proceso, 10);
-
-                        const usadoB    = Math.min(dispoB, faltaProd);
-                        const faltaBiz  = faltaProd - usadoB;
-                        dispoB -= usadoB;
-                        apartB += usadoB;
-                        procB  += faltaBiz;
-
-                        await new Promise((res, rej) =>
-                            updateBizcocho({
-                                stock_apartado: apartB,
-                                stock_disponible: dispoB, 
-                                stock_en_proceso: procB, 
-                                stock_min: bizco.stock_min, 
-                                stock_max: bizco.stock_max, 
-                                stock_critico: bizco.stock_critico,
-                                biz_category: bizco.biz_category,
-                                biz_size: bizco.biz_size,
-                            }, (err) => err ? rej(err) : res())
-                        );
-
-                        if (faltaBiz > 0) {
-                            await new Promise((res, rej) =>
-                                createOrden({
-                                    id_ventaO:         ventaActual.idVenta,
-                                    id_origenO:        codigo,
-                                    fecha_entregaO:    ventaActual.fecha_entrega,
-                                    categoriaO:        categoria,
-                                    sizeO:             size,
-                                    cantidad_inicialO: faltaBiz
-                                }, (err) => err ? rej(err) : res())
-                            );
-                        }
-
-                    } else {
-                        await new Promise((res, rej) =>
-                            createBizcocho({
-                                biz_category:       categoria,
-                                biz_size:           size,
-                                stock_apartado: 0,
-                                stock_disponible:0,
-                                stock_en_proceso:faltaProd,
-                            }, (err) => err ? rej(err) : res())
-                        );
-                        await new Promise((res, rej) =>
-                            createOrden({
-                                id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        codigo,
-                                fecha_entregaO:    ventaActual.fecha_entrega,
-                                categoriaO:        categoria,
-                                sizeO:             size,
-                                cantidad_inicialO: faltaProd
-                            }, (err) => err ? rej(err) : res())
-                        );
-                    }
-                }
-
-            } else {
-                await new Promise((res, rej) =>
-                    createProducto({
-                        code:               codigo,
-                        category:           prodcar.categoria,
-                        model:              prodcar.modelo,
-                        size:               prodcar.size,
-                        decoration:         prodcar.decoracion,
-                        color:              prodcar.color,
-                        price:              precio,
-                        stock_total:        0,
-                        stock_apartado:     0,
-                        stock_disponible:   0,
-                        stock_en_proceso:   pedido,
-                        stock_min:          0,
-                        stock_max:          0,
-                        stock_critico:      0
-                    }, (err) => err ? rej(err) : res())
-                );
-
-                const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
-                if (bizEntry) {
-                    const bizco = await new Promise((res, rej) => {
-                        searchBizcocho(
-                            categoria,
-                            size,
-                            (err, data) => {
-                                if (err) return rej(err);
-                                res(data || null);
-                            }
-                        );
-                    });
-                    let dispoB = parseInt(bizco.stock_disponible, 10);
-                    let apartB = parseInt(bizco.stock_apartado, 10);
-                    let procB  = parseInt(bizco.stock_en_proceso, 10);
-
-                    if (dispoB >= pedido) {
-                        dispoB -= pedido;
-                        apartB += pedido;
-                    } else {
-                        const faltaBiz = pedido - dispoB;
-                        apartB += dispoB;
-                        procB  += faltaBiz;
-                        dispoB = 0;
-                    }
-
-                    await new Promise((res, rej) =>
-                        updateBizcocho({
-                            stock_apartado: apartB,
-                            stock_disponible: dispoB, 
-                            stock_en_proceso: procB, 
-                            stock_min: bizco.stock_min, 
-                            stock_max: bizco.stock_max, 
-                            stock_critico: bizco.stock_critico,
-                            biz_category: bizco.biz_category,
-                            biz_size: bizco.biz_size,
-                        }, (err) => err ? rej(err) : res())
-                    );
-
-                    if (procB > 0) {
-                        await new Promise((res, rej) =>
-                            createOrden({
-                                id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        codigo,
-                                fecha_entregaO:    ventaActual.fecha_entrega,
-                                categoriaO:        categoria,
-                                sizeO:             size,
-                                cantidad_inicialO: procB
-                            }, (err) => err ? rej(err) : res())
-                        );
-                    }
-
-                } else {
-                    await new Promise((res, rej) =>
-                        createBizcocho({
-                            biz_category:      categoria,
-                            biz_size:          size,
-                            stock_apartado: 0,
-                            stock_disponible: 0,
-                            stock_en_proceso: pedido,
-                            code:          codigo
-                        }, (err) => err ? rej(err) : res())
-                    );
-                    await new Promise((res, rej) =>
-                        createOrden({
-                            id_ventaO:         ventaActual.idVenta,
-                            id_origenO:        codigo,
-                            fecha_entregaO:    ventaActual.fecha_entrega,
-                            categoriaO:        categoria,
-                            sizeO:             size,
-                            cantidad_inicialO: pedido
-                        }, (err) => err ? rej(err) : res())
-                    );
-                }
-            }
-        }
-
-        try {
-            const detalles_venta = await new Promise((res, rej) =>
-                readVentasDetalle({ id_ventaVD: ventaActual.idVenta }, (err, data) => err ? rej(err) : res(data))
-            );
-            await generarRecibos({ venta_datos: detalles_venta });
-            showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-            if (typeof window !== "undefined") {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 5000);
-            }
-        } catch (error) {
-            showToast("Hubo un error al generar el recibo.", ICONOS.error);
-            console.error("Error al generar recibo:", error);
-        }
-        
-
-    } catch (error) {
-        console.log(`Error: ${error}`);
-    }
-}
-
-
-
-
-
-const db = openDataBase();
+function readVentasDetalle(detalles_venta, callback) {
+    const db = openDataBase();
     const query = `
-        UPDATE inventario_productos
-        SET 
-            price = ?,
-            stock_apartado = ?,
-            stock_disponible = ?,
-            stock_en_proceso = ?
-        WHERE code = ?;
+        SELECT 
+            v.id_venta AS noDeVenta, v.fecha_venta, v.hora AS hora_venta, 
+            v.nombre AS cliente_name, v.telefono, v.correo, v.domicilio, v.fecha_entrega, v.metodo_pago, v.forma_pago,
+            ip.code AS codigo, ip.category || ' MOD.' || ip.model || ' TAM.' || ip.size || ' DECOR.' || ip.decoration || ' COL.' || ip.color AS nombre, dv.price AS precioUnit, dv.quantity AS cantidad, dv.importe,
+            v.monto, v.pago, (v.pago - v.monto) AS cambio
+        FROM ventas v
+        INNER JOIN detalles_venta dv
+        ON v.id_venta = dv.id_venta
+        INNER JOIN inventario_productos ip
+        ON ip.code = dv.code
+        WHERE v.id_venta = ?;
     `;
 
-    db.run(query, [
-        producto.price,
-        producto.stock_apartado,
-        producto.stock_disponible,
-        producto.stock_en_proceso,
-        producto.code
-    ], function (err) {
+    try {
+        db.all(query, [
+            detalles_venta.id_ventaVD
+        ], (err, rows) => {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                callback(err, null);
+                return;
+            }
+            console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
+            callback(null, rows);
+        });
+    } catch (err) {
+        console.error(`[CRITICAL] Error inesperado: ${err.message}`);
+        callback(err, null);
+    } finally {
         closeDatabase(db);
-        if (err) return callback(err, null);
-        
-        callback(null, {
-            code: producto.code,
-            ...producto
-        });
-    });
-
-
-
-    /*
-    
-function guardarProducto(event) {
-    event.preventDefault();
-
-    const form = document.getElementById('formProd');
-    const mode = form.dataset.mode;
-    const code = parseInt(document.getElementById('prodCode').value.trim());
-
-    const payload = {
-        code, 
-        category:         document.getElementById('prodCategory').value,
-        model:            document.getElementById('prodModel').value,
-        size:             document.getElementById('prodSize').value,
-        decoration:       document.getElementById('prodDecoration').value,
-        color:            document.getElementById('prodColor').value,
-        price:            +document.getElementById('prodPrice').value,
-        stock_disponible: +document.getElementById('prodDisp').value,
-        stock_apartado:   +document.getElementById('prodApr').value,
-        stock_en_proceso: +document.getElementById('prodProc').value
-    };
-
-    console.log(payload);
-    console.log(mode);
-
-    // MODO CREAR
-    if (mode === 'create') {
-        const dupCode = window.productos.some(p => p.code === payload.code);
-        if (dupCode) {
-            return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
-        }
-
-        const dupCombo = window.productos.some(p =>
-            p.category   === payload.category &&
-            p.model      === payload.model &&
-            p.size       === payload.size &&
-            p.decoration === payload.decoration &&
-            p.color      === payload.color
-        );
-        if (dupCombo) {
-            return showToast(
-                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                ICONOS.advertencia
-            );
-        }
-
-        createProducto(payload, (err) => {
-            if (err) {
-                console.error('Error al crear producto:', err);
-                return showToast('Error al agregar', ICONOS.error);
-            }
-            showToast('Producto agregado', ICONOS.success);
-            closeModal('editProductoModal');
-            initProductos();
-        });
-
-    // MODO EDITAR
-    } else if (mode === 'edit') {
-        const dupCombo = window.productos.some(p =>
-            p.category   === payload.category &&
-            p.model      === payload.model &&
-            p.size       === payload.size &&
-            p.decoration === payload.decoration &&
-            p.color      === payload.color &&
-            p.code       !== payload.code  // Este filtro es clave para evitar duplicados en editar
-        );
-        if (dupCombo) {
-            return showToast(
-                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                ICONOS.advertencia
-            );
-        }
-
-        updateProducto(payload, (err) => {
-            if (err) {
-                console.error('Error al actualizar producto:', err);
-                return showToast('Error al actualizar', ICONOS.error);
-            }
-            showToast('Producto actualizado', ICONOS.success);
-            closeModal('editProductoModal');
-            initProductos();
-        });
-
-    // MODO DESCONOCIDO
-    } else {
-        console.warn('guardarProducto: modo desconocido', mode);
+        console.log('[INFO] Conexión a la base de datos cerrada.');
     }
 }
 
 
+
+function deleteVentaDetalle(detalles_venta, callback){
+    const db = openDataBase();
+    const query = `
+        DELETE
+        FROM detalles_venta
+        WHERE id_venta = ?;
+    `;
+
+    db.run(
+        query,
+        [
+            detalles_venta.id_ventaV
+        ],
+        function (err) {
+            if (err) {
+                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                closeDatabase(db);
+                return callback(err, null);
+            }
+
+            console.log(`Venta con codigo ${datos_venta.id_ventaV} eliminada correctamente.`);
+
+            const deleteddetalles = {
+                id_venta: detalles_venta.id_ventaV, 
+            };
+
+            closeDatabase(db);
+            callback(null, deleteddetalles);
+        }
+    );
+}
+
+
+function deleteVenta(id_venta){
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            DELETE FROM ventas
+            WHERE id_venta = ?;
+        `;
+
+        db.run(query, [id_venta], function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al borrar venta: " + err.message));
+                }
     
-    
-    */
+                if (this.changes === 0) {
+                    return reject(new Error("No se borró ninguna venta (¿existe ese identificador?)"));
+                }
+                
+                resolve(`Venta con identificador'${id_venta}' eliminado correctamente`);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+
+
+function readDetalles(id_venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT 
+                v.id_venta AS noDeVenta, v.fecha_venta, v.hora AS hora_venta, 
+                v.nombre AS cliente_name, v.telefono, v.correo, v.domicilio, v.fecha_entrega, v.metodo_pago, v.forma_pago,
+                ip.code AS codigo, 
+                ip.category || ' MOD.' || ip.model || ' TAM.' || ip.size || ' DECOR.' || ip.decoration || ' COL.' || ip.color AS nombre, 
+                dv.price AS precioUnit, dv.quantity AS cantidad, dv.importe,
+                v.monto, v.pago, (v.pago - v.monto) AS cambio
+            FROM ventas v
+            INNER JOIN detalles_venta dv ON v.id_venta = dv.id_venta
+            INNER JOIN inventario_productos ip ON ip.code = dv.code
+            WHERE v.id_venta = ?;
+        `;
+
+        db.all(query, [id_venta], (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al obtener los detalles de la venta: " + err.message));
+                }
+
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+
+
+function searchVenta(idVenta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT 
+                v.id_venta as No_venta,
+                v.fecha_venta,
+                v.hora,
+                v.nombre as nombreCliente,
+                v.telefono,
+                v.correo,
+                v.domicilio,
+                v.fecha_entrega,
+                v.metodo_pago,
+                v.forma_pago,
+                ip.code as codigoProd,
+                dv.price as precioUnit,
+                dv.quantity as cantidad,
+                dv.importe as importe,
+                ip.category || " "|| ip.model || " [Tamaño " || ip.size || "]" || " Decoracion " || ip.decoration || " - Color " || ip.color as descripcion,
+                v.monto,
+                v.pago
+            FROM detalles_venta dv
+            INNER JOIN inventario_productos ip ON dv.code = ip.code
+            INNER JOIN ventas v ON v.id_venta = dv.id_venta
+            WHERE dv.id_venta = ?;
+        `;
+
+        db.all(query, [idVenta], (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al consultar la venta: " + err.message));
+                }
+
+                if (!rows || rows.length === 0) {
+                    return resolve([]); // o `null` si prefieres
+                }
+
+                resolve(rows);
+            } catch (errFinal) {
+                reject(errFinal);
+            } finally {
+                closeDatabase(db);
+                console.log('[INFO] Conexión a la base de datos cerrada.');
+            }
+        });
+    });
+}
+

@@ -1,298 +1,314 @@
 const path = require('path');
-const { callbackify } = require('util');
 const dbJS = path.join(__dirname,'..', 'js', 'connection.js');
 const { openDataBase, closeDatabase } = require(dbJS);
 
-function createVenta(datos_venta, callback){
-    const db = openDataBase();
-    const query = `
-        INSERT INTO ventas
-            (id_venta, fecha_venta, hora, nombre, telefono, correo, domicilio, fecha_entrega, metodo_pago, forma_pago, monto, pago)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-    `;
-    db.run(query, 
-        [
-            datos_venta.id_ventaV, 
-            datos_venta.fecha_ventaV,
-            datos_venta.horaV,
-            datos_venta.nombreV, 
-            datos_venta.telefonoV, 
-            datos_venta.correoV, 
-            datos_venta.domicilioV, 
-            datos_venta.fecha_entregaV, 
-            datos_venta.metodo_pagoV, 
-            datos_venta.forma_pagoV, 
-            datos_venta.montoV, 
-            datos_venta.pagoV
-        ], 
-        function (err) {
-            if (err) {
-                console.error(`[ERROR-VENTA] Consulta fallida: ${err.message}`);
-                closeDatabase(db);
-                callback(err, null);
-                return;
-            }
+function createVenta(venta){
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            INSERT INTO ventas
+                (id_venta, fecha_venta, hora, nombre, telefono, correo, domicilio, fecha_entrega, metodo_pago, forma_pago, monto, pago)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        `;
 
-            setTimeout(() => {
+        const params = [
+            venta.id_venta, 
+            venta.fecha_venta,
+            venta.hora,
+            venta.nombre, 
+            venta.telefono, 
+            venta.correo, 
+            venta.domicilio, 
+            venta.fecha_entrega, 
+            venta.metodo_pago, 
+            venta.forma_pago, 
+            venta.monto, 
+            venta.pago
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al insertar venta: " + err.message));
+                }
+        
+                if (this.changes === 0) {
+                    return reject(new Error("No se insertó ninguna venta"));
+                }
+        
                 const newVenta = {
-                    id_venta: datos_venta.id_ventaV, 
-                    fecha_venta: datos_venta.fecha_ventaV,
-                    hora: datos_venta.horaV,
-                    nombre: datos_venta.nombreV, 
-                    telefono: datos_venta.telefonoV, 
-                    correo: datos_venta.correoV, 
-                    domicilio: datos_venta.domicilioV, 
-                    fecha_entrega: datos_venta.fecha_entregaV, 
-                    metodo_pago: datos_venta.metodo_pagoV, 
-                    forma_pago: datos_venta.forma_pagoV, 
-                    descuento_porcentaje: datos_venta.montoV, 
-                    pago: datos_venta.pagoV
+                    id_venta: venta.id_venta, 
+                    fecha_venta: venta.fecha_venta,
+                    hora: venta.hora,
+                    nombre: venta.nombre, 
+                    telefono: venta.telefono, 
+                    correo: venta.correo, 
+                    domicilio: venta.domicilio, 
+                    fecha_entrega: venta.fecha_entrega, 
+                    metodo_pago: venta.metodo_pago, 
+                    forma_pago: venta.forma_pago, 
+                    monto: venta.monto, 
+                    pago: venta.pago
                 };
-                console.log(`Venta Registrada con exito: ${newVenta.id_venta}`);
+
+                resolve(newVenta);
+            } catch (err) {
+                reject(err);
+            } finally {
                 closeDatabase(db);
-                callback(null, newVenta);
-            }, 500);
-        }
-    );
-}
-
-function readVentas(callback) {
-    const db = openDataBase();
-    const query = `
-        SELECT *
-        FROM ventas
-    `;
-
-    try {
-        db.all(query, [], (err, rows) => {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
-                callback(err, null);
-                return;
             }
-            console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
-            callback(null, rows);
         });
-    } catch (err) {
-        console.error(`[CRITICAL] Error inesperado: ${err.message}`);
-        callback(err, null);
-    } finally {
-        closeDatabase(db);
-        console.log('[INFO] Conexión a la base de datos cerrada.');
-    }
+    });
 }
 
-function updateVenta(datos_venta, callback) {
-    /*en proceso */
-}
+function readVentas() {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT *
+            FROM ventas
+        `;
 
-function deleteVenta(datos_venta, callback){
-    const db = openDataBase();
-    const query = `
-        DELETE FROM ventas
-        WHERE id_venta
-        AND fecha_venta = ?
-        AND hora = ?;
-    `;
-
-    db.run(
-        query,
-        [
-            datos_venta.id_ventaV, 
-            datos_venta.fecha_ventaV,
-            datos_venta.horaV,
-        ],
-        function (err) {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+        db.all(query, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al leer las ventas: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
                 closeDatabase(db);
-                return callback(err, null);
             }
-
-            console.log(`Venta con codigo ${datos_venta.id_ventaV} eliminada correctamente.`);
-
-            const deletedVenta = {
-                    id_venta: datos_venta.id_ventaV, 
-                    fecha_venta: datos_venta.fecha_ventaV,
-                    hora: datos_venta.horaV,
-                    nombre: datos_venta.nombreV, 
-                    telefono: datos_venta.telefonoV, 
-                    correo: datos_venta.correoV, 
-                    domicilio: datos_venta.domicilioV, 
-                    fecha_entrega: datos_venta.fecha_entregaV, 
-                    metodo_pago: datos_venta.metodo_pagoV, 
-                    forma_pago: datos_venta.forma_pagoV, 
-                    descuento_porcentaje: datos_venta.descuento_porcentajeV, 
-                    pago: datos_venta.pagoV
-            };
-
-            closeDatabase(db);
-            callback(null, deletedVenta);
-        }
-    );
+        });
+    });
 }
 
-/**          DETALLES DE VENTA      */
-function createVentaDETALLES(detalles_venta, callback){
-    const db = openDataBase();
-    const query = `
-        INSERT INTO detalles_venta
-            (id_venta, code, price, quantity, importe)
-        VALUES (?, ?, ?, ?, ?);
-    `;
-    db.run(query, 
-        [
-            detalles_venta.id_ventaVD,
-            detalles_venta.codeVD,
-            detalles_venta.priceVD,
-            detalles_venta.quantityVD, 
-            detalles_venta.importeVD
-        ], 
-        function (err) {
-            if (err) {
-                console.error(`[ERROR-detalle] Consulta fallida: ${err.message}`);
+function searchVenta(id_venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT * 
+            FROM ventas
+            WHERE id_venta = ?;
+        `;
+        
+        db.get(query, id_venta, (err, row) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al leer la venta: " + err.message));
+                }
+        
+                if (!row) {
+                    return resolve([]);
+                }
+                resolve(row);
+            } catch (err) {
+                reject(err);
+            } finally {
                 closeDatabase(db);
-                callback(err, null);
-                return;
             }
+        });
+    });
+}
 
-            setTimeout(() => {
+function updateVenta(venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            UPDATE ventas
+            SET 
+                nombre = ?, telefono = ?, correo = ?, domicilio = ?, fecha_entrega = ?, metodo_pago = ?, forma_pago = ?, pago = ?
+            WHERE id_venta = ?;
+        `;
+
+        const params = [
+            venta.nombre, 
+            venta.telefono, 
+            venta.correo, 
+            venta.domicilio, 
+            venta.fecha_entrega, 
+            venta.metodo_pago, 
+            venta.forma_pago, 
+            venta.pago,
+            venta.id_venta
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar datos de venta: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ninguna venta con ese identificador."));
+                }
+
+                resolve("Venta actualizada correctamente");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+
+    });
+}
+
+/*-------------------------------------------------------------DETALLES DE VENTA ------------------------------------------------------------------------------------ */
+
+function createDetalle(detalles){
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            INSERT INTO detalles_venta
+                (id_venta, code, price, quantity, importe)
+            VALUES (?, ?, ?, ?, ?);
+        `;
+
+        const params = [
+            detalles.id_venta, 
+            detalles.code,
+            detalles.price,
+            detalles.quantity,
+            detalles.importe
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al insertar detalle de venta: " + err.message));
+                }
+        
+                if (this.changes === 0) {
+                    return reject(new Error("No se insertó ningun detalle de venta"));
+                }
+        
                 const newDetalle = {
-                    id_venta: detalles_venta.id_ventaVD,
-                    code: detalles_venta.codeVD,
-                    price: detalles_venta.priceVD,
-                    quantity: detalles_venta.quantityVD, 
-                    importe: detalles_venta.importeVD
+                    id_venta: detalles.id_venta, 
+                    code: detalles.code,
+                    price: detalles.price,
+                    quantity: detalles.quantity,
+                    importe: detalles.importe
                 };
+
+                resolve(newDetalle);
+            } catch (err) {
+                reject(err);
+            } finally {
                 closeDatabase(db);
-                callback(null, newDetalle);
-            }, 500);
-        }
-    );
-}
-
-function readVentasDetalle(detalles_venta, callback) {
-    console.log(detalles_venta.id_ventaVD);
-    const db = openDataBase();
-    const query = `
-        SELECT 
-            v.id_venta AS noDeVenta, v.fecha_venta, v.hora AS hora_venta, 
-            v.nombre AS cliente_name, v.telefono, v.correo, v.domicilio, v.fecha_entrega, v.metodo_pago, v.forma_pago,
-            ip.code AS codigo, ip.category || ' MOD.' || ip.model || ' TAM.' || ip.size || ' DECOR.' || ip.decoration || ' COL.' || ip.color AS nombre, dv.price AS precioUnit, dv.quantity AS cantidad, dv.importe,
-            v.monto, v.pago, (v.pago - v.monto) AS cambio
-        FROM ventas v
-        INNER JOIN detalles_venta dv
-        ON v.id_venta = dv.id_venta
-        INNER JOIN inventario_productos ip
-        ON ip.code = dv.code
-        WHERE v.id_venta = ?;
-    `;
-
-    try {
-        db.all(query, [
-            detalles_venta.id_ventaVD
-        ], (err, rows) => {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
-                callback(err, null);
-                return;
             }
-            console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
-            callback(null, rows);
         });
-    } catch (err) {
-        console.error(`[CRITICAL] Error inesperado: ${err.message}`);
-        callback(err, null);
-    } finally {
-        closeDatabase(db);
-        console.log('[INFO] Conexión a la base de datos cerrada.');
-    }
+    });
 }
 
-function updateVentaDetalle(detalles_venta, callback) {
-    /*en proceso */
-}
+function readDetalles(id_venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT 
+                v.id_venta AS noDeVenta,
+                v.fecha_venta,
+                v.hora AS hora_venta,
+                v.nombre AS cliente_name,
+                v.telefono,
+                v.correo,
+                v.domicilio,
+                v.fecha_entrega,
+                v.metodo_pago,
+                v.forma_pago,
+                ip.code AS codigo,
+                ip.category || ' MOD.' || ip.model || ' TAM.' || ip.size || ' DECOR.' || ip.decoration || ' COL.' || ip.color AS nombre,
+                dv.price AS precioUnit,
+                dv.quantity AS cantidad,
+                dv.importe,
+                v.monto,
+                v.pago,
+                (v.pago - v.monto) AS cambio
+            FROM ventas v
+            INNER JOIN detalles_venta dv ON v.id_venta = dv.id_venta
+            INNER JOIN inventario_productos ip ON ip.code = dv.code
+            WHERE v.id_venta = ?;
+        `;
 
-function deleteVentaDetalle(detalles_venta, callback){
-    const db = openDataBase();
-    const query = `
-        DELETE
-        FROM detalles_venta
-        WHERE id_venta = ?;
-    `;
+        db.all(query, [id_venta], (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al obtener los detalles de la venta: " + err.message));
+                }
 
-    db.run(
-        query,
-        [
-            detalles_venta.id_ventaV
-        ],
-        function (err) {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
                 closeDatabase(db);
-                return callback(err, null);
+                console.log('[INFO] Conexión a la base de datos cerrada.');
             }
-
-            console.log(`Venta con codigo ${datos_venta.id_ventaV} eliminada correctamente.`);
-
-            const deleteddetalles = {
-                id_venta: detalles_venta.id_ventaV, 
-            };
-
-            closeDatabase(db);
-            callback(null, deleteddetalles);
-        }
-    );
-}
-
-function readVenta(idVenta, callback) {
-    const db = openDataBase();
-    const query = `
-        SELECT 
-            v.id_venta as No_venta,
-            v.fecha_venta,
-            v.hora,
-            v.nombre as nombreCliente,
-            v.telefono,
-            v.correo,
-            v.domicilio,
-            v.fecha_entrega,
-            v.metodo_pago,
-            v.forma_pago,
-            ip.code as codigoProd,
-            dv.price as precioUnit,
-            dv.quantity as cantidad,
-            dv.importe as importe,
-            ip.category || " "|| ip.model || " [Tamaño " || ip.size || "]" || " Decoracion " || ip.decoration || " - Color " || ip.color as descripcion,
-            v.monto,
-            v.pago
-        FROM detalles_venta dv
-        INNER JOIN inventario_productos ip
-        ON dv.code = ip.code
-        INNER JOIN ventas v
-        ON v.id_venta = dv.id_venta
-        WHERE dv.id_venta = ?;
-    `;
-
-    try {
-        db.all(query, [
-            idVenta
-        ], (err, rows) => {
-            if (err) {
-                console.error(`[ERROR] Consulta fallida: ${err.message}`);
-                callback(err, null);
-                return;
-            }
-            console.log(`[INFO] Consulta ejecutada con éxito. Filas obtenidas: ${rows.length}`);
-            callback(null, rows);
         });
-    } catch (err) {
-        console.error(`[CRITICAL] Error inesperado: ${err.message}`);
-        callback(err, null);
-    } finally {
-        closeDatabase(db);
-        console.log('[INFO] Conexión a la base de datos cerrada.');
-    }
+    });
 }
 
-module.exports = { createVenta, readVentas, updateVenta, deleteVenta, createVentaDETALLES, readVentasDetalle, updateVentaDetalle, deleteVentaDetalle, readVenta }
+
+function updateDetalle(detalles_venta, callback) {
+    /*Probablemente nunca se use PENDIENTE */
+}
+
+function deleteVentaConDetalles(id_venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        db.serialize(() => {
+            const deleteDetallesQuery = `
+                DELETE FROM detalles_venta
+                WHERE id_venta = ?;
+            `;
+
+            db.run(deleteDetallesQuery, [id_venta], function (err) {
+                if (err) {
+                    closeDatabase(db);
+                    return reject(new Error("Error al eliminar los detalles de la venta: " + err.message));
+                }
+
+                const deleteVentaQuery = `
+                    DELETE FROM ventas
+                    WHERE id_venta = ?;
+                `;
+
+                db.run(deleteVentaQuery, [id_venta], function (err2) {
+                    try {
+                        if (err2) {
+                            return reject(new Error("Error al eliminar la venta: " + err2.message));
+                        }
+
+                        if (this.changes === 0) {
+                            return reject(new Error("No se eliminó ninguna venta (¿existe ese ID?)"));
+                        }
+
+                        resolve(`Venta con ID '${id_venta}' y sus detalles eliminados correctamente.`);
+                    } catch (errFinal) {
+                        reject(errFinal);
+                    } finally {
+                        closeDatabase(db);
+                    }
+                });
+            });
+        });
+    });
+}
+
+module.exports = { 
+    createVenta,
+    readVentas,
+    searchVenta,
+    updateVenta,
+    createDetalle,
+    readDetalles,
+    deleteVentaConDetalles,
+ }
