@@ -1,66 +1,84 @@
-const { rejects } = require('assert');
-const { constants } = require('buffer');
-const { group } = require('console');
 const { join } = require('path');
-const { text } = require('stream/consumers');
-const { parseArgs } = require('util');
-const crudP = join(__dirname, '..', 'js', 'crud-productos.js');
-const crudV = join(__dirname, "..", "js", "crud-ventas.js");
-const crudB = join(__dirname, "..", "js", "crud_bizcochos.js");
-const crudO = join(__dirname, "..", "js", "crud-produccion.js");
-const toast = join(__dirname, "..", "js", "toast.js");
-const ticket = join(__dirname, "..", "js", "generador-ticket.js");
-const { createBizcocho, readBizcochos, updateBizcocho, searchBizcocho } = require(crudB);
-const { createProducto, readProductos, updateProducto, readOneProduct } = require(crudP);
-const { createVenta, readVentas, createVentaDETALLES,  readVentasDetalle } = require(crudV);
-const { createOrden, readOrdenbyFASE } = require(crudO);
-const { showToast, showConfirmToast, ICONOS } = require(toast);
-const { generarRecibos } = require(ticket);
-let productos = [];
-let bizcochos = [];
-//let ventaData = [];
-let carrito = [];
-const resultsContainer = document.getElementById("search-results");
+const {
+    createVenta, readVentas, searchVenta, updateVenta, createDetalle, readDetalles, deleteVentaConDetalles,
+} = require(join(__dirname, "..", "js", "crud-ventas.js"));
+const { 
+    createProducto, readProductos, searchProduct, updateProducto, deleteProducto 
+} = require(join(__dirname, '..', 'js', 'crud-productos.js'));
+const { 
+    createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
+} = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
+const {
+    createOrden, readOrdenByFase
+} = require(join(__dirname, "..", "js", "crud-produccion.js"));
+const { 
+    showToast, showConfirmToast, ICONOS 
+} = require(join(__dirname, "..", "js", "toast.js"));
+const { generarRecibos } = require(join(__dirname, "..", "js", "generador-ticket.js"));
+
 const inputSearch = document.getElementById("product-by-search");
+const resultsContainer = document.getElementById("search-results");
+window.carrito = [];
 
-function revisarAlmacen() {
-    return new Promise((resolve, reject) => {
-        readProductos((err, data) => {
-            if (err) {
-                console.log(`Error al leer el inventario de Productos: ${err}`);
-                reject(err);
-            } else {
-                productos = data;
-                resolve();
-            }
-        });
-    });
+window.addEventListener('DOMContentLoaded', initPOS);
+
+async function initPOS() {
+    try {
+        await cargarProductos();
+        await cargarBizcochos();
+        await cargarVentas();
+
+        console.log('✅ Todos los datos del punto de venta fueron cargados correctamente.');
+    } catch (error) {
+        console.error('❌ Error inesperado en la carga del sistema:', error.message);
+        showToast('Error al iniciar el sistema POS', ICONOS.error);
+    }
 }
 
-function revisarAlmacenBiz() {
-    return new Promise((resolve, reject) => {
-        readBizcochos((err, data) => {
-            if (err) {
-                console.log(`Error al leer el inventario de Bizcochos: ${err}`);
-                reject(err);
-            } else {
-                bizcochos = data;
-                resolve();
-            }
-        });
-    });
+async function cargarProductos() {
+    try {
+        const productos = await readProductos();
+        window.productos = productos;
+        console.log('📦 Productos cargados.');
+    } catch (err) {
+        console.error('❌ Error al cargar productos:', err.message);
+        showToast('Error al cargar productos', ICONOS.error);
+    }
 }
 
+async function cargarBizcochos() {
+    try {
+        const bizcochos = await readBizcochos();
+        window.bizcochos = bizcochos;
+        console.log('📦 Bizcochos cargados.');
+    } catch (err) {
+        console.error('❌ Error al cargar bizcochos:', err.message);
+        showToast('Error al cargar bizcochos', ICONOS.error);
+    }
+}
 
-function filtrarProductos(listaproductos, textoS) {
-    let busqueda = textoS.toLowerCase();
+async function cargarVentas() {
+    try {
+        const ventas = await readVentas();
+        window.ventas = ventas;
+        console.log('📦 Ventas cargadas.');
+    } catch (err) {
+        console.error('❌ Error al cargar ventas:', err.message);
+        showToast('Error al cargar ventas', ICONOS.error);
+    }
+}
 
-    return listaproductos.filter(producto => {
-        return(
+function filtrarProductos(textoS) {
+    if (!window.productos || !Array.isArray(window.productos)) return [];
+
+    const busqueda = textoS.toLowerCase();
+
+    return window.productos.filter(producto => {
+        return (
             producto.category.toLowerCase().includes(busqueda) ||
             producto.model.toLowerCase().includes(busqueda) ||
             producto.size.toLowerCase().includes(busqueda) ||
-            producto.decoration.toLowerCase().includes(busqueda)  ||
+            producto.decoration.toLowerCase().includes(busqueda) ||
             producto.color.toLowerCase().includes(busqueda)
         );
     });
@@ -69,89 +87,61 @@ function filtrarProductos(listaproductos, textoS) {
 function renderResults(filteredProducts) {
     resultsContainer.innerHTML = "";
 
-    switch(filteredProducts.length) {
-        case 0:
-            resultsContainer.innerHTML = "<p>No se encontraron coincidencias.</p>";
-            resultsContainer.style.display = "block";
-            return;
-        default: {
-            let ul = document.createElement("ul");
-
-            filteredProducts.forEach(producto => {
-                let li = document.createElement('li');
-                li.textContent = `${producto.code} - ${producto.category} Modelo ${producto.model} [${producto.size}] Decoracion ${producto.decoration} | Color ${producto.color}`;
-    
-                li.addEventListener('click', () => {
-                    inputSearch.value = "";
-                    inputSearch.focus();
-                    resultsContainer.style.display = "none";
-                    document.getElementById("productCode").value = `${producto.code}`;
-                    document.getElementById("productCategory").value = `${producto.category}`;
-                    document.getElementById("productModel").value = `${producto.model}`;
-                    document.getElementById("productSize").value = `${producto.size}`;
-                    document.getElementById("productDecoration").value = `${producto.decoration}`;
-                    document.getElementById("productColor").value = `${producto.color}`;
-                    document.getElementById("productPrice").value = `${producto.price}`;
-
-                    document.getElementById("product-stock-disponible").value = `${producto.stock_disponible}`;
-                    document.getElementById("product-stock-pedido").value = 1;
-                });
-                ul.appendChild(li);
-            });
-            resultsContainer.appendChild(ul);
-            resultsContainer.style.display = "block";
-        }
+    if (filteredProducts.length === 0) {
+        resultsContainer.innerHTML = "<p>No se encontraron coincidencias.</p>";
+        resultsContainer.style.display = "block";
+        return;
     }
+
+    const ul = document.createElement("ul");
+
+    filteredProducts.forEach(producto => {
+        const li = document.createElement('li');
+        li.textContent = `${producto.code} - ${producto.category} Modelo ${producto.model} [${producto.size}] Decoración ${producto.decoration} | Color ${producto.color}`;
+
+        li.addEventListener('click', () => {
+            inputSearch.value = "";
+            inputSearch.focus();
+            resultsContainer.style.display = "none";
+
+            document.getElementById("productCode").value = producto.code;
+            document.getElementById("productCategory").value = producto.category;
+            document.getElementById("productModel").value = producto.model;
+            document.getElementById("productSize").value = producto.size;
+            document.getElementById("productDecoration").value = producto.decoration;
+            document.getElementById("productColor").value = producto.color;
+            document.getElementById("productPrice").value = producto.price;
+
+            document.getElementById("product-stock-disponible").value = producto.stock_disponible;
+            document.getElementById("product-stock-pedido").value = 1;
+        });
+
+        ul.appendChild(li);
+    });
+
+    resultsContainer.appendChild(ul);
+    resultsContainer.style.display = "block";
 }
 
 inputSearch.addEventListener("input", (e) => {
-    const texto = e.target.value;
-    switch (texto.trim()) {
-        case "":
-            resultsContainer.style.display = "none";
-            resultsContainer.innerHTML = "";
-            break;
-        default:
-            const productosFiltrados = filtrarProductos(productos, texto);
-            renderResults(productosFiltrados);
-            break;
+    const texto = e.target.value.trim();
+
+    if (texto === "") {
+        resultsContainer.style.display = "none";
+        resultsContainer.innerHTML = "";
+        return;
     }
+
+    const productosFiltrados = filtrarProductos(texto);
+    renderResults(productosFiltrados);
 });
-
-/*-----------------------------ARREGLOS------------------------------------------------------------------------ */
-
-function agregarProducto(codigo, categoria, modelo, size, decoracion, color, precio, stock, pedido) {
-    let producto_car = {
-        codigo: codigo,
-        categoria: categoria,
-        modelo: modelo,
-        size: size,
-        decoracion: decoracion,
-        color: color,
-        precio: precio,
-        stock: stock,
-        pedido: pedido
-    };
-    
-    carrito.push(producto_car);
-  }
-  
-function eliminarProducto(codigo, categoria, modelo, size) {
-    carrito = carrito.filter(producto => 
-        !(producto.codigo === codigo && 
-          producto.categoria === categoria && 
-          producto.modelo === modelo && 
-          producto.size === size)
-    );
-}
-
-/*----------------------------------------------------------------------------------------------------------- */
 
 function agregarProductoCarrito() {
     inputSearch.focus();
-    let code = document.getElementById("productCode").value;
+
+    const code = parseInt(document.getElementById("productCode").value);
     const tableBody = document.querySelector("#table-products tbody");
-    const existingRow = Array.from(tableBody.rows).find(row => row.cells[0].textContent === code);
+    const existingRow = Array.from(tableBody.rows).find(row => parseInt(row.cells[0].textContent) === code);
 
     if (!code) {
         showToast("Debes ingresar un código de producto.", ICONOS.error);
@@ -163,165 +153,120 @@ function agregarProductoCarrito() {
         return;
     }
 
-    let form_productCategory = document.getElementById("productCategory").value;
-    let form_productModel = document.getElementById("productModel").value;
-    let form_productSize = document.getElementById("productSize").value;
-    let form_productDecoration = document.getElementById("productDecoration").value;
-    let form_productColor = document.getElementById("productColor").value;
-    let form_productPrice = document.getElementById("productPrice").value;
-    
-    let form_stockDisponible = document.getElementById("product-stock-disponible").value;
-    let form_pedido = document.getElementById("product-stock-pedido").value || 1;
+    const producto = {
+        codigo: code,
+        categoria: document.getElementById("productCategory").value,
+        modelo: document.getElementById("productModel").value,
+        size: document.getElementById("productSize").value,
+        decoracion: document.getElementById("productDecoration").value,
+        color: document.getElementById("productColor").value,
+        precio: parseFloat(document.getElementById("productPrice").value),
+        stock: parseInt(document.getElementById("product-stock-disponible").value),
+        pedido: parseInt(document.getElementById("product-stock-pedido").value || 1)
+    };
 
-    if (!code || !form_productCategory || !form_productPrice || !form_stockDisponible || !form_productModel || !form_productSize || !form_productDecoration || !form_productColor) {
+    if (Object.values(producto).includes("") || isNaN(producto.precio) || isNaN(producto.stock) || isNaN(producto.pedido)) {
         showToast("Por favor, complete todos los campos antes de agregar el producto.", ICONOS.advertencia);
         return;
-    } else {
-        if (parseFloat(form_productPrice) <= 0) {
-            showToast("El precio debe ser mayor a $0.", ICONOS.advertencia);
-            return;
-        }
-        if (parseInt(form_stockDisponible) < 0) {
-            showToast("El stock disponible no puede ser negativo. Puede dejarlo en 0 (cero).", ICONOS.advertencia);
-            return;
-        }
-        if (parseInt(form_pedido) < 1) {
-            showToast("El pedido debe tener al menos 1 producto.", ICONOS.advertencia);
-            return;
-        }
+    }
+    if (producto.precio <= 0) {
+        showToast("El precio debe ser mayor a $0.", ICONOS.advertencia);
+        return;
+    }
+    if (producto.stock < 0) {
+        showToast("El stock disponible no puede ser negativo.", ICONOS.advertencia);
+        return;
+    }
+    if (producto.pedido < 1) {
+        showToast("El pedido debe tener al menos 1 producto.", ICONOS.advertencia);
+        return;
     }
 
     const emptyRow = document.getElementById("rowvoid");
-    if (emptyRow) {
-        emptyRow.remove();
-    }
+    if (emptyRow) emptyRow.remove();
 
-    let newRow = document.createElement("tr");
-    let form_productName = `${form_productCategory} Modelo ${form_productModel} [${form_productSize}] Decoracion ${form_productDecoration} | Color ${form_productColor}`;
+    const productName = `${producto.categoria} Modelo ${producto.modelo} [${producto.size}] Decoración ${producto.decoracion} | Color ${producto.color}`;
+    const newRow = document.createElement("tr");
     newRow.innerHTML = `
-        <td>${code}</td>
-        <td>${form_productName}</td>
-        <td>${parseFloat(form_productPrice).toFixed(2)}</td>
+        <td>${producto.codigo}</td>
+        <td>${productName}</td>
+        <td>${producto.precio.toFixed(2)}</td>
         <td>
-            <input id="cantidad_${code}" class="cantidad-venta-input" type="number" min="1" value="${parseInt(form_pedido)}"
-                onchange="actualizarTotal('${code}', ${parseFloat(form_productPrice).toFixed(2)})">
+            <input 
+                id="cantidad_${producto.codigo}" 
+                class="cantidad-venta-input" 
+                type="number" 
+                min="1" 
+                value="${producto.pedido}"
+                onchange="actualizarTotal(${producto.codigo}, ${producto.precio})"
         </td>
-        <td id="total_${code}">${(parseFloat(form_productPrice).toFixed(2) * parseInt(form_pedido)).toFixed(2)}</td>
+        <td id="total_${producto.codigo}">${(producto.precio * producto.pedido).toFixed(2)}</td>
         <td class="col-btn">
-            <button type="button" onclick="eliminarProdCarrito(${code})">🗑️ Eliminar</button>
+            <button type="button" onclick="eliminarProdCarrito(${producto.codigo})">🗑️ Eliminar</button>
         </td>
     `;
-
     tableBody.appendChild(newRow);
-    agregarProducto(parseInt(code), form_productCategory, form_productModel, form_productSize, form_productDecoration, form_productColor, parseFloat(form_productPrice), parseInt(form_stockDisponible), parseInt(form_pedido));
+
+    agregarAlCarrito(producto);
     closeModal('addProductModal');
-    showToast("Producto agregado a la venta.", ICONOS.exito);
     totalVenta();
 }
 
-function eliminarProdCarrito(id) {
-    showConfirmToast(`¿Eliminar producto #${id} del carrito?`, (confirmed) => {
-        if (!confirmed) return;
+function agregarAlCarrito(producto) {
+    const existente = carrito.find(p => p.codigo === producto.codigo);
 
-        const row = Array.from(document.querySelectorAll('#table-products tr')).find(tr => {
-            return tr.children[0].textContent == id;
-        });
-        if (row) row.remove();
-
-        const index = carrito.findIndex(p => p.codigo === parseInt(id));
-        if (index !== -1) carrito.splice(index, 1);
-
-        totalVenta();
-        showToast("Producto eliminado del carrito.", ICONOS.info);
-    });
-}
-
-
-function actualizarTotal(code, precio) {
-    const input = document.getElementById(`cantidad_${code}`);
-    const cantidad = parseInt(input.value) || 0;
-
-    const totalCell = document.getElementById(`total_${code}`);
-    totalCell.textContent = (precio * cantidad).toFixed(2);
-
-    const productoEnCarrito = carrito.find(p => p.codigo === parseInt(code));
-    if (productoEnCarrito) {
-        productoEnCarrito.pedido = cantidad;
+    if (existente) {
+        showToast("El producto ya está en el carrito.", ICONOS.advertencia);
+        return;
     }
 
+    carrito.push(producto);
+    showToast("Producto agregado al carrito.", ICONOS.exito);
+    totalVenta();
+}
+
+function actualizarTotal(codigo, precio) {
+    const cantidad = parseInt(document.getElementById(`cantidad_${codigo}`).value);
+    
+    const productoEnCarrito = carrito.find(p => p.codigo === codigo);
+    if (productoEnCarrito) {
+        productoEnCarrito.pedido = cantidad;
+        productoEnCarrito.precio = precio; 
+    }
+
+    document.getElementById(`total_${codigo}`).textContent = (precio * cantidad).toFixed(2);
+    totalVenta();
+}
+
+function eliminarProdCarrito(codigo) {
+    const filas = document.querySelectorAll('#table-products tbody tr');
+    filas.forEach(fila => {
+        if (parseInt(fila.cells[0].textContent) === codigo) {
+            fila.remove();
+        }
+    });
+    
+    window.carrito = carrito.filter(producto => producto.codigo !== codigo);
     totalVenta();
 }
 
 function totalVenta() {
-    const monto = carrito.reduce((acc, prod) => acc + (prod.precio * prod.pedido), 0);
-    const porcDesc = parseFloat(document.getElementById("porcentaje-descuento").value) || 0;
-    const descuento = monto * (porcDesc / 100);
-    const total = monto - descuento;
-    
-    document.getElementById("monto").value = monto.toFixed(2);
-    document.getElementById("descuento").value = descuento.toFixed(2);
-    document.getElementById("total").value = total.toFixed(2);
+    let total = 0;
 
-    updateCambio();
-}
-  
-function updateCambio() {
-    const pago = parseFloat(document.getElementById("pago").value) || 0;
-    const total = parseFloat(document.getElementById("total").value) || 0;
-    document.getElementById("cambio").value = (pago - total).toFixed(2);
-}
-  
-document.getElementById("porcentaje-descuento").addEventListener("input", totalVenta);
-document.getElementById("pago").addEventListener("input", updateCambio);
-
-function validacionesVenta() {
-    return new Promise((resolve, reject) => {
-        let idVenta = parseInt(document.getElementById('id-sale').value.trim());
-        let metodo_pago = document.getElementById('payment-method').value;
-        let forma_pago = document.getElementById('payment-form').value;
-        let pago = parseFloat(document.getElementById("pago").value);
-        let fechaEntrega = document.getElementById('sale-entrega').value;
-
-        if (!idVenta) {
-            showToast("Falta poner el número de venta.", ICONOS.advertencia);
-            return reject();
-        }
-
-        readVentas((err, data) => {
-            if (err) {
-                showToast(`Error al leer inventario: ${err}`, ICONOS.error);
-                return reject();
-            }
-
-            if (data.some(venta => parseInt(venta.id_venta) === idVenta)) {
-                showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
-                return reject();
-            }
-
-            if (!metodo_pago) {
-                showToast("Falta agregar un método de pago.", ICONOS.advertencia);
-                return reject();
-            }
-
-            if (!forma_pago) {
-                showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
-                return reject();
-            }
-
-            if (!pago) {
-                showToast("Falta poner una cantidad en pago.", ICONOS.advertencia);
-                return reject();
-            }
-
-            if (!fechaEntrega) {
-                showToast("Falta poner una fecha de entrega.", ICONOS.advertencia);
-                return reject();
-            }
-
-            resolve();
-        });
+    carrito.forEach(producto => {
+        const cantidad = producto.pedido;
+        total += producto.precio * cantidad;
     });
+
+    document.getElementById("monto").value = total.toFixed(2);
+
+    const pago = parseFloat(document.getElementById("pago").value) || 0;
+    const cambio = pago - total;
+    document.getElementById("cambio").value = (cambio < 0 ? 0 : cambio).toFixed(2);
 }
+
+document.getElementById("pago").addEventListener("input", totalVenta);
+
 
 function cancelarVenta() {
     showConfirmToast("¿Desea limpiar la pantalla de venta?", (confirmed) => {
@@ -335,6 +280,45 @@ function cancelarVenta() {
     });
 }
 
+async function validacionesVenta() {
+    let idVenta = parseInt(document.getElementById('id-sale').value.trim(), 10);
+    let metodo_pago = document.getElementById('payment-method').value.trim();
+    let forma_pago = document.getElementById('payment-form').value.trim();
+    let pago = parseFloat(document.getElementById("pago").value);
+    let fechaEntrega = document.getElementById('sale-entrega').value.trim();
+
+    if (isNaN(idVenta) || idVenta <= 0) {
+        showToast("Falta poner el número de venta.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta poner el número de venta."));
+    }
+
+    if (window.ventas && Array.isArray(window.ventas) && window.ventas.some(venta => parseInt(venta.id_venta) === idVenta)) {
+        showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
+        return Promise.reject(new Error("Venta duplicada con el mismo número."));
+    }
+
+    if (!metodo_pago) {
+        showToast("Falta agregar un método de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta método de pago."));
+    }
+
+    if (!forma_pago) {
+        showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta forma de pago."));
+    }
+
+    if (isNaN(pago) || pago <= 0) {
+        showToast("Falta poner una cantidad válida en pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Pago inválido o vacío."));
+    }
+
+    if (!fechaEntrega) {
+        showToast("Falta poner una fecha de entrega.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta fecha de entrega."));
+    }
+
+    return Promise.resolve();
+}
 
 async function imprimirRecibo() {
     const emptyRow = document.getElementById("rowvoid");
@@ -345,268 +329,112 @@ async function imprimirRecibo() {
 
     try {
         await validacionesVenta();
-        await revisarAlmacen();
-        await revisarAlmacenBiz();
 
-        const codigos = productos.map(item => item.code);
-        const get     = (id, def = "") => document.getElementById(id).value.trim() || def;
-        const getNum  = (id, def = 0) => parseFloat(get(id, def)) || def;
-
-        const ventaActual = {
-            idVenta:       parseInt(get('id-sale', "999999999"), 10) || 999999999,
-            fecha_venta:   get('sale-date'),
-            hora:          get('sale-hour'),
-            nombre:        get('client-name', "-----"),
-            telefono:      get('client-phone', "-----"),
-            correo:        get('client-mail', "-----"),
-            domicilio:     get('client-address', "-----"),
-            fecha_entrega: get('sale-entrega', "-----"),
-            metodo_pago:   get('payment-method', "-----"),
-            forma_pago:    get('payment-form', "-----"),
-            monto:         getNum('monto'),
-            pago:          getNum('pago')
+        const ventaId = document.getElementById("id-sale").value;
+        const venta = {
+            id_venta: ventaId,
+            fecha_venta: document.getElementById("sale-date").value,
+            hora: document.getElementById("sale-hour").value,
+            nombre: document.getElementById("client-name").value,
+            telefono: document.getElementById("client-phone").value,
+            correo: document.getElementById("client-mail").value,
+            domicilio: document.getElementById("client-address").value,
+            fecha_entrega: document.getElementById("sale-entrega").value,
+            metodo_pago: document.getElementById("payment-method").value,
+            forma_pago: document.getElementById("payment-form").value,
+            monto: parseFloat(document.getElementById("monto").value),
+            pago: parseFloat(document.getElementById("pago").value)
         };
 
-        await new Promise((res, rej) =>
-            createVenta({
-                id_ventaV:      ventaActual.idVenta,
-                fecha_ventaV:   ventaActual.fecha_venta,
-                horaV:          ventaActual.hora,
-                nombreV:        ventaActual.nombre,
-                telefonoV:      ventaActual.telefono,
-                correoV:        ventaActual.correo,
-                domicilioV:     ventaActual.domicilio,
-                fecha_entregaV: ventaActual.fecha_entrega,
-                metodo_pagoV:   ventaActual.metodo_pago,
-                forma_pagoV:    ventaActual.forma_pago,
-                montoV:         ventaActual.monto,
-                pagoV:          ventaActual.pago
-            }, (err, data) => err ? rej(err) : res(data))
-        );
+        await createVenta(venta);
 
-        for (const prodcar of carrito) {
-            const codigo    = parseInt(prodcar.codigo, 10);
-            const pedido    = parseInt(prodcar.pedido, 10);
-            const precio    = parseFloat(prodcar.precio);
-            const categoria = prodcar.categoria;
-            const size      = prodcar.size;
+        for (const item of window.carrito) {
+            const producto = window.productos.find(p => p.code === item.codigo);
+            const bizcocho = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
 
-            await new Promise((res, rej) =>
-                createVentaDETALLES({
-                    id_ventaVD:   ventaActual.idVenta,
-                    codeVD:       codigo,
-                    priceVD:      precio,
-                    quantityVD:   pedido,
-                    importeVD:    precio * pedido
-                }, (err) => err ? rej(err) : res())
-            );
+            const pedido = item.pedido;
+            let faltanteProducto = pedido;
 
-            if (codigos.includes(codigo)) {
-                const producto = await new Promise((res, rej) =>
-                    readOneProduct(codigo, (err, data) => {
-                        if (err) return rej(err);
-                        if (!data) return rej(new Error("Producto no encontrado"));
-                        res(data);
-                    })
-                );
-
-                let dispoP = parseInt(producto.stock_disponible, 10);
-                let apartP = parseInt(producto.stock_apartado, 10);
-                let procP  = parseInt(producto.stock_en_proceso, 10);
-
-                const usadoP      = Math.min(dispoP, pedido);
-                const faltaProd   = pedido - usadoP;
-                dispoP -= usadoP;
-                apartP += usadoP;
-                procP  += faltaProd;
-
-                await new Promise((res, rej) =>
-                    updateProducto({
-                        price:              producto.price,
-                        stock_apartado:     apartP,
-                        stock_disponible:   dispoP,
-                        stock_en_proceso:   procP,
-                        code:               producto.code
-                    }, (err) => err ? rej(err) : res())
-                );
-
-                if (faltaProd > 0) {
-                    const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
-                    if (bizEntry) {
-                        const bizco = await new Promise((res, rej) => {
-                            searchBizcocho(
-                                categoria,
-                                size,
-                                (err, data) => {
-                                    if (err) return rej(err);
-                                    res(data || null);
-                                }
-                            );
-                        });
-
-                        let dispoB = parseInt(bizco.stock_disponible, 10);
-                        let apartB = parseInt(bizco.stock_apartado, 10);
-                        let procB  = parseInt(bizco.stock_en_proceso, 10);
-
-                        const usadoB    = Math.min(dispoB, faltaProd);
-                        const faltaBiz  = faltaProd - usadoB;
-                        dispoB -= usadoB;
-                        apartB += usadoB;
-                        procB  += faltaBiz;
-
-                        await new Promise((res, rej) =>
-                            updateBizcocho({
-                                stock_apartado: apartB,
-                                stock_disponible: dispoB, 
-                                stock_en_proceso: procB, 
-                                biz_category: bizco.biz_category,
-                                biz_size: bizco.biz_size,
-                            }, (err) => err ? rej(err) : res())
-                        );
-
-                        if (faltaBiz > 0) {
-                            await new Promise((res, rej) =>
-                                createOrden({
-                                    id_ventaO:         ventaActual.idVenta,
-                                    id_origenO:        1, // ID correcto para 'Venta'
-                                    fecha_entregaO:    ventaActual.fecha_entrega,
-                                    categoriaO:        categoria,
-                                    sizeO:             size,
-                                    cantidad_inicialO: faltaBiz
-                                }, (err) => err ? rej(err) : res())
-                            );
-                        }
-
-                    } else {
-                        await new Promise((res, rej) =>
-                            createBizcocho({
-                                biz_category:       categoria,
-                                biz_size:           size,
-                                stock_apartado: 0,
-                                stock_disponible:0,
-                                stock_en_proceso:faltaProd,
-                            }, (err) => err ? rej(err) : res())
-                        );
-                        await new Promise((res, rej) =>
-                            createOrden({
-                                id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        1, // ID correcto
-                                fecha_entregaO:    ventaActual.fecha_entrega,
-                                categoriaO:        categoria,
-                                sizeO:             size,
-                                cantidad_inicialO: faltaProd
-                            }, (err) => err ? rej(err) : res())
-                        );
-                    }
-                }
-
-            } else {
-                await new Promise((res, rej) =>
-                    createProducto({
-                        code:               codigo,
-                        category:           prodcar.categoria,
-                        model:              prodcar.modelo,
-                        size:               prodcar.size,
-                        decoration:         prodcar.decoracion,
-                        color:              prodcar.color,
-                        price:              precio,
-                        stock_apartado:     0,
-                        stock_disponible:   0,
-                        stock_en_proceso:   pedido
-                    }, (err) => err ? rej(err) : res())
-                );
-
-                const bizEntry = bizcochos.find(b => b.biz_category === categoria && b.biz_size === size);
-                if (bizEntry) {
-                    const bizco = await new Promise((res, rej) => {
-                        searchBizcocho(
-                            categoria,
-                            size,
-                            (err, data) => {
-                                if (err) return rej(err);
-                                res(data || null);
-                            }
-                        );
-                    });
-                    let dispoB = parseInt(bizco.stock_disponible, 10);
-                    let apartB = parseInt(bizco.stock_apartado, 10);
-                    let procB  = parseInt(bizco.stock_en_proceso, 10);
-
-                    if (dispoB >= pedido) {
-                        dispoB -= pedido;
-                        apartB += pedido;
-                    } else {
-                        const faltaBiz = pedido - dispoB;
-                        apartB += dispoB;
-                        procB  += faltaBiz;
-                        dispoB = 0;
-                    }
-
-                    await new Promise((res, rej) =>
-                        updateBizcocho({
-                            stock_apartado: apartB,
-                            stock_disponible: dispoB, 
-                            stock_en_proceso: procB, 
-                            biz_category: bizco.biz_category,
-                            biz_size: bizco.biz_size,
-                        }, (err) => err ? rej(err) : res())
-                    );
-
-                    if (procB > 0) {
-                        await new Promise((res, rej) =>
-                            createOrden({
-                                id_ventaO:         ventaActual.idVenta,
-                                id_origenO:        1,
-                                fecha_entregaO:    ventaActual.fecha_entrega,
-                                categoriaO:        categoria,
-                                sizeO:             size,
-                                cantidad_inicialO: procB
-                            }, (err) => err ? rej(err) : res())
-                        );
-                    }
-
+            // PRODUCTO
+            if (producto) {
+                if (producto.stock_disponible >= pedido) {
+                    producto.stock_apartado += pedido;
+                    producto.stock_disponible -= pedido;
+                    faltanteProducto = 0;
                 } else {
-                    await new Promise((res, rej) =>
-                        createBizcocho({
-                            biz_category:      categoria,
-                            biz_size:          size,
-                            stock_apartado: 0,
-                            stock_disponible: 0,
-                            stock_en_proceso: pedido
-                        }, (err) => err ? rej(err) : res())
-                    );
-                    await new Promise((res, rej) =>
-                        createOrden({
-                            id_ventaO:         ventaActual.idVenta,
-                            id_origenO:        1,
-                            fecha_entregaO:    ventaActual.fecha_entrega,
-                            categoriaO:        categoria,
-                            sizeO:             size,
-                            cantidad_inicialO: pedido
-                        }, (err) => err ? rej(err) : res())
-                    );
+                    producto.stock_apartado += producto.stock_disponible;
+                    faltanteProducto -= producto.stock_disponible;
+                    producto.stock_en_proceso += faltanteProducto;
+                    producto.stock_disponible = 0;
+                }
+                await updateProducto(producto);
+            } else {
+                await createProducto({
+                    code: item.codigo,
+                    category: item.categoria,
+                    model: item.modelo,
+                    size: item.size,
+                    decoration: item.decoracion,
+                    color: item.color,
+                    price: item.precio,
+                    stock_apartado: 0,
+                    stock_disponible: 0,
+                    stock_en_proceso: faltanteProducto
+                });
+            }
+
+            // BIZCOCHO
+            let faltanteBizcocho = faltanteProducto;
+            if (faltanteProducto > 0) {
+                if (bizcocho) {
+                    if (bizcocho.stock_disponible >= faltanteBizcocho) {
+                        bizcocho.stock_apartado += faltanteBizcocho;
+                        bizcocho.stock_disponible -= faltanteBizcocho;
+                        faltanteBizcocho = 0;
+                    } else {
+                        bizcocho.stock_apartado += bizcocho.stock_disponible;
+                        faltanteBizcocho -= bizcocho.stock_disponible;
+                        bizcocho.stock_en_proceso += faltanteBizcocho;
+                        bizcocho.stock_disponible = 0;
+                    }
+                    await updateBizcocho(bizcocho);
+                } else {
+                    await createBizcocho({
+                        biz_category: item.categoria,
+                        biz_size: item.size,
+                        stock_apartado: 0,
+                        stock_disponible: 0,
+                        stock_en_proceso: faltanteBizcocho
+                    });
+                }
+
+                if (faltanteBizcocho > 0) {
+                    await createOrden({
+                        id_venta: ventaId,
+                        id_origen: 1,
+                        fecha_entrega: venta.fecha_entrega,
+                        categoria: item.categoria,
+                        size: item.size,
+                        cantidad_inicial: faltanteBizcocho
+                    });
                 }
             }
+
+            await createDetalle({
+                id_venta: ventaId,
+                code: item.codigo,
+                price: item.precio,
+                quantity: pedido,
+                importe: item.precio * pedido
+            });
         }
 
-        try {
-            const detalles_venta = await new Promise((res, rej) =>
-                readVentasDetalle({ id_ventaVD: ventaActual.idVenta }, (err, data) => err ? rej(err) : res(data))
-            );
-            await generarRecibos({ venta_datos: detalles_venta });
-            showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-            if (typeof window !== "undefined") {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 5000);
-            }
-        } catch (error) {
-            showToast("Hubo un error al generar el recibo.", ICONOS.error);
-            console.error("Error al generar recibo:", error);
-        }
-        
-
+        const detalles_venta = await readDetalles(ventaId);
+        await generarRecibos({ venta_datos: detalles_venta });
+        showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+        setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
-        console.log(`Error: ${error}`);
+        console.error("❌ Error al imprimir recibo:", error?.message || error);
+        showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
     }
 }

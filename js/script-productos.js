@@ -1,21 +1,27 @@
 const { join } = require('path');
-const crudJS = join(__dirname, '..', 'js', 'crud-productos.js');
-const { createProducto, readProductos, updateProducto, deleteProducto } = require(crudJS);
-const toast = join(__dirname, '..', 'js', 'toast.js');
-const { showToast, showConfirmToast, ICONOS } = require(toast);
+const { 
+    createProducto, 
+    readProductos, 
+    searchProduct, 
+    updateProducto, 
+    deleteProducto  
+} = require(join(__dirname, '..', 'js', 'crud-productos.js'));
+const { 
+    showToast, 
+    showConfirmToast, 
+    ICONOS 
+} = require(join(__dirname, '..', 'js', 'toast.js'));
 
 window.addEventListener('DOMContentLoaded', initProductos);
 
 async function initProductos() {
     try {
-        const productos = await new Promise((res, rej) =>
-            readProductos((err, data) => err ? rej(err) : res(data))
-        );
+        const productos = await readProductos();
         window.productos = productos;
         fillTableProductos(productos);
-        console.log('Se cargaron productos.');
+        console.log('📦 Se cargaron productos.');
     } catch (error) {
-        console.error('Error al cargar productos:', error);
+        console.error('❌ Error al cargar productos:', error.message);
         showToast('Error al cargar inventario', ICONOS.error);
     }
 }
@@ -40,7 +46,7 @@ function fillTableProductos(productos) {
             <td>${p.stock_apartado}</td>
             <td>${p.stock_en_proceso}</td>
             <td class="col-btn">
-                <button onclick="renderProducto('${p.code}');">✏️ Editar</button>
+                <button onclick="editarProducto('${p.code}');">✏️ Editar</button>
                 <button onclick="eliminarProducto('${p.code}');">🗑️ Eliminar</button>
             </td>
         `;
@@ -60,16 +66,12 @@ function eliminarProducto(code) {
             }
 
             try {
-                await new Promise((resolve, reject) => {
-                    deleteProducto(
-                        { code: code }, 
-                        (err) => err ? reject(err) : resolve()
-                    );
-                });
-                showToast("Producto eliminado", ICONOS.success);
+                await deleteProducto(code);
+                console.log('📦 Se elimino un producto.');
+                showToast("Producto eliminado 📦.", ICONOS.success);
                 initProductos();
             } catch (err) {
-                console.error("[ERROR] eliminarProducto:", err);
+                console.error("[ERROR] eliminarProducto:", err.message);
                 showToast("Error al eliminar", ICONOS.error);
             }
         },
@@ -77,37 +79,50 @@ function eliminarProducto(code) {
     );
 }
 
-function prepareNewProd() {
+function agregarNuevoProducto() {
     const form = document.getElementById('formProd');
-    form.reset();
     form.dataset.mode = 'create';
-    openModal('editProductoModal');
+    renderProducto();
+}
+
+function editarProducto(code) {
+    const form = document.getElementById('formProd');
+    form.dataset.mode = 'edit';
+    renderProducto(code);
 }
 
 function renderProducto(code) {
-    const p = window.productos.find(x => x.code === parseInt(code));
-    if (!p) return showToast('Producto no encontrado', ICONOS.error);
-
     const form = document.getElementById('formProd');
-    form.dataset.mode = 'edit';
+    const prodCodeField = document.getElementById('prodCodeField');
 
-    document.getElementById('prodCode').value     = p.code;
-    document.getElementById('prodCategory').value = p.category;
-    document.getElementById('prodModel').value    = p.model;
-    document.getElementById('prodSize').value     = p.size;
-    document.getElementById('prodDecoration').value = p.decoration;
-    document.getElementById('prodColor').value    = p.color;
+    if (form.dataset.mode === 'create') {
+        form.reset();
+        prodCodeField.style.display = 'block';
+        console.log('Creando nuevo producto 📦');
+    } else if (form.dataset.mode === 'edit') {
+        const p = window.productos.find(x => x.code === parseInt(code));
+        if (!p) return showToast('Producto no encontrado', ICONOS.error);
 
-    document.getElementById('prodPrice').value    = parseFloat(p.price);
-    document.getElementById('prodDisp').value     = parseInt(p.stock_disponible);
-    document.getElementById('prodApr').value      = parseInt(p.stock_apartado);
-    document.getElementById('prodProc').value     = parseInt(p.stock_en_proceso);
+        document.getElementById('prodCode').value = p.code;
+        prodCodeField.style.display = 'none';
+
+        document.getElementById('prodCategory').value = p.category;
+        document.getElementById('prodModel').value = p.model;
+        document.getElementById('prodSize').value = p.size;
+        document.getElementById('prodDecoration').value = p.decoration;
+        document.getElementById('prodColor').value = p.color;
+        document.getElementById('prodPrice').value = parseFloat(p.price);
+        document.getElementById('prodDisp').value = parseInt(p.stock_disponible);
+        document.getElementById('prodApr').value = parseInt(p.stock_apartado);
+        document.getElementById('prodProc').value = parseInt(p.stock_en_proceso);
+
+        console.log('Editando producto con código:', p.code);
+    }
 
     openModal('editProductoModal');
 }
 
-
-function guardarProducto(event) {
+async function guardarProducto(event) {
     event.preventDefault();
 
     const form = document.getElementById('formProd');
@@ -116,81 +131,71 @@ function guardarProducto(event) {
 
     const payload = {
         code, 
-        category:         document.getElementById('prodCategory').value,
-        model:            document.getElementById('prodModel').value,
-        size:             document.getElementById('prodSize').value,
-        decoration:       document.getElementById('prodDecoration').value,
-        color:            document.getElementById('prodColor').value,
-        price:            +document.getElementById('prodPrice').value,
+        category: document.getElementById('prodCategory').value,
+        model: document.getElementById('prodModel').value,
+        size: document.getElementById('prodSize').value,
+        decoration: document.getElementById('prodDecoration').value,
+        color: document.getElementById('prodColor').value,
+        price: +document.getElementById('prodPrice').value,
         stock_disponible: +document.getElementById('prodDisp').value,
-        stock_apartado:   +document.getElementById('prodApr').value,
+        stock_apartado: +document.getElementById('prodApr').value,
         stock_en_proceso: +document.getElementById('prodProc').value
     };
 
-    console.log(payload);
-    console.log(mode);
-
-    // MODO CREAR
-    if (mode === 'create') {
-        const dupCode = window.productos.some(p => p.code === payload.code);
-        if (dupCode) {
-            return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
-        }
-
-        const dupCombo = window.productos.some(p =>
-            p.category   === payload.category &&
-            p.model      === payload.model &&
-            p.size       === payload.size &&
-            p.decoration === payload.decoration &&
-            p.color      === payload.color
-        );
-        if (dupCombo) {
-            return showToast(
-                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                ICONOS.advertencia
-            );
-        }
-
-        createProducto(payload, (err) => {
-            if (err) {
-                console.error('Error al crear producto:', err);
-                return showToast('Error al agregar', ICONOS.error);
+    try {
+        if (mode === 'create') {
+            const dupCode = window.productos.some(p => p.code === payload.code);
+            if (dupCode) {
+                return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
             }
+
+            const dupCombo = window.productos.some(p =>
+                p.category === payload.category &&
+                p.model === payload.model &&
+                p.size === payload.size &&
+                p.decoration === payload.decoration &&
+                p.color === payload.color
+            );
+            if (dupCombo) {
+                return showToast(
+                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                    ICONOS.advertencia
+                );
+            }
+
+            await createProducto(payload);
+            console.log('📦 Se agrego un nuevo producto.');
             showToast('Producto agregado', ICONOS.success);
             closeModal('editProductoModal');
-            initProductos();
-        });
+            await initProductos();
 
-    // MODO EDITAR
-    } else if (mode === 'edit') {
-        const dupCombo = window.productos.some(p =>
-            p.category   === payload.category &&
-            p.model      === payload.model &&
-            p.size       === payload.size &&
-            p.decoration === payload.decoration &&
-            p.color      === payload.color &&
-            p.code       !== payload.code  // Este filtro es clave para evitar duplicados en editar
-        );
-        if (dupCombo) {
-            return showToast(
-                `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                ICONOS.advertencia
+        } else if (mode === 'edit') {
+            const dupCombo = window.productos.some(p =>
+                p.category === payload.category &&
+                p.model === payload.model &&
+                p.size === payload.size &&
+                p.decoration === payload.decoration &&
+                p.color === payload.color &&
+                p.code !== payload.code
             );
-        }
-
-        updateProducto(payload, (err) => {
-            if (err) {
-                console.error('Error al actualizar producto:', err);
-                return showToast('Error al actualizar', ICONOS.error);
+            if (dupCombo) {
+                return showToast(
+                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
+                    ICONOS.advertencia
+                );
             }
+
+            await updateProducto(payload);
+            console.log('📦 Se modifico un producto.');
             showToast('Producto actualizado', ICONOS.success);
             closeModal('editProductoModal');
-            initProductos();
-        });
+            await initProductos();
 
-    // MODO DESCONOCIDO
-    } else {
-        console.warn('guardarProducto: modo desconocido', mode);
+        } else {
+            console.warn('guardarProducto: modo desconocido', mode);
+        }
+    } catch (err) {
+        console.error('[ERROR] guardarProducto:', err);
+        showToast('Error al guardar el producto', ICONOS.error);
     }
 }
-

@@ -1,31 +1,36 @@
-const path = require("path");
-const os = require("os");
 const { join } = require('path');
-const crudV = join(__dirname, '..', 'js', 'crud-ventas.js');
+const os = require("os");
 const { 
-    createVenta, readVentas, updateVenta, deleteVenta, createVentaDETALLES, readVentasDetalle, updateVentaDetalle, deleteVentaDetalle, readVenta
-} = require(crudV);
-const toast = join(__dirname, "..", "js", "toast.js");
-const ticket = join(__dirname, "..", "js", "generador-ticket.js");
-const { showToast, ICONOS } = require(toast);
-const { generarRecibos } = require(ticket);
+    createVenta,
+    readVentas,
+    searchVenta,
+    updateVenta,
+    createDetalle,
+    readDetalles,
+    deleteVentaConDetalles,
+} = require(join(__dirname, '..', 'js', 'crud-ventas.js'));
+const { 
+    showToast, 
+    showConfirmToast, 
+    ICONOS 
+} = require(join(__dirname, "..", "js", "toast.js"));
+const { 
+    generarRecibos 
+} = require(join(__dirname, "..", "js", "generador-ticket.js"));
+
+window.addEventListener('DOMContentLoaded', initVentas);
 
 async function initVentas() {
     try {
-        const ventas = await new Promise((resolve, reject) => {
-        readVentas((err, data) => {
-            if (err) return reject(err);
-            fillTableVentas(data);
-            resolve(data);
-        });
-        });
-        //console.log('Ventas cargadas:', ventas);
+        const ventas = await readVentas();
+        window.ventas = ventas;
+        fillTableVentas(ventas);
+        console.log('📦 Se cargaron ventas.');
     } catch (error) {
-        console.error('Error al cargar ventas:', error);
+        console.error('❌ Error al cargar ventas:', error.message);
+        showToast('Error al cargar ventas', ICONOS.error);
     }
 }
-
-window.addEventListener('DOMContentLoaded', initVentas);
 
 function formatDate(dateStr) {
     if (!dateStr) return 'N/A';
@@ -52,7 +57,7 @@ function formatDate(dateStr) {
 
 function fillTableVentas(sales) {
     const tableBody = document.querySelector('#table-ventas tbody');
-    tableBody.innerHTML = '';           // limpiamos contenido previo
+    tableBody.innerHTML = '';
 
     const fragment = document.createDocumentFragment();
 
@@ -74,9 +79,6 @@ function fillTableVentas(sales) {
             <button type="button" onclick="imprimirVenta(${sale.id_venta})">🖨️ Imprimir</button>
         </td>
         `;
-        /*
-        <button type="button" onclick="editarVenta(${sale.id_venta})">✏️ Editar</button>
-        <button type="button" onclick="eliminarVenta(${sale.id_venta})">🗑️ Eliminar</button> */
         fragment.appendChild(row);
     });
 
@@ -86,14 +88,16 @@ function fillTableVentas(sales) {
 async function imprimirVenta(id) {
     console.log('Imprimiendo venta', id);
     try {
-        const detalles_venta = await new Promise((res, rej) =>
-            readVentasDetalle({ id_ventaVD: id }, (err, data) => err ? rej(err) : res(data))
-        );
-        
+        const detalles_venta = await readDetalles(id);
+
+        if (!detalles_venta || detalles_venta.length === 0) {
+            throw new Error("No se encontraron detalles para la venta con ID: " + id);
+        }
+
         await generarRecibos({ venta_datos: detalles_venta });
 
         const fileName = `CerArtep_Nota-${id}.pdf`;
-        const savePath = path.join(os.homedir(), 'Downloads', fileName);
+        const savePath = join(os.homedir(), 'Downloads', fileName);
 
         showToast(`Recibo guardado en: ${savePath}`, ICONOS.exito);
     } catch (error) {

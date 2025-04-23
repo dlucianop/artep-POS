@@ -38,7 +38,7 @@
                 <input type="checkbox" id="modoToggle">
                 <label for="modoToggle">MODO AUTOMÁTICO</label>
             </div>
-            <button onclick="prepareNewBizco()" type="button"> ➕ Agregar Bizcocho</button>
+            <button onclick="agregarNuevoBizcocho()" type="button"> ➕ Agregar Bizcocho</button>
         </div>
 
         <table id="table-bizcochos">
@@ -64,11 +64,10 @@
         <div class="modal-content">
         <span class="close" onclick="closeModal('editBizcoModal')">&times;</span>
         <form id="formBiz" data-mode="" onsubmit="guardarBizcocho(event)">
-            <div class="bizco-form-field">
-                <label for="bizId" hidden>ID Bizcocho:</label>
-                <input id="bizId" hidden>
+            <div class="bizco-form-field" id="bizCodeField" style="display:none;">
+                <label for="bizId">ID Bizcocho:</label>
+                <input id="bizId" type="number" step="1" min="0">
             </div>
-    
             <div class="bizco-form-field">
             <label for="bizCategory">Categoría:</label>
             <select id="bizCategory" required>

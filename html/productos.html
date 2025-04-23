@@ -33,7 +33,7 @@
                 <input type="checkbox" id="modoToggle">
                 <label for="modoToggle">MODO AUTOMÁTICO</label>
             </div>
-            <button type="button" onclick="prepareNewProd()">➕ Agregar Producto</button>
+            <button type="button" onclick="agregarNuevoProducto()">➕ Agregar Producto</button>
         </div>
 
         <table id="table-productos">
@@ -65,8 +65,10 @@
         <div class="modal-content">
             <span class="close" onclick="closeModal('editProductoModal')">&times;</span>
             <form id="formProd" data-mode="" onsubmit="guardarProducto(event)">
-                <input id="prodCode" type="hidden">
-
+                <div class="prod-form-field" id="prodCodeField" style="display:none;">
+                    <label for="">Codigo del Producto</label>
+                    <input id="prodCode" type="number" step="1" min="0">
+                </div>
                 <div class="prod-form-field">
                     <label for="prodCategory">Categoría:</label>
                     <select id="prodCategory" required>
