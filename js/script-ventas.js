@@ -32,8 +32,6 @@ async function initVentas() {
     }
 }
 
-window.addEventListener('DOMContentLoaded', initVentas);
-
 function formatDate(dateStr) {
     if (!dateStr) return 'N/A';
     let date;
