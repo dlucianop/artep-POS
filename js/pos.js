@@ -280,6 +280,148 @@ function cancelarVenta() {
     });
 }
 
-async function imprimirRecibo() {
+async function validacionesVenta() {
+    let idVenta = parseInt(document.getElementById('id-sale').value.trim(), 10);
+    let metodo_pago = document.getElementById('payment-method').value.trim();
+    let forma_pago = document.getElementById('payment-form').value.trim();
+    let pago = parseFloat(document.getElementById("pago").value);
+    let fechaEntrega = document.getElementById('sale-entrega').value.trim();
 
-};
+    if (isNaN(idVenta) || idVenta <= 0) {
+        showToast("Falta poner el número de venta.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta poner el número de venta."));
+    }
+
+    if (window.ventas && Array.isArray(window.ventas) && window.ventas.some(venta => parseInt(venta.id_venta) === idVenta)) {
+        showToast("Ya existe venta con el mismo número, intente con otro.", ICONOS.error);
+        return Promise.reject(new Error("Venta duplicada con el mismo número."));
+    }
+
+    if (!metodo_pago) {
+        showToast("Falta agregar un método de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta método de pago."));
+    }
+
+    if (!forma_pago) {
+        showToast("Falta agregar una forma de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta forma de pago."));
+    }
+
+    if (isNaN(pago) || pago <= 0) {
+        showToast("Falta poner una cantidad válida en pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Pago inválido o vacío."));
+    }
+
+    if (!fechaEntrega) {
+        showToast("Falta poner una fecha de entrega.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta fecha de entrega."));
+    }
+
+    return Promise.resolve();
+}
+
+async function imprimirRecibo() {
+    const emptyRow = document.getElementById("rowvoid");
+    if (emptyRow) {
+        showToast("No hay productos en el carrito.", ICONOS.advertencia);
+        return;
+    }
+
+    try {
+        await validacionesVenta(); 
+
+        const ventaId = document.getElementById("id-sale").value;
+        const venta = {
+            id_venta: ventaId,
+            fecha_venta: document.getElementById("sale-date").value,
+            hora: document.getElementById("sale-hour").value,
+            nombre: document.getElementById("client-name").value,
+            telefono: document.getElementById("client-phone").value,
+            correo: document.getElementById("client-mail").value,
+            domicilio: document.getElementById("client-address").value,
+            fecha_entrega: document.getElementById("sale-entrega").value,
+            metodo_pago: document.getElementById("payment-method").value,
+            forma_pago: document.getElementById("payment-form").value,
+            monto: parseFloat(document.getElementById("monto").value),
+            pago: parseFloat(document.getElementById("pago").value)
+        };
+
+        console.log(venta);
+
+        await createVenta(venta);
+
+        for (const item of window.carrito) {
+            const productoExistente = window.productos?.find(p => p.code === item.codigo);
+            const bizcochoExistente = window.bizcochos?.find(b =>
+                b.biz_category === item.categoria &&
+                b.biz_size === item.size
+            );
+
+            const pedido = item.pedido;
+
+            if (productoExistente) {
+                if (productoExistente.stock_disponible < pedido) {
+                    productoExistente.stock_en_proceso += pedido;
+                    productoExistente.stock_disponible = 0;
+                } else {
+                    productoExistente.stock_apartado += pedido;
+                    productoExistente.stock_disponible = Math.max(0, productoExistente.stock_disponible - pedido);
+                }
+                await updateProducto(productoExistente);
+            } else {
+                const nuevoProducto = {
+                    code: item.codigo,
+                    category: item.categoria,
+                    model: item.modelo,
+                    size: item.size,
+                    decoration: item.decoracion,
+                    color: item.color,
+                    price: item.precio,
+                    stock_apartado: 0,
+                    stock_disponible: 0,
+                    stock_en_proceso: pedido
+                };
+                await createProducto(nuevoProducto);
+            }
+
+            if (bizcochoExistente) {
+                if (bizcochoExistente.stock_disponible < pedido) {
+                    bizcochoExistente.stock_en_proceso += pedido;
+                    bizcochoExistente.stock_disponible = 0;
+                } else {
+                    bizcochoExistente.stock_apartado += pedido;
+                    bizcochoExistente.stock_disponible = Math.max(0, bizcochoExistente.stock_disponible - pedido);
+                }
+                await updateBizcocho(bizcochoExistente);
+            } else {
+                const nuevoBizcocho = {
+                    biz_category: item.categoria,
+                    biz_size: item.size,
+                    stock_apartado: 0,
+                    stock_disponible: 0,
+                    stock_en_proceso: pedido
+                };
+                await createBizcocho(nuevoBizcocho);
+            }
+
+            const detalle = {
+                id_venta: ventaId,
+                code: item.codigo,
+                price: item.precio,
+                quantity: pedido,
+                importe: item.precio * pedido
+            };
+            await createDetalle(detalle);
+        }
+
+        const detalles_venta = await readDetalles(ventaId);
+        await generarRecibos({ venta_datos: detalles_venta });
+        showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    } catch (error) {
+        console.error("❌ Error al imprimir recibo:", error?.message || error || "Error desconocido");
+        showToast(`Error al imprimir recibo: ${error?.message || error} `, ICONOS.error);
+    }
+}
