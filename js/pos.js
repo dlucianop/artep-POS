@@ -266,3 +266,20 @@ function totalVenta() {
 }
 
 document.getElementById("pago").addEventListener("input", totalVenta);
+
+
+function cancelarVenta() {
+    showConfirmToast("¿Desea limpiar la pantalla de venta?", (confirmed) => {
+        if (!confirmed) return;
+
+        showToast("Venta limpiada 😄", ICONOS.info);
+
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    });
+}
+
+async function imprimirRecibo() {
+
+};
