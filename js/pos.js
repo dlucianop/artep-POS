@@ -328,7 +328,7 @@ async function imprimirRecibo() {
     }
 
     try {
-        await validacionesVenta(); 
+        await validacionesVenta();
 
         const ventaId = document.getElementById("id-sale").value;
         const venta = {
@@ -346,30 +346,30 @@ async function imprimirRecibo() {
             pago: parseFloat(document.getElementById("pago").value)
         };
 
-        console.log(venta);
-
         await createVenta(venta);
 
         for (const item of window.carrito) {
-            const productoExistente = window.productos?.find(p => p.code === item.codigo);
-            const bizcochoExistente = window.bizcochos?.find(b =>
-                b.biz_category === item.categoria &&
-                b.biz_size === item.size
-            );
+            const producto = window.productos.find(p => p.code === item.codigo);
+            const bizcocho = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
 
             const pedido = item.pedido;
+            let faltanteProducto = pedido;
 
-            if (productoExistente) {
-                if (productoExistente.stock_disponible < pedido) {
-                    productoExistente.stock_en_proceso += pedido;
-                    productoExistente.stock_disponible = 0;
+            // PRODUCTO
+            if (producto) {
+                if (producto.stock_disponible >= pedido) {
+                    producto.stock_apartado += pedido;
+                    producto.stock_disponible -= pedido;
+                    faltanteProducto = 0;
                 } else {
-                    productoExistente.stock_apartado += pedido;
-                    productoExistente.stock_disponible = Math.max(0, productoExistente.stock_disponible - pedido);
+                    producto.stock_apartado += producto.stock_disponible;
+                    faltanteProducto -= producto.stock_disponible;
+                    producto.stock_en_proceso += faltanteProducto;
+                    producto.stock_disponible = 0;
                 }
-                await updateProducto(productoExistente);
+                await updateProducto(producto);
             } else {
-                const nuevoProducto = {
+                await createProducto({
                     code: item.codigo,
                     category: item.categoria,
                     model: item.modelo,
@@ -379,49 +379,62 @@ async function imprimirRecibo() {
                     price: item.precio,
                     stock_apartado: 0,
                     stock_disponible: 0,
-                    stock_en_proceso: pedido
-                };
-                await createProducto(nuevoProducto);
+                    stock_en_proceso: faltanteProducto
+                });
             }
 
-            if (bizcochoExistente) {
-                if (bizcochoExistente.stock_disponible < pedido) {
-                    bizcochoExistente.stock_en_proceso += pedido;
-                    bizcochoExistente.stock_disponible = 0;
+            // BIZCOCHO
+            let faltanteBizcocho = faltanteProducto;
+            if (faltanteProducto > 0) {
+                if (bizcocho) {
+                    if (bizcocho.stock_disponible >= faltanteBizcocho) {
+                        bizcocho.stock_apartado += faltanteBizcocho;
+                        bizcocho.stock_disponible -= faltanteBizcocho;
+                        faltanteBizcocho = 0;
+                    } else {
+                        bizcocho.stock_apartado += bizcocho.stock_disponible;
+                        faltanteBizcocho -= bizcocho.stock_disponible;
+                        bizcocho.stock_en_proceso += faltanteBizcocho;
+                        bizcocho.stock_disponible = 0;
+                    }
+                    await updateBizcocho(bizcocho);
                 } else {
-                    bizcochoExistente.stock_apartado += pedido;
-                    bizcochoExistente.stock_disponible = Math.max(0, bizcochoExistente.stock_disponible - pedido);
+                    await createBizcocho({
+                        biz_category: item.categoria,
+                        biz_size: item.size,
+                        stock_apartado: 0,
+                        stock_disponible: 0,
+                        stock_en_proceso: faltanteBizcocho
+                    });
                 }
-                await updateBizcocho(bizcochoExistente);
-            } else {
-                const nuevoBizcocho = {
-                    biz_category: item.categoria,
-                    biz_size: item.size,
-                    stock_apartado: 0,
-                    stock_disponible: 0,
-                    stock_en_proceso: pedido
-                };
-                await createBizcocho(nuevoBizcocho);
+
+                if (faltanteBizcocho > 0) {
+                    await createOrden({
+                        id_venta: ventaId,
+                        id_origen: 1,
+                        fecha_entrega: venta.fecha_entrega,
+                        categoria: item.categoria,
+                        size: item.size,
+                        cantidad_inicial: faltanteBizcocho
+                    });
+                }
             }
 
-            const detalle = {
+            await createDetalle({
                 id_venta: ventaId,
                 code: item.codigo,
                 price: item.precio,
                 quantity: pedido,
                 importe: item.precio * pedido
-            };
-            await createDetalle(detalle);
+            });
         }
 
         const detalles_venta = await readDetalles(ventaId);
         await generarRecibos({ venta_datos: detalles_venta });
         showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
+        setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
-        console.error("❌ Error al imprimir recibo:", error?.message || error || "Error desconocido");
-        showToast(`Error al imprimir recibo: ${error?.message || error} `, ICONOS.error);
+        console.error("❌ Error al imprimir recibo:", error?.message || error);
+        showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
     }
 }
