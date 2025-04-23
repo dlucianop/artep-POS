@@ -182,7 +182,6 @@ function agregarProductoCarrito() {
         return;
     }
 
-    // Agregar visualmente
     const emptyRow = document.getElementById("rowvoid");
     if (emptyRow) emptyRow.remove();
 
@@ -193,8 +192,13 @@ function agregarProductoCarrito() {
         <td>${productName}</td>
         <td>${producto.precio.toFixed(2)}</td>
         <td>
-            <input id="cantidad_${producto.codigo}" class="cantidad-venta-input" type="number" min="1" value="${producto.pedido}"
-                onchange="actualizarTotal('${producto.codigo}', ${producto.precio.toFixed(2)})">
+            <input 
+                id="cantidad_${producto.codigo}" 
+                class="cantidad-venta-input" 
+                type="number" 
+                min="1" 
+                value="${producto.pedido}"
+                onchange="actualizarTotal(${producto.codigo}, ${producto.precio})"
         </td>
         <td id="total_${producto.codigo}">${(producto.precio * producto.pedido).toFixed(2)}</td>
         <td class="col-btn">
@@ -205,10 +209,8 @@ function agregarProductoCarrito() {
 
     agregarAlCarrito(producto);
     closeModal('addProductModal');
-    console.log(carrito);
-    //totalVenta();
+    totalVenta();
 }
-
 
 function agregarAlCarrito(producto) {
     const existente = carrito.find(p => p.codigo === producto.codigo);
@@ -220,11 +222,47 @@ function agregarAlCarrito(producto) {
 
     carrito.push(producto);
     showToast("Producto agregado al carrito.", ICONOS.exito);
-    //totalVenta();
+    totalVenta();
+}
+
+function actualizarTotal(codigo, precio) {
+    const cantidad = parseInt(document.getElementById(`cantidad_${codigo}`).value);
+    
+    const productoEnCarrito = carrito.find(p => p.codigo === codigo);
+    if (productoEnCarrito) {
+        productoEnCarrito.pedido = cantidad;
+        productoEnCarrito.precio = precio; 
+    }
+
+    document.getElementById(`total_${codigo}`).textContent = (precio * cantidad).toFixed(2);
+    totalVenta();
 }
 
 function eliminarProdCarrito(codigo) {
-    carrito = carrito.filter(producto => producto.codigo !== codigo);
-    document.querySelector(`#table-products tbody tr td:first-child`).parentElement.remove();
-    //totalVenta();
+    const filas = document.querySelectorAll('#table-products tbody tr');
+    filas.forEach(fila => {
+        if (parseInt(fila.cells[0].textContent) === codigo) {
+            fila.remove();
+        }
+    });
+    
+    window.carrito = carrito.filter(producto => producto.codigo !== codigo);
+    totalVenta();
 }
+
+function totalVenta() {
+    let total = 0;
+
+    carrito.forEach(producto => {
+        const cantidad = producto.pedido;
+        total += producto.precio * cantidad;
+    });
+
+    document.getElementById("monto").value = total.toFixed(2);
+
+    const pago = parseFloat(document.getElementById("pago").value) || 0;
+    const cambio = pago - total;
+    document.getElementById("cambio").value = (cambio < 0 ? 0 : cambio).toFixed(2);
+}
+
+document.getElementById("pago").addEventListener("input", totalVenta);
