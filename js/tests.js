@@ -1,82 +1,125 @@
-const path = require('path')
-const dbJS = path.join(__dirname,'..', 'js', 'connection.js');
-const { openDataBase, closeDatabase } = require(dbJS);
-const toast = join(__dirname, "..", "js", "toast.js");
-const { showToast, ICONOS } = require(toast);
+const { join } = require('path');
+const os = require("os");
+const { 
+    createVenta,
+    readVentas,
+    searchVenta,
+    updateVenta,
+    createDetalle,
+    readDetalles,
+    deleteVentaConDetalles,
+} = require(join(__dirname, '..', 'js', 'crud-ventas.js'));
+const { 
+    showToast, 
+    showConfirmToast, 
+    ICONOS 
+} = require(join(__dirname, "..", "js", "toast.js"));
+const { 
+    generarRecibos 
+} = require(join(__dirname, "..", "js", "generador-ticket.js"));
 
-function createOrden(orden, callback) {
-    const db = openDataBase();
-    const query = `
-        INSERT INTO orden_produccion
-            (id_venta, id_origen, id_fase, fecha_entrega, categoria, size, cantidad_inicial, cantidad_buenos, cantidad_rotos, cantidad_deformes) 
-        VALUES (?, ?, 1, ?, ?, ?, ?, 0, 0, 0);
-    `;
+window.addEventListener('DOMContentLoaded', initVentas);
 
-    db.run(query, 
-        [
-            orden.id_ventaO,
-            orden.id_origenO,
-            orden.fecha_entregaO,
-            orden.categoriaO, 
-            orden.sizeO, 
-            orden.cantidad_inicialO
-        ], 
-        function (err) {
-            if (err) {
-                closeDatabase(db);
-                callback(err, null);
-                return;
-            }
-
-            setTimeout(() => {
-                const newOrden = {
-                    id_venta: orden.id_ventaO,
-                    id_origen: orden.id_origenO,
-                    fecha_entreg: orden.fecha_entregaO,
-                    categoria: orden.categoriaO, 
-                    size: orden.sizeO, 
-                    cantidad_inicial: orden.cantidad_inicialO,
-                    cantidad_buenos: 0,
-                    cantidad_rotos: 0,
-                    cantidad_deformes: 0,
-                };
-                closeDatabase(db);
-                callback(null, newOrden);
-            }, 500);
-        }
-    );
-}
-
-function readOrdenbyFASE(orden, callback) {
-    const db = openDataBase();
-    const query = `
-        SELECT 
-            op.id_orden, op.id_venta, oo.nombre AS origen, f.name_fase AS fase_actual, op.fecha_entrega,
-            op.categoria, op.size, op.cantidad_inicial, op.cantidad_buenos, op.cantidad_rotos, op.cantidad_deformes
-        FROM orden_produccion op
-        INNER JOIN origen_orden oo
-        ON op.id_origen = oo.id_origen
-        INNER JOIN fase f
-        ON f.id_fase = op.id_fase
-        WHERE op.id_fase = ?
-    `;
+async function initVentas() {
     try {
-        db.all(query, 
-            [
-                orden.faseO
-            ], 
-        (err, rows) => {
-            if (err) {
-                callback(err, null);
-                return;
-            }
-            callback(null, rows);
-        });
-    } catch (err) {
-        callback(err, null);
-    } finally {
-        closeDatabase(db);
+        const ventas = await readVentas();
+        window.ventas = ventas;
+        fillTableVentas(ventas);
+        console.log('📦 Se cargaron ventas.');
+    } catch (error) {
+        console.error('❌ Error al cargar ventas:', error.message);
+        showToast('Error al cargar ventas', ICONOS.error);
     }
 }
 
-module.exports = { createOrden, readOrdenbyFASE }
+window.addEventListener('DOMContentLoaded', initVentas);
+
+function formatDate(dateStr) {
+    if (!dateStr) return 'N/A';
+    let date;
+  
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        date = new Date(dateStr + 'T00:00:00');
+    } else {
+        date = new Date(dateStr);
+        if (isNaN(date)) return 'Fecha inválida';
+    }
+  
+    const day = String(date.getDate()).padStart(2, '0');
+    const monthNames = [
+        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+  
+    return `${day}-${month}-${year}`;
+}
+  
+
+function fillTableVentas(sales) {
+    const tableBody = document.querySelector('#table-ventas tbody');
+    tableBody.innerHTML = '';
+
+    const fragment = document.createDocumentFragment();
+
+    sales.forEach(sale => {
+        const fechaEntrega = formatDate(sale.fecha_entrega);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td>${sale.id_venta || 'N/A'}</td>
+        <td>${sale.fecha_venta || 'N/A'}</td>
+        <td>${sale.monto || 'N/A'}</td>
+        <td>${fechaEntrega || 'N/A'}</td>
+        <td>
+            <select onchange="estadoVenta(${sale.id_venta}, this.value)">
+                <option value="0" ${!sale.entregada ? 'selected' : ''}>Por entregar</option>
+                <option value="1" ${sale.entregada ? 'selected' : ''}>Entregada</option>
+            </select>
+        </td>
+        <td class="col-btn">
+            <button type="button" onclick="imprimirVenta(${sale.id_venta})">🖨️ Imprimir</button>
+        </td>
+        `;
+        fragment.appendChild(row);
+    });
+
+    tableBody.appendChild(fragment);
+}
+
+async function imprimirVenta(id) {
+    console.log('Imprimiendo venta', id);
+    try {
+        const detalles_venta = await new Promise((res, rej) =>
+            readVentasDetalle({ id_ventaVD: id }, (err, data) => err ? rej(err) : res(data))
+        );
+        
+        await generarRecibos({ venta_datos: detalles_venta });
+
+        const fileName = `CerArtep_Nota-${id}.pdf`;
+        const savePath = path.join(os.homedir(), 'Downloads', fileName);
+
+        showToast(`Recibo guardado en: ${savePath}`, ICONOS.exito);
+    } catch (error) {
+        showToast("Hubo un error al generar el recibo.", ICONOS.error);
+        console.error("Error al generar recibo:", error);
+    }
+}
+
+/*function editarVenta(id) {
+    console.log('Editando venta', id);
+}
+
+function eliminarVenta(id) {
+    if (!confirm('¿Seguro que quieres eliminar la venta #' + id + '?')) return;
+}*/
+
+async function estadoVenta(id, estado) {
+    try {
+        /*actualizar inventario Productos, eliminar de stock apartados */
+        showToast("Estado de entrega actualizado correctamente.", ICONOS.exito);
+    } catch (error) {
+        console.error("Error al actualizar estado de entrega:", error);
+        showToast("No se pudo actualizar el estado.", ICONOS.error);
+    }
+}
