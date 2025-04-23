@@ -120,15 +120,9 @@
             <div id="actions-total">
                 <div class="info-actions" id="info-actions">
                     <div id="actions1">
-                        <button onclick="openModal('addProductModal'); revisarAlmacen()">
+                        <button onclick="openModal('addProductModal')">
                             <img src="../img/pos-actions/add.png" alt="">Agregar Producto
                         </button>
-                        <!--button id="deleteProductBtn" disabled onclick="deleteProduct()">
-                            <img src="../img/pos-actions/minus.png" alt="">Borrar Producto
-                        </button>
-                        <button id="editProductBtn" disabled onclick="openModal('editProductModal')">
-                            <img src="../img/pos-actions/edit.png" alt="">Editar Producto
-                        </button-->
                     </div>
                     <div id="actions2">
                         <button onclick="cancelarVenta()" type="submit">
@@ -150,17 +144,6 @@
                                 <span class="tooltiptext">Monto total de los productos.</span>
                             </div>
                         </div>
-                        <div class="total-field" style="display: none;">
-                            <label for="porcentaje-descuento">
-                                <input type="number" min="0" max="100" id="porcentaje-descuento" value="0">% descuento: 
-                            </label>
-                            <div class="pay-form-data tooltip">
-                                <label for="descuento">$
-                                    <input type="number" id="descuento" readonly value="0.00">
-                                </label>
-                                <span class="tooltiptext">Descuento aplicado a la compra.</span>
-                            </div>
-                        </div>
                         <div class="total-field">
                             <label for="pago">Pago: </label>
                             <div class="pay-form-data tooltip">
@@ -168,15 +151,6 @@
                                     <input type="number" id="pago">
                                 </label>
                                 <span class="tooltiptext">Cantidad de dinero entregada por el cliente.</span>
-                            </div>
-                        </div>
-                        <div class="total-field" style="display: none;">
-                            <label for="total">TOTAL: </label>
-                            <div class="pay-form-data tooltip">
-                                <label>$
-                                    <input type="number" id="total" readonly value="0.00">
-                                </label>
-                                <span class="tooltiptext">Monto total a pagar después de aplicar descuentos.</span>
                             </div>
                         </div>
                         <div class="total-field">
