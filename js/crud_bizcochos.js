@@ -3,15 +3,17 @@ const dbJS = path.join(__dirname,'..', 'js', 'connection.js');
 const { openDataBase, closeDatabase } = require(dbJS);
 
 function createBizcocho(bizcocho) {
+    console.log(bizcocho);
     return new Promise((resolve, reject) => {
         const db = openDataBase();
         const query = `
             INSERT INTO inventario_bizcochos
-                (biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
-            VALUES (?, ?, 0, ?, ?, ?, 0, 0, 0);
+                (id_biz, biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
+            VALUES (?, ?, ?, 0, ?, ?, ?, 0, 0, 0);
         `;
 
         const params = [
+            bizcocho.id_biz,
             bizcocho.biz_category,
             bizcocho.biz_size,
             bizcocho.stock_apartado,
@@ -30,7 +32,7 @@ function createBizcocho(bizcocho) {
                 }
 
                 const newBizcocho = {
-                    id: this.lastID,
+                    id: bizcocho.id_biz,
                     biz_category: bizcocho.biz_category,
                     biz_size: bizcocho.biz_size,
                     stock_apartado: bizcocho.stock_apartado || 0,
@@ -171,7 +173,7 @@ function deleteBizcocho(id_biz){
             } catch (err) {
                 reject(err);
             } finally {
-                closeDatabase();
+                closeDatabase(db);
             }
         });
     });
