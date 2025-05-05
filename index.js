@@ -13,7 +13,7 @@ function createWindow() {
     });
 
     const indexPath = path.join(__dirname, 'html', 'index.html');
-    console.log("Index Path: ", indexPath); //si entra porque hasta arriba muestra el nombre de la pagina que es Punto de Venta
+    console.log("Index Path: ", indexPath);
     win.loadFile(indexPath);
 }
 

@@ -131,6 +131,9 @@ dist
 
 # Ignorar la carpeta dist
 /dist/
+/artep-pos-win32-x64/
+/release/
 
-# Ignorar archivos .zip
+# Ignorar archivos .zip y .rar
 *.zip
+*.rar

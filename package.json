@@ -8,9 +8,11 @@
   "type": "commonjs",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder"
+    "rebuild": "electron-rebuild -f -w better-sqlite3 sqlite3",
+    "package": "npm run rebuild && electron-packager . ArtepPOS --platform=win32 --arch=x64 --out=release --overwrite --prune=true"
   },
   "dependencies": {
+    "better-sqlite3": "^11.9.1",
     "jspdf": "^3.0.0",
     "jspdf-autotable": "^5.0.2",
     "sqlite3": "^5.1.7"
