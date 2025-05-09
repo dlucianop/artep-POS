@@ -280,12 +280,18 @@ function cancelarVenta() {
     });
 }
 
-async function validacionesVenta() {
+async function validaciones() {
     let idVenta = parseInt(document.getElementById('id-sale').value.trim(), 10);
     let metodo_pago = document.getElementById('payment-method').value.trim();
     let forma_pago = document.getElementById('payment-form').value.trim();
     let pago = parseFloat(document.getElementById("pago").value);
     let fechaEntrega = document.getElementById('sale-entrega').value.trim();
+    const emptyRow = document.getElementById("rowvoid");
+    
+    if (emptyRow) {
+        showToast("No hay productos en el carrito.", ICONOS.advertencia);
+        return Promise.reject(new Error("Falta poner el número de venta."));
+    }
 
     if (isNaN(idVenta) || idVenta <= 0) {
         showToast("Falta poner el número de venta.", ICONOS.advertencia);
@@ -320,119 +326,130 @@ async function validacionesVenta() {
     return Promise.resolve();
 }
 
-async function imprimirRecibo() {
-    const emptyRow = document.getElementById("rowvoid");
-    if (emptyRow) {
-        showToast("No hay productos en el carrito.", ICONOS.advertencia);
-        return;
+async function ventasActions() {
+    const ventaId = document.getElementById("id-sale").value;
+    const venta = {
+        id_venta: ventaId,
+        fecha_venta: document.getElementById("sale-date").value,
+        hora: document.getElementById("sale-hour").value,
+        nombre: document.getElementById("client-name").value,
+        telefono: document.getElementById("client-phone").value,
+        correo: document.getElementById("client-mail").value,
+        domicilio: document.getElementById("client-address").value,
+        fecha_entrega: document.getElementById("sale-entrega").value,
+        metodo_pago: document.getElementById("payment-method").value,
+        forma_pago: document.getElementById("payment-form").value,
+        monto: parseFloat(document.getElementById("monto").value),
+        pago: parseFloat(document.getElementById("pago").value)
+    };
+
+    await createVenta(venta);
+    return { ventaId, fecha_entrega: venta.fecha_entrega };
+}
+
+async function productosActions(item, pedido, producto) {
+    let faltante = pedido;
+
+    if (producto) {
+        if (producto.stock_disponible >= pedido) {
+            producto.stock_apartado += pedido;
+            producto.stock_disponible -= pedido;
+            faltante = 0;
+        } else {
+            producto.stock_apartado += producto.stock_disponible;
+            faltante -= producto.stock_disponible;
+            producto.stock_en_proceso += faltante;
+            producto.stock_disponible = 0;
+        }
+        await updateProducto(producto);
+    } else {
+        await createProducto({
+            code: item.codigo,
+            category: item.categoria,
+            model: item.modelo,
+            size: item.size,
+            decoration: item.decoracion,
+            color: item.color,
+            price: item.precio,
+            stock_apartado: 0,
+            stock_disponible: 0,
+            stock_en_proceso: faltante
+        });
     }
 
+    return faltante;
+}
+
+async function bizcosActions(item, faltante, bizcocho, ventaId, fechaEntrega) {
+    let faltanteBizcocho = faltante;
+
+    if (faltanteBizcocho > 0) {
+        if (bizcocho) {
+            if (bizcocho.stock_disponible >= faltanteBizcocho) {
+                bizcocho.stock_apartado += faltanteBizcocho;
+                bizcocho.stock_disponible -= faltanteBizcocho;
+                faltanteBizcocho = 0;
+            } else {
+                bizcocho.stock_apartado += bizcocho.stock_disponible;
+                faltanteBizcocho -= bizcocho.stock_disponible;
+                bizcocho.stock_en_proceso += faltanteBizcocho;
+                bizcocho.stock_disponible = 0;
+            }
+            await updateBizcocho(bizcocho);
+        } else {
+            await createBizcocho({
+                biz_category: item.categoria,
+                biz_size: item.size,
+                stock_apartado: 0,
+                stock_disponible: 0,
+                stock_en_proceso: faltanteBizcocho
+            });
+        }
+
+        if (faltanteBizcocho > 0) {
+            await createOrden({
+                id_venta: ventaId,
+                id_origen: 1,
+                fecha_entrega: fechaEntrega,
+                categoria: item.categoria,
+                size: item.size,
+                cantidad_inicial: faltanteBizcocho
+            });
+        }
+    }
+}
+
+async function detallesActions(item, ventaId) {
+    await createDetalle({
+        id_venta: ventaId,
+        code: item.codigo,
+        price: item.precio,
+        quantity: item.pedido,
+        importe: item.precio * item.pedido
+    });
+}
+
+async function imprimirRecibo() {
     try {
-        await validacionesVenta();
+        await validaciones();
 
-        const ventaId = document.getElementById("id-sale").value;
-        const venta = {
-            id_venta: ventaId,
-            fecha_venta: document.getElementById("sale-date").value,
-            hora: document.getElementById("sale-hour").value,
-            nombre: document.getElementById("client-name").value,
-            telefono: document.getElementById("client-phone").value,
-            correo: document.getElementById("client-mail").value,
-            domicilio: document.getElementById("client-address").value,
-            fecha_entrega: document.getElementById("sale-entrega").value,
-            metodo_pago: document.getElementById("payment-method").value,
-            forma_pago: document.getElementById("payment-form").value,
-            monto: parseFloat(document.getElementById("monto").value),
-            pago: parseFloat(document.getElementById("pago").value)
-        };
-
-        await createVenta(venta);
+        const { ventaId, fecha_entrega } = await ventasActions();
 
         for (const item of window.carrito) {
+            const pedido = item.pedido;
             const producto = window.productos.find(p => p.code === item.codigo);
             const bizcocho = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
 
-            const pedido = item.pedido;
-            let faltanteProducto = pedido;
-
-            // PRODUCTO
-            if (producto) {
-                if (producto.stock_disponible >= pedido) {
-                    producto.stock_apartado += pedido;
-                    producto.stock_disponible -= pedido;
-                    faltanteProducto = 0;
-                } else {
-                    producto.stock_apartado += producto.stock_disponible;
-                    faltanteProducto -= producto.stock_disponible;
-                    producto.stock_en_proceso += faltanteProducto;
-                    producto.stock_disponible = 0;
-                }
-                await updateProducto(producto);
-            } else {
-                await createProducto({
-                    code: item.codigo,
-                    category: item.categoria,
-                    model: item.modelo,
-                    size: item.size,
-                    decoration: item.decoracion,
-                    color: item.color,
-                    price: item.precio,
-                    stock_apartado: 0,
-                    stock_disponible: 0,
-                    stock_en_proceso: faltanteProducto
-                });
-            }
-
-            // BIZCOCHO
-            let faltanteBizcocho = faltanteProducto;
-            if (faltanteProducto > 0) {
-                if (bizcocho) {
-                    if (bizcocho.stock_disponible >= faltanteBizcocho) {
-                        bizcocho.stock_apartado += faltanteBizcocho;
-                        bizcocho.stock_disponible -= faltanteBizcocho;
-                        faltanteBizcocho = 0;
-                    } else {
-                        bizcocho.stock_apartado += bizcocho.stock_disponible;
-                        faltanteBizcocho -= bizcocho.stock_disponible;
-                        bizcocho.stock_en_proceso += faltanteBizcocho;
-                        bizcocho.stock_disponible = 0;
-                    }
-                    await updateBizcocho(bizcocho);
-                } else {
-                    await createBizcocho({
-                        biz_category: item.categoria,
-                        biz_size: item.size,
-                        stock_apartado: 0,
-                        stock_disponible: 0,
-                        stock_en_proceso: faltanteBizcocho
-                    });
-                }
-
-                if (faltanteBizcocho > 0) {
-                    await createOrden({
-                        id_venta: ventaId,
-                        id_origen: 1,
-                        fecha_entrega: venta.fecha_entrega,
-                        categoria: item.categoria,
-                        size: item.size,
-                        cantidad_inicial: faltanteBizcocho
-                    });
-                }
-            }
-
-            await createDetalle({
-                id_venta: ventaId,
-                code: item.codigo,
-                price: item.precio,
-                quantity: pedido,
-                importe: item.precio * pedido
-            });
+            const faltante = await productosActions(item, pedido, producto);
+            await bizcosActions(item, faltante, bizcocho, ventaId, fecha_entrega);
+            await detallesActions(item, ventaId);
         }
 
         const detalles_venta = await readDetalles(ventaId);
         await generarRecibos({ venta_datos: detalles_venta });
         showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
         setTimeout(() => window.location.reload(), 2000);
+        
     } catch (error) {
         console.error("❌ Error al imprimir recibo:", error?.message || error);
         showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
