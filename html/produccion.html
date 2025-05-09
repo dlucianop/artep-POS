@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerámica Artep | Panel de Producción</title>
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/produccion.css">
 </head>
 <body>
     <div id="nav-menu">
@@ -23,15 +24,55 @@
         <a href="ventas.html" class="menu-btn">Historial de Ventas
             <img src="../img/nav-icons/history.png" alt="">
         </a>
-        <!--a href="dashboard.html" class="menu-btn">Dashboard
-            <img src="../img/nav-icons/dashboard.png" alt="">
-        </a>
-        <a href="configuracion.html" class="menu-btn">Configuración
-            <img src="../img/nav-icons/settings.png" alt="">
-        </a-->
     </div>
-    <div id="content-section">
+    <div id="content-section-s">
+
+        <div class="kanban-container">
+            <!--div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 1</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 2</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 3</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 4</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 5</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 6</h3>
+                <div class="kanban-cards"></div>
+            </div>
+            <div class="kanban-column" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>Columna 7</h3>
+                <div class="kanban-cards"></div>
+            </div-->
+        </div>
+        
+        <dialog id="detail-dialog">
+            <h3>Detalles de Orden</h3>
+            <p><strong>ID:</strong> #001</p>
+            <!--p><strong>Origen:</strong>Inventario o Venta</p>
+            <p><strong>Teléfono:</strong> 555-123-4567</p>
+            <p><strong>Correo:</strong> ana@example.com</p>
+            <p><strong>Domicilio:</strong> Calle Falsa 123</p>
+            <p><strong>Fecha de entrega:</strong> 2025-05-15</p>
+            <p><strong>Piezas:</strong> 3</p>
+            <p><strong>Modelo:</strong> Flor Azul</p-->
+            <button onclick="document.getElementById('detail-dialog').close()">Cerrar</button>
+        </dialog>
+
     </div>
     <script src="../js/window-lock.js"></script>
+    <script src="../js/kanban.js"></script>
 </body>
 </html>
