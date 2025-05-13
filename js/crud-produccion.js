@@ -78,4 +78,7 @@ function readOrdenByFase(fase_id) {
     });
 }
 
-module.exports = { createOrden, readOrdenByFase };
+module.exports = { 
+    createOrden, 
+    readOrdenByFase 
+}

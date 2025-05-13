@@ -41,6 +41,16 @@
     padding: 8px;
     cursor: grab;
     border-radius: 5px;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.kanban-card > article ul{
+    list-style: none;
 }
   
 .kanban-card:hover {

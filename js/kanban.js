@@ -4,6 +4,11 @@ const {
     updateFase
 } = require(join(__dirname, '..', 'js', 'crud-config.js'));
 
+const {
+    createOrden, 
+    readOrdenByFase 
+} = require(join(__dirname, '..', 'js', 'crud-produccion.js'));
+
 const { 
     showToast, 
     showConfirmToast, 
@@ -16,6 +21,7 @@ async function initProduccion() {
     try {
         const fases = await readFases();
         window.fases = fases;
+        window.today = new Date();
         fillEncabezados(fases);
         console.log('Se cargaron encabezados de fases correctamente.');
     } catch (error) {
@@ -41,12 +47,54 @@ function fillEncabezados(fases) {
         cardsContainer.classList.add('kanban-cards');
         cardsContainer.dataset.faseId = fase.id_fase;
     
+        fillColumna(cardsContainer, fase.id_fase);
+    
         column.appendChild(header);
         column.appendChild(cardsContainer);
         container.appendChild(column);
     });
+  
+    //console.log('Se generaron ' + fases.length + ' columnas de fases.');
+}
+  
+async function fillColumna(cardsContainer, fase_id) {
+    try {
+        const ordenes = await readOrdenByFase(fase_id);
+    
+        ordenes.forEach(orden => {
+            const card = document.createElement('div');
+            card.classList.add('kanban-card');
+            card.setAttribute('draggable', 'true');
+            card.setAttribute('ondragstart', 'drag(event)');
+            card.id = `card-${orden.id_orden}`;
+            card.addEventListener('click', () => showDetails(orden.id_orden));
+            
+            const entrega = new Date(orden.fecha_entrega);
+            const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
 
-    console.log('Se generaron ' + fases.length + ' columnas de fases.');
+            card.innerHTML = `
+            <article role="button" tabindex="0">
+                <header>
+                    <h3>${orden.origen}</h3>
+                    <h2>#${orden.id_venta}</h2>
+                </header>
+                <ul>
+                    <li>${orden.categoria} ${orden.size}</li>
+                    <li>${orden.cantidad_buenos} / <strong>${orden.cantidad_inicial} </strong></li>
+                    <li>${diffDias} días restantes</li>
+                </ul>
+            </article>
+            `;
+
+            cardsContainer.appendChild(card);
+    
+        });
+        //console.log(`Cargadas ${ordenes.length} ordenes en fase ${fase_id}`);
+
+    } catch (error) {
+      console.error(`❌ Error al cargar órdenes de fase ${fase_id}:`, error);
+      showToast('Error al cargar ordenes', ICONOS.error);
+    }
 }
 
 function allowDrop(ev) {
