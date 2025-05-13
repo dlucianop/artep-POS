@@ -22,6 +22,11 @@ async function initProduccion() {
         const fases = await readFases();
         window.fases = fases;
         window.today = new Date();
+        window.meses = [
+            'Enero', 'Febrero', 'Marzo', 'Abril',
+            'Mayo', 'Junio', 'Julio', 'Agosto',
+            'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+        ];
         fillEncabezados(fases);
         console.log('Se cargaron encabezados de fases correctamente.');
     } catch (error) {
@@ -125,16 +130,18 @@ function fillDetails(orden) {
 
     const entrega = new Date(orden.fecha_entrega);
     const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
+    const [year, month, day] = orden.fecha_entrega.split('-');
+    const formattedDate = `${day}-${meses[Number(month) - 1]}-${year}`;
 
     const html = `
         <p><strong>Tipo Orden:</strong> ${orden.origen}</p>
         <p><strong>No. de venta:</strong> ${orden.id_venta}</p>
-        <p><strong>Producto:</strong> ${orden.categoria} — ${orden.size}</p>
+        <p><strong>Producto:</strong> ${orden.categoria} TAM.${orden.size}</p>
         <p><strong>Cantidad inicial:</strong> ${orden.cantidad_inicial}</p>
         <p><strong>Cantidad buenos:</strong> ${orden.cantidad_buenos}</p>
         <p><strong>Cantidad rotos:</strong> ${orden.cantidad_rotos}</p>
         <p><strong>Cantidad deformes:</strong> ${orden.cantidad_deformes}</p>
-        <p><strong>Fecha de entrega:</strong> ${orden.fecha_entrega} (${diffDias} días restantes)</p>
+        <p><strong>Fecha de entrega:</strong> ${formattedDate} (${diffDias} días restantes)</p>
     `;
 
     document.getElementById('detail-content').innerHTML = html;
