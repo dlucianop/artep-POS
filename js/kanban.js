@@ -56,7 +56,7 @@ function fillEncabezados(fases) {
   
     //console.log('Se generaron ' + fases.length + ' columnas de fases.');
 }
-  
+
 async function fillColumna(cardsContainer, fase_id) {
     try {
         const ordenes = await readOrdenByFase(fase_id);
@@ -67,11 +67,13 @@ async function fillColumna(cardsContainer, fase_id) {
             card.setAttribute('draggable', 'true');
             card.setAttribute('ondragstart', 'drag(event)');
             card.id = `card-${orden.id_orden}`;
-            card.addEventListener('click', () => showDetails(orden.id_orden));
-            
+    
+            card._ordenData = orden;
+            card.addEventListener('click', () => showDetails(card));
+    
             const entrega = new Date(orden.fecha_entrega);
             const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
-
+    
             card.innerHTML = `
             <article role="button" tabindex="0">
                 <header>
@@ -80,20 +82,16 @@ async function fillColumna(cardsContainer, fase_id) {
                 </header>
                 <ul>
                     <li>${orden.categoria} ${orden.size}</li>
-                    <li>${orden.cantidad_buenos} / <strong>${orden.cantidad_inicial} </strong></li>
+                    <li>${orden.cantidad_buenos} / <strong>${orden.cantidad_inicial}</strong></li>
                     <li>${diffDias} días restantes</li>
                 </ul>
             </article>
             `;
-
             cardsContainer.appendChild(card);
-    
         });
-        //console.log(`Cargadas ${ordenes.length} ordenes en fase ${fase_id}`);
-
     } catch (error) {
-      console.error(`❌ Error al cargar órdenes de fase ${fase_id}:`, error);
-      showToast('Error al cargar ordenes', ICONOS.error);
+        console.error(`❌ Error al cargar órdenes de fase ${fase_id}:`, error);
+        showToast('Error al cargar ordenes', ICONOS.error);
     }
 }
 
@@ -116,7 +114,33 @@ function drop(ev) {
     }
 }
 
-function showDetails(cardId) {
-    const dialog = document.getElementById("detail-dialog");
-    dialog.showModal();
+function showDetails(cardElem) {
+    document.getElementById('detail-content').innerHTML = '';
+    fillDetails(cardElem._ordenData);
+    document.getElementById("detail-dialog").showModal();
 }
+
+function fillDetails(orden) {
+    if (!orden) return console.error('Orden no encontrada en el elemento');
+
+    const entrega = new Date(orden.fecha_entrega);
+    const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
+
+    const html = `
+        <p><strong>Tipo Orden:</strong> ${orden.origen}</p>
+        <p><strong>No. de venta:</strong> ${orden.id_venta}</p>
+        <p><strong>Producto:</strong> ${orden.categoria} — ${orden.size}</p>
+        <p><strong>Cantidad inicial:</strong> ${orden.cantidad_inicial}</p>
+        <p><strong>Cantidad buenos:</strong> ${orden.cantidad_buenos}</p>
+        <p><strong>Cantidad rotos:</strong> ${orden.cantidad_rotos}</p>
+        <p><strong>Cantidad deformes:</strong> ${orden.cantidad_deformes}</p>
+        <p><strong>Fecha de entrega:</strong> ${orden.fecha_entrega} (${diffDias} días restantes)</p>
+    `;
+
+    document.getElementById('detail-content').innerHTML = html;
+}
+  
+document.getElementById('close-detail')
+    .addEventListener('click', () => {
+      document.getElementById('detail-dialog').close();
+});

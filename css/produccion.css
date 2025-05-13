@@ -5,19 +5,19 @@
     background-color: white;
     animation: fade-content ease 1.5s forwards;
     align-items: center;
-    width: 100%;
+    width: 95%;
 }
 
 .kanban-container {
     display: flex;
     flex-grow: 1;
     background: #f0f0f0;
-    width: 80%;
+    width: 85%;
 }
   
 .kanban-column {
     flex: 0 0 14.28%;
-    border-right: 1px solid #ccc;
+    border-right: 2px solid white;
     padding: 10px;
     background-color: #e2b492;
     height: 100vh;
