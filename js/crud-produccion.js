@@ -54,7 +54,7 @@ function readOrdenByFase(fase_id) {
 
         const query = `
             SELECT 
-                op.id_orden, op.id_venta, oo.nombre AS origen, f.name_fase AS fase_actual, op.fecha_entrega,
+                op.id_orden, op.id_venta, oo.nombre AS origen, op.id_fase, f.name_fase AS fase_actual, op.fecha_entrega,
                 op.categoria, op.size, op.cantidad_inicial, op.cantidad_buenos, op.cantidad_rotos, op.cantidad_deformes
             FROM orden_produccion op
             INNER JOIN origen_orden oo ON op.id_origen = oo.id_origen

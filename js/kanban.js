@@ -116,7 +116,7 @@ async function drop(ev) {
     
     //console.log(`Columna destino: ${targetFaseName}`);
     
-    const targetFaseId = targetColumn.querySelector('.kanban-cards').dataset.faseId;
+    const targetFaseId = parseInt(targetColumn.querySelector('.kanban-cards').dataset.faseId);
     
     const cardId = ev.dataTransfer.getData("text");
     const cardElem = document.getElementById(cardId);
@@ -127,18 +127,26 @@ async function drop(ev) {
     cardsContainer.appendChild(cardElem);
 
     const ordenData = cardElem._ordenData;
-    const oldFaseId = ordenData.fase_actual;
+    const oldFaseId = parseInt(ordenData.id_fase);
+
+    console.log(oldFaseId," > ", targetFaseId);
 
     if (targetFaseId !== oldFaseId) {
         try {
-            ordenData.fase_actual = targetFaseId;
-            let noOrden = `No. de Orden: ${ordenData.id_orden}`;
-            let fromto = `${oldFaseId} > ${targetFaseName}`;
+            const noOrden = `No. de Orden: ${ordenData.id_orden}`;
+            const simbolo = oldFaseId < targetFaseId ? '>' : '<';
+            const fromto = oldFaseId < targetFaseId ? `${ordenData.fase_actual} ${simbolo} ${targetFaseName}` : `${targetFaseName} ${simbolo} ${ordenData.fase_actual}`;
+    
+            ordenData.fase_actual = targetFaseName;
+            ordenData.id_fase = targetFaseId;
+    
             showEdit(cardElem, noOrden, fromto);
         } catch (error) {
             console.error('❌ Error al actualizar fase en base de datos:', error.message);
             showToast('Error al mover la orden', ICONOS.error);
         }
+    } else {
+        showToast('No se puede mover la tarjeta en la misma columna', ICONOS.error);
     }
 }
 
