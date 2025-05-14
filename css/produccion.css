@@ -61,7 +61,8 @@
     background: rgba(0, 0, 0, 0.5);
 }
 
-#detail-dialog {
+#detail-dialog, 
+#edit-dialog {
     border: none;
     padding: 0;
     border-radius: 8px;
@@ -80,9 +81,9 @@
     padding: 1.5rem;
     border-radius: 8px;
 }
-  
-  
-.dialog-content h3 {
+
+.dialog-content h3,
+.dialog-content h6 {
     margin: 0;
     font-size: 1.25rem;
     text-align: center;
@@ -91,7 +92,8 @@
     color: #390101;
 }
   
-#detail-content {
+#detail-content, 
+#edit-content {
     max-height: 60vh;
     overflow-y: auto;
     display: flex;
@@ -99,13 +101,14 @@
     gap: 0.5rem;
 }
   
-#detail-content p {
+#detail-content p, #edit-content p {
     margin: 0;
     font-size: 1rem;
     line-height: 1.4;
 }
   
-#detail-content p strong {
+#detail-content p strong,
+#edit-content p strong {
     color: #954e38;
 }
   
@@ -115,7 +118,8 @@
     margin-top: 1rem;
 }
   
-#close-detail {
+#close-detail,
+#close-edit {
     background-color: #954e38;
     color: white;
     border: none;
@@ -126,6 +130,7 @@
     transition: background-color 0.2s ease-in-out;
 }
   
-#close-detail:hover {
+#close-detail:hover,
+#close-edit:hover {
     background: #390101;
 }

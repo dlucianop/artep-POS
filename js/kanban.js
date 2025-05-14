@@ -58,8 +58,6 @@ function fillEncabezados(fases) {
         column.appendChild(cardsContainer);
         container.appendChild(column);
     });
-  
-    //console.log('Se generaron ' + fases.length + ' columnas de fases.');
 }
 
 async function fillColumna(cardsContainer, fase_id) {
@@ -108,15 +106,48 @@ function drag(ev) {
     ev.dataTransfer.setData("text", ev.target.id);
 }
 
-function drop(ev) {
+async function drop(ev) {
     ev.preventDefault();
-    const data = ev.dataTransfer.getData("text");
-    const card = document.getElementById(data);
-    const dropTarget = ev.target.closest(".kanban-cards");
+    const targetColumn = ev.target.closest('.kanban-column');
     
-    if (dropTarget) {
-        dropTarget.appendChild(card);
+    if (!targetColumn) return;
+    
+    const targetFaseName = targetColumn.querySelector('h3').textContent;
+    
+    //console.log(`Columna destino: ${targetFaseName}`);
+    
+    const targetFaseId = targetColumn.querySelector('.kanban-cards').dataset.faseId;
+    
+    const cardId = ev.dataTransfer.getData("text");
+    const cardElem = document.getElementById(cardId);
+    
+    if (!cardElem) return;
+    
+    const cardsContainer = targetColumn.querySelector('.kanban-cards');
+    cardsContainer.appendChild(cardElem);
+
+    const ordenData = cardElem._ordenData;
+    const oldFaseId = ordenData.fase_actual;
+
+    if (targetFaseId !== oldFaseId) {
+        try {
+            ordenData.fase_actual = targetFaseId;
+            let noOrden = `No. de Orden: ${ordenData.id_orden}`;
+            let fromto = `${oldFaseId} > ${targetFaseName}`;
+            showEdit(cardElem, noOrden, fromto);
+        } catch (error) {
+            console.error('❌ Error al actualizar fase en base de datos:', error.message);
+            showToast('Error al mover la orden', ICONOS.error);
+        }
     }
+}
+
+
+function showEdit(cardElem, noOrden, fromto) {
+    window.cardEditando = cardElem;
+    document.getElementById('edit-content').innerHTML = '';
+    fillData(cardElem._ordenData, noOrden, fromto);
+    document.getElementById("edit-dialog").showModal();
 }
 
 function showDetails(cardElem) {
@@ -146,8 +177,24 @@ function fillDetails(orden) {
 
     document.getElementById('detail-content').innerHTML = html;
 }
+
+function fillData(orden, noOrden, fromto) {
+    if (!orden) return console.error('Orden no encontrada en el elemento');
+
+    document.getElementById("noOrdenH").textContent = noOrden;
+    document.getElementById("fases").textContent = fromto;
+    const html = ``;
+    document.getElementById('edit-content').innerHTML = html;
+}
   
-document.getElementById('close-detail')
-    .addEventListener('click', () => {
-      document.getElementById('detail-dialog').close();
+document.getElementById('close-detail').addEventListener('click', () => {
+        document.getElementById('detail-dialog').close();
+});
+
+/*document.getElementById('cancel-edit').addEventListener('click', () => {
+        document.getElementById('edit-dialog').close();
+});*/
+
+document.getElementById('update-edit').addEventListener('click', () => {
+    document.getElementById('edit-dialog').close();
 });
