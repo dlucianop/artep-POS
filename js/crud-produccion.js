@@ -1,4 +1,4 @@
-const { join } = require('path');
+const { join, resolve } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'connection.js'));
 
 function createOrden(orden) {
@@ -48,6 +48,47 @@ function createOrden(orden) {
     });
 }
 
+function updateOrden(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                id_fase = ?,
+                cantidad_buenos = ?,
+                cantidad_rotos = ?,
+                cantidad_deformes = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.id_fase,
+            orden.cantidad_buenos,
+            orden.cantidad_rotos,
+            orden.cantidad_deformes,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function readOrdenByFase(fase_id) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -80,5 +121,6 @@ function readOrdenByFase(fase_id) {
 
 module.exports = { 
     createOrden, 
+    updateOrden,
     readOrdenByFase 
 }

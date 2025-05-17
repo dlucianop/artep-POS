@@ -119,7 +119,8 @@
 }
   
 #close-detail,
-#update-edit {
+#update-edit,
+#cancel-edit {
     background-color: #954e38;
     color: white;
     border: none;
@@ -131,6 +132,7 @@
 }
   
 #close-detail:hover,
-#update-edit:hover {
+#update-edit:hover
+#cancel-edit:hover {
     background: #390101;
 }

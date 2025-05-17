@@ -137,3 +137,6 @@ dist
 # Ignorar archivos .zip y .rar
 *.zip
 *.rar
+
+# archivos de prueba y error
+tests.js

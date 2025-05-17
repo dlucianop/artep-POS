@@ -6,6 +6,7 @@ const {
 
 const {
     createOrden, 
+    updateOrden,
     readOrdenByFase 
 } = require(join(__dirname, '..', 'js', 'crud-produccion.js'));
 
@@ -38,22 +39,22 @@ async function initProduccion() {
 function fillEncabezados(fases) {
     const container = document.querySelector('.kanban-container');
     container.innerHTML = '';
-  
+
     fases.forEach(fase => {
         const column = document.createElement('div');
         column.classList.add('kanban-column');
         column.setAttribute('ondrop', 'drop(event)');
         column.setAttribute('ondragover', 'allowDrop(event)');
-    
+
         const header = document.createElement('h3');
         header.textContent = fase.name_fase;
-    
+
         const cardsContainer = document.createElement('div');
         cardsContainer.classList.add('kanban-cards');
         cardsContainer.dataset.faseId = fase.id_fase;
-    
+
         fillColumna(cardsContainer, fase.id_fase);
-    
+
         column.appendChild(header);
         column.appendChild(cardsContainer);
         container.appendChild(column);
@@ -63,20 +64,20 @@ function fillEncabezados(fases) {
 async function fillColumna(cardsContainer, fase_id) {
     try {
         const ordenes = await readOrdenByFase(fase_id);
-    
+
         ordenes.forEach(orden => {
             const card = document.createElement('div');
             card.classList.add('kanban-card');
             card.setAttribute('draggable', 'true');
             card.setAttribute('ondragstart', 'drag(event)');
             card.id = `card-${orden.id_orden}`;
-    
+
             card._ordenData = orden;
             card.addEventListener('click', () => showDetails(card));
-    
+
             const entrega = new Date(orden.fecha_entrega);
             const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
-    
+
             card.innerHTML = `
             <article role="button" tabindex="0">
                 <header>
@@ -108,48 +109,44 @@ function drag(ev) {
 
 async function drop(ev) {
     ev.preventDefault();
-    const targetColumn = ev.target.closest('.kanban-column');
-    
-    if (!targetColumn) return;
-    
-    const targetFaseName = targetColumn.querySelector('h3').textContent;
-    
-    //console.log(`Columna destino: ${targetFaseName}`);
-    
-    const targetFaseId = parseInt(targetColumn.querySelector('.kanban-cards').dataset.faseId);
-    
+
     const cardId = ev.dataTransfer.getData("text");
     const cardElem = document.getElementById(cardId);
-    
     if (!cardElem) return;
-    
+
+    const ordenData = cardElem._ordenData;
+    cardElem._estadoAnterior = {
+        columna: cardElem.parentElement,
+        faseId: ordenData.id_fase,
+        faseNombre: ordenData.fase_actual
+    };
+    cardElem.classList.add('editando');
+
+    const targetColumn = ev.target.closest('.kanban-column');
+    if (!targetColumn) return;
+
+    const targetFaseName = targetColumn.querySelector('h3').textContent;
+    const targetFaseId = parseInt(targetColumn.querySelector('.kanban-cards').dataset.faseId, 10);
+
     const cardsContainer = targetColumn.querySelector('.kanban-cards');
     cardsContainer.appendChild(cardElem);
 
-    const ordenData = cardElem._ordenData;
-    const oldFaseId = parseInt(ordenData.id_fase);
-
-    console.log(oldFaseId," > ", targetFaseId);
-
+    const oldFaseId = parseInt(ordenData.id_fase, 10);
     if (targetFaseId !== oldFaseId) {
-        try {
-            const noOrden = `No. de Orden: ${ordenData.id_orden}`;
-            const simbolo = oldFaseId < targetFaseId ? '>' : '<';
-            const fromto = oldFaseId < targetFaseId ? `${ordenData.fase_actual} ${simbolo} ${targetFaseName}` : `${targetFaseName} ${simbolo} ${ordenData.fase_actual}`;
-    
-            ordenData.fase_actual = targetFaseName;
-            ordenData.id_fase = targetFaseId;
-    
-            showEdit(cardElem, noOrden, fromto);
-        } catch (error) {
-            console.error('❌ Error al actualizar fase en base de datos:', error.message);
-            showToast('Error al mover la orden', ICONOS.error);
-        }
+        const noOrden = `No. de Orden: ${ordenData.id_orden}`;
+        const simbolo = oldFaseId < targetFaseId ? '>' : '<';
+        const fromto = oldFaseId < targetFaseId ?
+            `${ordenData.fase_actual} ${simbolo} ${targetFaseName}` :
+            `${targetFaseName} ${simbolo} ${ordenData.fase_actual}`;
+
+        ordenData.fase_actual = targetFaseName;
+        ordenData.id_fase = targetFaseId;
+
+        showEdit(cardElem, noOrden, fromto);
     } else {
         showToast('No se puede mover la tarjeta en la misma columna', ICONOS.error);
     }
 }
-
 
 function showEdit(cardElem, noOrden, fromto) {
     window.cardEditando = cardElem;
@@ -170,7 +167,7 @@ function fillDetails(orden) {
     const entrega = new Date(orden.fecha_entrega);
     const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
     const [year, month, day] = orden.fecha_entrega.split('-');
-    const formattedDate = `${day}-${meses[Number(month) - 1]}-${year}`;
+    const formattedDate = `${day}-${window.meses[Number(month) - 1]}-${year}`;
 
     const html = `
         <p><strong>Tipo Orden:</strong> ${orden.origen}</p>
@@ -189,20 +186,50 @@ function fillDetails(orden) {
 function fillData(orden, noOrden, fromto) {
     if (!orden) return console.error('Orden no encontrada en el elemento');
 
+    const [year, month, day] = orden.fecha_entrega.split('-');
+    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
     document.getElementById("noOrdenH").textContent = noOrden;
     document.getElementById("fases").textContent = fromto;
-    const html = ``;
+    const html = `
+        <p><strong>Tipo Orden:</strong> ${orden.origen}</p>
+        <p><strong>No. de venta:</strong> ${orden.id_venta}</p>
+        <p><strong>Producto:</strong> ${orden.categoria} TAM.${orden.size}</p>
+        <p><strong>Cantidad inicial:</strong> ${orden.cantidad_inicial}</p>
+        <p><strong>Cantidad buenos:</strong></p>
+            <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="${orden.cantidad_buenos}">
+        <p><strong>Cantidad rotos:</strong></p>
+            <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="${orden.cantidad_rotos}">
+        <p><strong>Cantidad deformes:</strong></p>
+            <input type="number" id="orden_cantidad_deformes" step="1" min="0" value="${orden.cantidad_deformes}">
+        <p><strong>Fecha de entrega:</strong></p>
+            <input type="date" id="orden_fecha_entrega" value="${formattedDate}">
+    `;
     document.getElementById('edit-content').innerHTML = html;
 }
-  
+
 document.getElementById('close-detail').addEventListener('click', () => {
-        document.getElementById('detail-dialog').close();
+    document.getElementById('detail-dialog').close();
 });
 
-/*document.getElementById('cancel-edit').addEventListener('click', () => {
-        document.getElementById('edit-dialog').close();
-});*/
+document.getElementById('cancel-edit').addEventListener('click', () => {
+    const dialog = document.getElementById('edit-dialog');
+    dialog.close();
 
-document.getElementById('update-edit').addEventListener('click', () => {
-    document.getElementById('edit-dialog').close();
+    const cardElem = document.querySelector('.kanban-card.editando');
+    if (!cardElem || !cardElem._estadoAnterior) return;
+
+    const { columna, faseId, faseNombre } = cardElem._estadoAnterior;
+    columna.appendChild(cardElem);
+
+    cardElem._ordenData.id_fase = faseId;
+    cardElem._ordenData.fase_actual = faseNombre;
+
+    delete cardElem._estadoAnterior;
+    cardElem.classList.remove('editando');
 });
+
+// Placeholder para la actualización: implementar más funciones antes de invocar updateOrden
+// document.getElementById('update-edit').addEventListener('click', async () => {
+//     // TODO: leer inputs y llamar a updateOrden + updateFase y otras funciones necesarias
+// });
