@@ -186,8 +186,10 @@ function fillDetails(orden) {
 function fillData(orden, noOrden, fromto) {
     if (!orden) return console.error('Orden no encontrada en el elemento');
 
+    const entrega = new Date(orden.fecha_entrega);
+    const diffDias = Math.ceil((entrega - window.today) / (1000 * 60 * 60 * 24));
     const [year, month, day] = orden.fecha_entrega.split('-');
-    const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    const formattedDate = `${day}-${window.meses[Number(month) - 1]}-${year}`;
 
     document.getElementById("noOrdenH").textContent = noOrden;
     document.getElementById("fases").textContent = fromto;
@@ -202,8 +204,7 @@ function fillData(orden, noOrden, fromto) {
             <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="${orden.cantidad_rotos}">
         <p><strong>Cantidad deformes:</strong></p>
             <input type="number" id="orden_cantidad_deformes" step="1" min="0" value="${orden.cantidad_deformes}">
-        <p><strong>Fecha de entrega:</strong></p>
-            <input type="date" id="orden_fecha_entrega" value="${formattedDate}">
+        <p><strong>Fecha de entrega:</strong> ${formattedDate} (${diffDias} días restantes)</p>
     `;
     document.getElementById('edit-content').innerHTML = html;
 }
@@ -229,7 +230,34 @@ document.getElementById('cancel-edit').addEventListener('click', () => {
     cardElem.classList.remove('editando');
 });
 
-// Placeholder para la actualización: implementar más funciones antes de invocar updateOrden
-// document.getElementById('update-edit').addEventListener('click', async () => {
-//     // TODO: leer inputs y llamar a updateOrden + updateFase y otras funciones necesarias
-// });
+document.getElementById('update-edit').addEventListener('click', async () => {
+    const cardElem = document.querySelector('.kanban-card.editando');
+    if (!cardElem || !cardElem._estadoAnterior) return;
+
+    const ordenData = cardElem._ordenData;
+    ordenData.cantidad_buenos = parseInt(document.getElementById("orden_cantidad_buenos").value);
+    ordenData.cantidad_deformes = parseInt(document.getElementById("orden_cantidad_deformes").value);
+    ordenData.cantidad_rotos = parseInt(document.getElementById("orden_cantidad_rotos").value);
+
+    const payload = {
+        id_fase: ordenData.id_fase,
+        cantidad_buenos: ordenData.cantidad_buenos,
+        cantidad_rotos: ordenData.cantidad_rotos,
+        cantidad_deformes: ordenData.cantidad_deformes,
+        id_orden: ordenData.id_orden
+    };
+
+    console.log(payload);
+    //await updateOrden(payload);
+
+    const info_fase = (fases.find(p => p.id_fase === ordenData.id_fase));
+    if (info_fase?.tipo_fase === "Bizcocho") {
+        console.log("Se actualizó bizcocho");
+        //await
+    } else {
+        console.log("Se actualizó producto");
+    }
+    
+    delete cardElem._estadoAnterior;
+    cardElem.classList.remove('editando');
+});
