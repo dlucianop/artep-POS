@@ -209,6 +209,7 @@ function readDetalles(id_venta) {
         const db = openDataBase();
         const query = `
             SELECT 
+                id_detalle,
                 v.id_venta AS noDeVenta,
                 v.fecha_venta,
                 v.hora AS hora_venta,

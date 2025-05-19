@@ -1,20 +1,22 @@
 const { join } = require('path');
 const {
-    readFases,
-    updateFase
-} = require(join(__dirname, '..', 'js', 'crud-config.js'));
-
-const {
-    createOrden, 
-    updateOrden,
-    readOrdenByFase 
-} = require(join(__dirname, '..', 'js', 'crud-produccion.js'));
-
+    createVenta, readVentas, searchVenta, updateVenta, createDetalle, readDetalles, deleteVentaConDetalles,
+} = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const { 
-    showToast, 
-    showConfirmToast, 
-    ICONOS 
-} = require(join(__dirname, '..', 'js', 'toast.js'));
+    createProducto, readProductos, searchProduct, updateProducto, deleteProducto 
+} = require(join(__dirname, '..', 'js', 'crud-productos.js'));
+const { 
+    createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
+} = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
+const {
+    createOrden, updateOrden, readOrdenByFase
+} = require(join(__dirname, "..", "js", "crud-produccion.js"));
+const { 
+    showToast, showConfirmToast, ICONOS 
+} = require(join(__dirname, "..", "js", "toast.js"));
+const {
+    readFases, updateFase
+} = require(join(__dirname, '..', 'js', 'crud-config.js'));
 
 window.addEventListener('DOMContentLoaded', initProduccion);
 
@@ -29,7 +31,7 @@ async function initProduccion() {
             'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
         fillEncabezados(fases);
-        console.log('Se cargaron encabezados de fases correctamente.');
+        console.log('✅ Todos los datos fueron cargados correctamente.');
     } catch (error) {
         console.error('❌ Error al cargar fases:', error.message);
         showToast('Error al cargar panel de Produccion', ICONOS.error);
@@ -247,17 +249,57 @@ document.getElementById('update-edit').addEventListener('click', async () => {
         id_orden: ordenData.id_orden
     };
 
-    console.log(payload);
+    const ventaId = ordenData.id_venta;
+    const detalles_venta = await readDetalles(ventaId);
+
+    for (const detalle of detalles_venta) {
+        const { categoria, tamano } = await parseDetalle(detalle.nombre);
+        detalle.categoria = categoria;
+        detalle.tamano   = tamano;
+    
+        if (detalle.categoria === ordenData.categoria && detalle.tamano === ordenData.size && detalle.cantidad === ordenData.cantidad_inicial){
+            console.log(detalle);
+        }
+    }
+
+    //console.log(detalles_venta);
     //await updateOrden(payload);
 
-    const info_fase = (fases.find(p => p.id_fase === ordenData.id_fase));
-    if (info_fase?.tipo_fase === "Bizcocho") {
-        console.log("Se actualizó bizcocho");
-        //await
+    //const info_fase = (fases.find(p => p.id_fase === ordenData.id_fase));
+    /*if (info_fase?.tipo_fase === "Bizcocho") {
+        const bizcocho = {
+            stock_apartado,
+            stock_disponible, 
+            stock_en_proceso, 
+            biz_category,
+            biz_size,
+        };
+        console.log(bizcocho);
+        //await updateBizcocho(bizcocho);
     } else {
-        console.log("Se actualizó producto");
-    }
+        const producto = {
+            category,
+            model,
+            size,
+            decoration,
+            color,
+            price,
+            stock_apartado,
+            stock_ disponible,
+            stock_en_proceso,
+            code
+        };
+        console.log(producto);
+        //await updateProducto(producto);
+    }*/
     
     delete cardElem._estadoAnterior;
     cardElem.classList.remove('editando');
 });
+
+async function parseDetalle(nombre) {
+    const categoria = nombre.split(' ')[0];
+    const match     = nombre.match(/TAM\.([^\s]+)/i);
+    const tamano    = match ? match[1] : null;
+    return { categoria, tamano };
+}
