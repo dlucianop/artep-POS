@@ -89,6 +89,41 @@ function updateOrden(orden) {
     });
 }
 
+function insertDetalle(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                id_detalle = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.id_detalle,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function readOrdenByFase(fase_id) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -149,6 +184,7 @@ function readOrden(id_orden) {
 module.exports = { 
     createOrden, 
     updateOrden,
+    insertDetalle,
     readOrdenByFase,
     readOrden
 }

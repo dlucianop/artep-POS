@@ -9,7 +9,7 @@ const {
     createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
 } = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
 const {
-    createOrden, readOrdenByFase
+    createOrden, insertDetalle, readOrdenByFase
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -344,7 +344,7 @@ async function ventasActions() {
             pago: parseFloat(document.getElementById("pago").value) || 0
         };
 
-        /*await createVenta(venta);*/
+        await createVenta(venta);
         return { ventaId, fecha_entrega: venta.fecha_entrega };
     } catch (error) {
         console.error('❌ ventasActions ERROR:', error);
@@ -371,13 +371,18 @@ async function productosActions(item, mode, prod) {
                 price: parseFloat(item.precio) || 0,
                 stock_apartado: apartar,
                 stock_disponible: Math.max(0, stock - pedido),
-                stock_en_proceso: faltante
+                stock_en_proceso: 0
             };
             await createProducto(producto);
 
         } else if (mode === "Update") {
-            stock = parseInt(item.stock) || prod.stock_disponible + prod.stock_apartado + prod.stock_en_proceso; 
-            pedido = parseInt(item.pedido) || prod.stock_apartado + prod.stock_en_proceso;
+            stock = (item.stock !== undefined && item.stock !== "") 
+                ? parseInt(item.stock) 
+                : prod.stock_disponible;
+
+            pedido = (item.pedido !== undefined && item.pedido !== "") 
+                ? parseInt(item.pedido) 
+                : prod.stock_apartado;
 
             apartar = Math.min(stock, pedido);
             faltante = Math.max(0, pedido - stock);
@@ -392,10 +397,9 @@ async function productosActions(item, mode, prod) {
                 price: parseFloat(item.precio) || prod.price,
                 stock_apartado: apartar,
                 stock_disponible: Math.max(0, stock - pedido),
-                stock_en_proceso: faltante
+                stock_en_proceso: prod.stock_en_proceso
             };
             await updateProducto(producto);
-
         }
         return faltante;
 
@@ -408,26 +412,37 @@ async function productosActions(item, mode, prod) {
 
 async function bizcosActions(item, mode, bizcocho, faltante) {
     try {
+        let faltanteRestante = faltante;
+
         if (mode === "Create") {
             const bizco = {
                 biz_category: item.categoria,
                 biz_size: item.size,
                 stock_apartado: 0,
                 stock_disponible: 0,
-                stock_en_proceso: item.pedido, //en realidad es el faltante
+                stock_en_proceso: faltanteRestante,
             };
-            //await createBizcocho(bizco);
+            await createBizcocho(bizco);
+            faltanteRestante = 0;
 
-        } else if(mode === "Update"){
+        } else if (mode === "Update") {
+            const apartar = Math.min(bizcocho.stock_disponible, faltanteRestante);
+
             const bizco = {
-                stock_apartado: bizcocho.stock_apartado,
-                stock_disponible: bizcocho.stock_disponible, // se le quita lo faltante
-                stock_en_proceso: bizcocho.stock_en_proceso,  //si no aclanza con lo de dsiponible, lo restante se hara orden
                 biz_category: item.categoria,
                 biz_size: item.size,
+                stock_apartado: bizcocho.stock_apartado + apartar,
+                stock_disponible: Math.max(0, bizcocho.stock_disponible - apartar),
+                stock_en_proceso: Math.max(0, bizcocho.stock_en_proceso + (faltanteRestante - apartar)),
             };
-            //await updateBizcocho(bizco);
+            await updateBizcocho(bizco);
+
+            faltanteRestante = faltanteRestante - apartar;
+            if (faltanteRestante < 0) faltanteRestante = 0;
         }
+
+        return faltanteRestante;
+
     } catch (error) {
         console.error('❌ bizcosActions ERROR:', error);
         showToast(`Error en bizcosActions: ${error.message}`, ICONOS.error);
@@ -435,19 +450,29 @@ async function bizcosActions(item, mode, bizcocho, faltante) {
     }
 }
 
-async function detallesActions() {
+
+async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
     try {
-        
+        const orden = {
+            id_venta: ventaId,
+            id_origen: 1,
+            fecha_entrega,
+            categoria: item.categoria,
+            size: item.size,
+            cantidad_inicial: faltanteRestante
+        };
+        const newOrden = await createOrden(orden);
+        return newOrden;
     } catch (error) {
-        console.error('❌ detallesActions ERROR:', error);
-        showToast(`Error en detallesActions: ${error.message}`, ICONOS.error);
+        console.error('❌ ordenesActions ERROR:', error);
+        showToast(`Error en ordenesActions: ${error.message}`, ICONOS.error);
         throw error;
     }
 }
 
 async function imprimirRecibo() {
     try {
-        //await validaciones();
+        await validaciones();
 
         const { ventaId, fecha_entrega } = await ventasActions();
 
@@ -498,16 +523,19 @@ async function imprimirRecibo() {
                 modeP = "Update";
             }
 
-            let faltante = productosActions(item, modeP, producto);
-            bizcosActions(item, modeB, bizcocho, faltante);
+            let faltante = await productosActions(item, modeP, producto);
+            let faltanteRestante = await bizcosActions(item, modeB, bizcocho, faltante);
             
+            if (faltanteRestante > 0) {
+                await ordenesActions(ventaId, fecha_entrega, item, faltanteRestante);
+            }
+            await detallesActions(item, newOrden); 
         }
 
-
-        //const detalles_venta = await readDetalles(ventaId);
-        //console.log(detalles_venta);
-        //await generarRecibos({ venta_datos: detalles_venta });
+        const detalles_venta = await readDetalles(ventaId);
+        await generarRecibos({ venta_datos: detalles_venta });
         showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
+
         /*setTimeout(() => window.location.reload(), 2000);*/
         
     } catch (error) {

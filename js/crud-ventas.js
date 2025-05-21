@@ -187,6 +187,7 @@ function createDetalle(detalles){
                 }
         
                 const newDetalle = {
+                    id_detalle: this.lastID,
                     id_venta: detalles.id_venta, 
                     code: detalles.code,
                     price: detalles.price,
