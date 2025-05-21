@@ -9,7 +9,7 @@ const {
     createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
 } = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
 const {
-    createOrden, updateOrden, readOrdenByFase
+    createOrden, updateOrden, readOrdenByFase, readOrden
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -233,73 +233,77 @@ document.getElementById('cancel-edit').addEventListener('click', () => {
 });
 
 document.getElementById('update-edit').addEventListener('click', async () => {
-    const cardElem = document.querySelector('.kanban-card.editando');
-    if (!cardElem || !cardElem._estadoAnterior) return;
+    let cardElem = document.querySelector('.kanban-card.editando');
+    if (!cardElem?._estadoAnterior) return;
+    try {
+        let ordenData = cardElem._ordenData;
+        let detalles_orden = await readOrden(ordenData.id_orden);
+        let detalles_venta = await readDetalles(ordenData.id_venta);
 
-    const ordenData = cardElem._ordenData;
-    ordenData.cantidad_buenos = parseInt(document.getElementById("orden_cantidad_buenos").value);
-    ordenData.cantidad_deformes = parseInt(document.getElementById("orden_cantidad_deformes").value);
-    ordenData.cantidad_rotos = parseInt(document.getElementById("orden_cantidad_rotos").value);
+        for (const detalleV of detalles_venta) {
+            if (detalleV.id_detalle === detalles_orden[0].id_detalle){
 
-    const payload = {
-        id_fase: ordenData.id_fase,
-        cantidad_buenos: ordenData.cantidad_buenos,
-        cantidad_rotos: ordenData.cantidad_rotos,
-        cantidad_deformes: ordenData.cantidad_deformes,
-        id_orden: ordenData.id_orden
-    };
+                await updateData(detalleV, detalles_orden[0], ordenData);
+                break;
 
-    const ventaId = ordenData.id_venta;
-    const detalles_venta = await readDetalles(ventaId);
-
-    for (const detalle of detalles_venta) {
-        const { categoria, tamano } = await parseDetalle(detalle.nombre);
-        detalle.categoria = categoria;
-        detalle.tamano   = tamano;
-    
-        if (detalle.categoria === ordenData.categoria && detalle.tamano === ordenData.size && detalle.cantidad === ordenData.cantidad_inicial){
-            console.log(detalle);
+            }
         }
+    } catch (error) {
+        console.error('❌ Error al mover tarjeta:', error.message);
+        showToast(`Error al mover tarjeta: ${error.message}`, ICONOS.error);
+    } finally {
+        delete cardElem._estadoAnterior;
+        cardElem.classList.remove('editando');
     }
-
-    //console.log(detalles_venta);
-    //await updateOrden(payload);
-
-    //const info_fase = (fases.find(p => p.id_fase === ordenData.id_fase));
-    /*if (info_fase?.tipo_fase === "Bizcocho") {
-        const bizcocho = {
-            stock_apartado,
-            stock_disponible, 
-            stock_en_proceso, 
-            biz_category,
-            biz_size,
-        };
-        console.log(bizcocho);
-        //await updateBizcocho(bizcocho);
-    } else {
-        const producto = {
-            category,
-            model,
-            size,
-            decoration,
-            color,
-            price,
-            stock_apartado,
-            stock_ disponible,
-            stock_en_proceso,
-            code
-        };
-        console.log(producto);
-        //await updateProducto(producto);
-    }*/
-    
-    delete cardElem._estadoAnterior;
-    cardElem.classList.remove('editando');
 });
 
-async function parseDetalle(nombre) {
-    const categoria = nombre.split(' ')[0];
-    const match     = nombre.match(/TAM\.([^\s]+)/i);
-    const tamano    = match ? match[1] : null;
-    return { categoria, tamano };
+async function updateData(detalleV, detalleO, ordenData) {
+    try {
+        let orden = {
+            id_fase: ordenData.id_fase,
+            cantidad_buenos: document.getElementById("orden_cantidad_buenos").value,
+            cantidad_rotos: document.getElementById("orden_cantidad_rotos").value,
+            cantidad_deformes: document.getElementById("orden_cantidad_deformes").value,
+            id_orden: ordenData.id_orden
+        };
+
+        //await updateOrden(orden)
+
+        let newFase = window.fases.find(p => p.id_fase === ordenData.id_fase);
+
+        if(newFase.tipo_fase === "Bizcocho") { //aqui digamos que cuando pasa de bizcho a producto pues si se hace la actulizacion osease stock apartado si, disponible no cambia, en proceso se quita
+
+            let bizco = {
+                stock_apartado,
+                stock_disponible, 
+                stock_en_proceso, 
+                biz_category,
+                biz_size,
+            };
+            
+            //await updateBizcocho();
+
+        } else{
+
+            let producto = {
+                category,
+                model,
+                size,
+                decoration,
+                color,
+                price,
+                stock_apartado,
+                stock_disponible,
+                stock_en_proceso,
+                code
+            }
+
+            //await updateProducto();
+
+        }
+        
+    } catch (error) {
+        console.error('❌ ERROR:', error.message);
+        showToast(`ERROR: ${error.message}`, ICONOS.error);
+    } 
 }

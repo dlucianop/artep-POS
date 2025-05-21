@@ -119,8 +119,36 @@ function readOrdenByFase(fase_id) {
     });
 }
 
+function readOrden(id_orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            SELECT op.*, oo.nombre AS origen, f.name_fase AS fase_actual, f.tipo_fase
+            FROM orden_produccion op
+            INNER JOIN origen_orden oo ON op.id_origen = oo.id_origen
+            INNER JOIN fase f ON f.id_fase = op.id_fase
+            WHERE op.id_orden = ?
+        `;
+
+        db.all(query, id_orden, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al leer órdenes de producción: " + err.message));
+                }
+                resolve(rows || []);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 module.exports = { 
     createOrden, 
     updateOrden,
-    readOrdenByFase 
+    readOrdenByFase,
+    readOrden
 }
