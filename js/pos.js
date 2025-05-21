@@ -50,7 +50,7 @@ async function cargarBizcochos() {
     try {
         const bizcochos = await readBizcochos();
         window.bizcochos = bizcochos;
-        console.log('📦 Bizcochos cargados.');
+        console.log('📦 Bizcochos cargados.', bizcochos);
     } catch (err) {
         console.error('❌ Error al cargar bizcochos:', err.message);
         showToast('Error al cargar bizcochos', ICONOS.error);
@@ -327,116 +327,127 @@ async function validaciones() {
 }
 
 async function ventasActions() {
-    const ventaId = document.getElementById("id-sale").value;
-    const venta = {
-        id_venta: ventaId,
-        fecha_venta: document.getElementById("sale-date").value,
-        hora: document.getElementById("sale-hour").value,
-        nombre: document.getElementById("client-name").value,
-        telefono: document.getElementById("client-phone").value,
-        correo: document.getElementById("client-mail").value,
-        domicilio: document.getElementById("client-address").value,
-        fecha_entrega: document.getElementById("sale-entrega").value,
-        metodo_pago: document.getElementById("payment-method").value,
-        forma_pago: document.getElementById("payment-form").value,
-        monto: parseFloat(document.getElementById("monto").value),
-        pago: parseFloat(document.getElementById("pago").value)
-    };
+    try {
+        const ventaId = document.getElementById("id-sale").value || 0;
+        const venta = {
+            id_venta: ventaId || 0,
+            fecha_venta: document.getElementById("sale-date").value || "01/01/9999",
+            hora: document.getElementById("sale-hour").value || '24:00:00',
+            nombre: document.getElementById("client-name").value,
+            telefono: document.getElementById("client-phone").value,
+            correo: document.getElementById("client-mail").value,
+            domicilio: document.getElementById("client-address").value,
+            fecha_entrega: document.getElementById("sale-entrega").value || "01/01/9999",
+            metodo_pago: document.getElementById("payment-method").value || "Efectivo",
+            forma_pago: document.getElementById("payment-form").value || "Pago en una sola exhibicion",
+            monto: parseFloat(document.getElementById("monto").value) || 0,
+            pago: parseFloat(document.getElementById("pago").value) || 0
+        };
 
-    await createVenta(venta);
-    return { ventaId, fecha_entrega: venta.fecha_entrega };
-}
-
-async function productosActions(item, pedido, producto) {
-    let faltante = pedido;
-
-    if (producto) {
-        if (producto.stock_disponible >= pedido) {
-            producto.stock_disponible -= pedido;
-            producto.stock_apartado  = (producto.stock_apartado || 0) + pedido;
-            faltante = 0;
-        } else {
-            const cubierto = producto.stock_disponible;
-            producto.stock_disponible = 0;
-            producto.stock_apartado  = (producto.stock_apartado || 0) + cubierto;
-            faltante = pedido - cubierto;
-            producto.stock_en_proceso = (producto.stock_en_proceso || 0) + faltante;
-        }
-        await updateProducto(producto);
-    } else {
-        await createProducto({
-            code: item.codigo,
-            category: item.categoria,
-            model: item.modelo,
-            size: item.size,
-            decoration: item.decoracion,
-            color: item.color,
-            price: item.precio,
-            stock_apartado: 0,
-            stock_disponible: 0,
-            stock_en_proceso: pedido
-        });
-        faltante = 0;
-        cargarProductos();
+        /*await createVenta(venta);*/
+        return { ventaId, fecha_entrega: venta.fecha_entrega };
+    } catch (error) {
+        console.error('❌ ventasActions ERROR:', error);
+        showToast(`Error en ventasActions: ${error.message}`, ICONOS.error);
+        throw error;
     }
-    return faltante;
 }
 
-async function bizcosActions(item, faltante, bizcocho, ventaId, fechaEntrega) {
-    let faltanteBizcocho = faltante;
+async function productosActions(item, mode, prod) {
+    try {
+        let stock = parseInt(item.stock) || 0;
+        let pedido = parseInt(item.pedido) || 0;
+        let faltante = Math.max(0, pedido - stock);
+        let apartar = Math.min(stock, pedido);
 
-    if (faltanteBizcocho > 0) {
-        if (bizcocho) {
-            if (bizcocho.stock_disponible >= faltanteBizcocho) {
-                bizcocho.stock_disponible -= faltanteBizcocho;
-                bizcocho.stock_apartado  = (bizcocho.stock_apartado || 0) + faltanteBizcocho;
-                faltanteBizcocho = 0;
-            } else {
-                const cubierto = bizcocho.stock_disponible;
-                bizcocho.stock_disponible = 0;
-                bizcocho.stock_apartado  = (bizcocho.stock_apartado || 0) + cubierto;
-                faltanteBizcocho -= cubierto;
-                bizcocho.stock_en_proceso = (bizcocho.stock_en_proceso || 0) + faltanteBizcocho;
-            }
-            await updateBizcocho(bizcocho);
-        } else {
-            await createBizcocho({
+        if (mode === "Create") {
+            const producto = {
+                code: Math.max(0, item.codigo),
+                category: item.categoria,
+                model: item.modelo,
+                size: item.size,
+                decoration: item.decoracion,
+                color: item.color,
+                price: parseFloat(item.precio) || 0,
+                stock_apartado: apartar,
+                stock_disponible: Math.max(0, stock - pedido),
+                stock_en_proceso: faltante
+            };
+            await createProducto(producto);
+
+        } else if (mode === "Update") {
+            stock = parseInt(item.stock) || prod.stock_disponible + prod.stock_apartado + prod.stock_en_proceso; 
+            pedido = parseInt(item.pedido) || prod.stock_apartado + prod.stock_en_proceso;
+
+            apartar = Math.min(stock, pedido);
+            faltante = Math.max(0, pedido - stock);
+
+            const producto = {
+                code: prod.code,
+                category: prod.category,
+                model: prod.model,
+                size: prod.size,
+                decoration: prod.decoration,
+                color: prod.color,
+                price: parseFloat(item.precio) || prod.price,
+                stock_apartado: apartar,
+                stock_disponible: Math.max(0, stock - pedido),
+                stock_en_proceso: faltante
+            };
+            await updateProducto(producto);
+
+        }
+        return faltante;
+
+    } catch (error) {
+        console.error('❌ productosActions ERROR:', error);
+        showToast(`Error en productosActions: ${error.message}`, ICONOS.error);
+        throw error;
+    }
+}
+
+async function bizcosActions(item, mode, bizcocho, faltante) {
+    try {
+        if (mode === "Create") {
+            const bizco = {
                 biz_category: item.categoria,
                 biz_size: item.size,
                 stock_apartado: 0,
                 stock_disponible: 0,
-                stock_en_proceso: faltanteBizcocho
-            });
+                stock_en_proceso: item.pedido, //en realidad es el faltante
+            };
+            //await createBizcocho(bizco);
 
-            cargarBizcochos();
+        } else if(mode === "Update"){
+            const bizco = {
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: bizcocho.stock_disponible, // se le quita lo faltante
+                stock_en_proceso: bizcocho.stock_en_proceso,  //si no aclanza con lo de dsiponible, lo restante se hara orden
+                biz_category: item.categoria,
+                biz_size: item.size,
+            };
+            //await updateBizcocho(bizco);
         }
-
-        if (faltanteBizcocho > 0) {
-            await createOrden({
-                id_venta: ventaId,
-                id_origen: 1,
-                fecha_entrega: fechaEntrega,
-                categoria: item.categoria,
-                size: item.size,
-                cantidad_inicial: faltanteBizcocho
-            });
-        }
+    } catch (error) {
+        console.error('❌ bizcosActions ERROR:', error);
+        showToast(`Error en bizcosActions: ${error.message}`, ICONOS.error);
+        throw error;
     }
 }
 
-async function detallesActions(item, ventaId) {
-    await createDetalle({
-        id_venta: ventaId,
-        code: item.codigo,
-        price: item.precio,
-        quantity: item.pedido,
-        importe: item.precio * item.pedido
-    });
+async function detallesActions() {
+    try {
+        
+    } catch (error) {
+        console.error('❌ detallesActions ERROR:', error);
+        showToast(`Error en detallesActions: ${error.message}`, ICONOS.error);
+        throw error;
+    }
 }
 
 async function imprimirRecibo() {
     try {
-        await validaciones();
+        //await validaciones();
 
         const { ventaId, fecha_entrega } = await ventasActions();
 
@@ -445,15 +456,59 @@ async function imprimirRecibo() {
             const producto = window.productos.find(p => p.code === item.codigo);
             const bizcocho = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
 
-            const faltante = await productosActions(item, pedido, producto);
-            await bizcosActions(item, faltante, bizcocho, ventaId, fecha_entrega);
-            await detallesActions(item, ventaId);
+            let modeP = "";
+            let modeB = "";
+
+            if (!producto && !bizcocho) {
+                console.warn(`Ni el PRODUCTO con código ${item.codigo} ni el BIZCOCHO ${item.categoria} (${item.size}) fueron encontrados.`);
+
+                window.productos.push({
+                    code: item.codigo,
+                });
+                modeP = "Create";
+
+                window.bizcochos.push({
+                    biz_category: item.categoria,
+                    biz_size: item.size
+                });
+                modeB = "Create";
+
+            } else if (!producto) {
+                console.warn(`PRODUCTO con código ${item.codigo} no encontrado.`);
+
+                window.productos.push({
+                    code: item.codigo,
+                });
+                modeP = "Create";
+                modeB = "Update";
+
+            } else if (!bizcocho) {
+                console.warn(`BIZCOCHO ${item.categoria} (${item.size}) no encontrado.`);
+
+                window.bizcochos.push({
+                    biz_category: item.categoria,
+                    biz_size: item.size
+                });
+                modeB = "Create";
+                modeP = "Update";
+
+            } else {
+                console.log(`PRODUCTO con código ${item.codigo} y BIZCOCHO ${item.categoria} (${item.size}) encontrados.`);
+                modeB = "Update";
+                modeP = "Update";
+            }
+
+            let faltante = productosActions(item, modeP, producto);
+            bizcosActions(item, modeB, bizcocho, faltante);
+            
         }
 
-        const detalles_venta = await readDetalles(ventaId);
-        await generarRecibos({ venta_datos: detalles_venta });
+
+        //const detalles_venta = await readDetalles(ventaId);
+        //console.log(detalles_venta);
+        //await generarRecibos({ venta_datos: detalles_venta });
         showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-        setTimeout(() => window.location.reload(), 2000);
+        /*setTimeout(() => window.location.reload(), 2000);*/
         
     } catch (error) {
         console.error("❌ Error al imprimir recibo:", error?.message || error);
