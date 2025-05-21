@@ -259,51 +259,67 @@ document.getElementById('update-edit').addEventListener('click', async () => {
 
 async function updateData(detalleV, detalleO, ordenData) {
     try {
-        let orden = {
+        const orden = {
             id_fase: ordenData.id_fase,
-            cantidad_buenos: document.getElementById("orden_cantidad_buenos").value,
-            cantidad_rotos: document.getElementById("orden_cantidad_rotos").value,
-            cantidad_deformes: document.getElementById("orden_cantidad_deformes").value,
+            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
+            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
+            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
             id_orden: ordenData.id_orden
         };
 
-        //await updateOrden(orden)
+        const cantidadProducida = orden.cantidad_buenos;
 
-        let newFase = window.fases.find(p => p.id_fase === ordenData.id_fase);
+        await updateOrden(orden);
 
-        if(newFase.tipo_fase === "Bizcocho") { //aqui digamos que cuando pasa de bizcho a producto pues si se hace la actulizacion osease stock apartado si, disponible no cambia, en proceso se quita
+        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
 
-            let bizco = {
-                stock_apartado,
-                stock_disponible, 
-                stock_en_proceso, 
-                biz_category,
-                biz_size,
-            };
-            
-            //await updateBizcocho();
+        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
 
-        } else{
+        if (newFase.tipo_fase === "Bizcocho") {
+            const bizcocho = await searchBizcocho({
+                biz_category: detalleO.categoria,
+                biz_size: detalleO.size
+            });
 
-            let producto = {
-                category,
-                model,
-                size,
-                decoration,
-                color,
-                price,
-                stock_apartado,
-                stock_disponible,
-                stock_en_proceso,
-                code
+            if (bizcocho && bizcocho.id_biz) {
+                bizcocho.stock_en_proceso = Math.max(0, bizcocho.stock_en_proceso - cantidadProducida);
+
+                if (orden.id_fase === ultimaFase.id_fase) {
+                    bizcocho.stock_apartado += cantidadProducida;
+                } else {
+                    bizcocho.stock_en_proceso += cantidadProducida;
+                }
+
+                await updateBizcocho(bizcocho);
+            } else {
+                showToast("❌ No se encontró el bizcocho para actualizar.", ICONOS.error);
+                console.error('❌ No se encontró el bizcocho para actualizar');
             }
 
-            //await updateProducto();
+        } else if (newFase.tipo_fase === "Producto") {
+            const producto = await searchProduct(detalleV.codigo);
 
+            if (producto && producto.code) {
+                producto.stock_en_proceso = Math.max(0, producto.stock_en_proceso - cantidadProducida);
+
+                if (orden.id_fase === ultimaFase.id_fase) {
+                    producto.stock_apartado += cantidadProducida;
+                } else {
+                    producto.stock_en_proceso += cantidadProducida;
+                }
+
+                await updateProducto(producto);
+            } else {
+                showToast("❌ No se encontró el producto para actualizar.", ICONOS.error);
+                console.error('❌ No se encontró el producto para actualizar');
+            }
         }
-        
+
+        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
+        initProduccion();
+
     } catch (error) {
         console.error('❌ ERROR:', error.message);
         showToast(`ERROR: ${error.message}`, ICONOS.error);
-    } 
+    }
 }

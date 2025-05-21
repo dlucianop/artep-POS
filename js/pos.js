@@ -352,14 +352,15 @@ async function productosActions(item, pedido, producto) {
 
     if (producto) {
         if (producto.stock_disponible >= pedido) {
-            producto.stock_apartado += pedido;
             producto.stock_disponible -= pedido;
+            producto.stock_apartado  = (producto.stock_apartado || 0) + pedido;
             faltante = 0;
         } else {
-            producto.stock_apartado += producto.stock_disponible;
-            faltante -= producto.stock_disponible;
-            producto.stock_en_proceso += faltante;
+            const cubierto = producto.stock_disponible;
             producto.stock_disponible = 0;
+            producto.stock_apartado  = (producto.stock_apartado || 0) + cubierto;
+            faltante = pedido - cubierto;
+            producto.stock_en_proceso = (producto.stock_en_proceso || 0) + faltante;
         }
         await updateProducto(producto);
     } else {
@@ -373,10 +374,11 @@ async function productosActions(item, pedido, producto) {
             price: item.precio,
             stock_apartado: 0,
             stock_disponible: 0,
-            stock_en_proceso: faltante
+            stock_en_proceso: pedido
         });
+        faltante = 0;
+        cargarProductos();
     }
-
     return faltante;
 }
 
@@ -386,14 +388,15 @@ async function bizcosActions(item, faltante, bizcocho, ventaId, fechaEntrega) {
     if (faltanteBizcocho > 0) {
         if (bizcocho) {
             if (bizcocho.stock_disponible >= faltanteBizcocho) {
-                bizcocho.stock_apartado += faltanteBizcocho;
                 bizcocho.stock_disponible -= faltanteBizcocho;
+                bizcocho.stock_apartado  = (bizcocho.stock_apartado || 0) + faltanteBizcocho;
                 faltanteBizcocho = 0;
             } else {
-                bizcocho.stock_apartado += bizcocho.stock_disponible;
-                faltanteBizcocho -= bizcocho.stock_disponible;
-                bizcocho.stock_en_proceso += faltanteBizcocho;
+                const cubierto = bizcocho.stock_disponible;
                 bizcocho.stock_disponible = 0;
+                bizcocho.stock_apartado  = (bizcocho.stock_apartado || 0) + cubierto;
+                faltanteBizcocho -= cubierto;
+                bizcocho.stock_en_proceso = (bizcocho.stock_en_proceso || 0) + faltanteBizcocho;
             }
             await updateBizcocho(bizcocho);
         } else {
@@ -404,6 +407,8 @@ async function bizcosActions(item, faltante, bizcocho, ventaId, fechaEntrega) {
                 stock_disponible: 0,
                 stock_en_proceso: faltanteBizcocho
             });
+
+            cargarBizcochos();
         }
 
         if (faltanteBizcocho > 0) {
