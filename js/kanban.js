@@ -9,7 +9,7 @@ const {
     createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
 } = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
 const {
-    createOrden, updateOrden, readOrdenByFase, readOrden, readOrdenesByVenta
+    createOrden, updateOrden, readOrdenByFase, readOrden, readOrdenesByVenta, updateCantidadInicial
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -267,6 +267,7 @@ async function updateData(detalleV, detalleO, ordenData) {
         };
 
         const cantidadProducida = orden.cantidad_buenos;
+        console.log('🔄 Orden a actualizar:', orden);
 
         await updateOrden(orden);
 
@@ -313,8 +314,11 @@ async function updateData(detalleV, detalleO, ordenData) {
             }
         }
 
-        if (cantidadProducida < detalleO.cantidad_inicial) {
-            const faltante = detalleO.cantidad_inicial - cantidadProducida;
+        const esReposicion = ordenData.id_origen === 5;
+        const cantidadInicialActual = detalleO?.cantidad_inicial || ordenData?.cantidad_inicial || 0;
+
+        if (!esReposicion && cantidadProducida < cantidadInicialActual) {
+            const faltante = cantidadInicialActual - cantidadProducida;
 
             const ordenes = await readOrdenesByVenta(ordenData.id_venta);
             const ordenReposicion = ordenes.find(o =>
@@ -329,24 +333,18 @@ async function updateData(detalleV, detalleO, ordenData) {
                     ordenData.fecha_entrega,
                     {
                         categoria: detalleO.categoria,
-                        size: detalleO.size
+                        size: detalleO.size,
+                        id_detalle: detalleO.id_detalle
                     },
                     faltante
                 );
-
                 showToast(`🛠 Se creó una orden de reposición por ${faltante} piezas.`, ICONOS.info);
                 setTimeout(() => window.location.reload(), 1000);
                 return;
-
             } else {
                 const nuevaCantidad = ordenReposicion.cantidad_inicial + faltante;
 
-                const ordenActualizada = {
-                    id_orden: ordenReposicion.id_orden,
-                    cantidad_inicial: nuevaCantidad,
-                };
-
-                await updateOrden(ordenActualizada);
+                await updateCantidadInicial(ordenReposicion.id_orden, nuevaCantidad);
 
                 showToast(`🔄 Se actualizó la orden de reposición con ${faltante} piezas adicionales.`, ICONOS.info);
                 setTimeout(() => window.location.reload(), 1000);
@@ -371,27 +369,15 @@ async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
             fecha_entrega,
             categoria: item.categoria,
             size: item.size,
-            cantidad_inicial: faltanteRestante
+            cantidad_inicial: faltanteRestante,
+            id_detalle: item.id_detalle
         };
+
         const newOrden = await createOrden(orden);
         return newOrden;
     } catch (error) {
         console.error('❌ ordenesActions ERROR:', error);
         showToast(`Error en ordenesActions: ${error.message}`, ICONOS.error);
         throw error;
-    }
-}
-
-async function yaExisteReposicion(id_venta, categoria, size) {
-    try {
-        const ordenes = await readOrdenesByVenta(id_venta);
-        return ordenes.some(o => 
-            o.id_origen === 5 &&
-            o.categoria === categoria &&
-            o.size === size
-        );
-    } catch (error) {
-        console.error("❌ Error buscando reposición existente:", error);
-        return false;
     }
 }

@@ -208,6 +208,28 @@ function readOrdenesByVenta(id_venta) {
     });
 }
 
+function updateCantidadInicial(id_orden, cantidad_inicial) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET cantidad_inicial = ?
+            WHERE id_orden = ?;
+        `;
+
+        db.run(query, [cantidad_inicial, id_orden], function(err) {
+            if (err) {
+                reject(new Error("Error al actualizar cantidad_inicial: " + err.message));
+            } else if (this.changes === 0) {
+                reject(new Error("No se encontró orden para actualizar cantidad_inicial"));
+            } else {
+                resolve("Cantidad inicial actualizada correctamente");
+            }
+            closeDatabase(db);
+        });
+    });
+}
 
 module.exports = { 
     createOrden, 
@@ -215,5 +237,6 @@ module.exports = {
     insertDetalle,
     readOrdenByFase,
     readOrden,
-    readOrdenesByVenta
+    readOrdenesByVenta,
+    updateCantidadInicial
 }
