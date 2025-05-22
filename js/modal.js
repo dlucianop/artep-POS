@@ -18,7 +18,7 @@ function closeModal(modalId) {
 
 function resetModalInputs(modal) {
     modal.querySelectorAll('input').forEach(input => {
-        input.value = input.type === 'number' ? null : null;
+        input.value = input.type === 'number' ? 0 : null;
     });
 
     const resultados = document.getElementById("search-results");

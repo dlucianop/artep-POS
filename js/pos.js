@@ -50,7 +50,7 @@ async function cargarBizcochos() {
     try {
         const bizcochos = await readBizcochos();
         window.bizcochos = bizcochos;
-        console.log('📦 Bizcochos cargados.', bizcochos);
+        console.log('📦 Bizcochos cargados.');
     } catch (err) {
         console.error('❌ Error al cargar bizcochos:', err.message);
         showToast('Error al cargar bizcochos', ICONOS.error);
@@ -495,34 +495,16 @@ async function imprimirRecibo() {
 
             if (!producto && !bizcocho) {
                 console.warn(`Ni el PRODUCTO con código ${item.codigo} ni el BIZCOCHO ${item.categoria} (${item.size}) fueron encontrados.`);
-
-                window.productos.push({
-                    code: item.codigo,
-                });
                 modeP = "Create";
-
-                window.bizcochos.push({
-                    biz_category: item.categoria,
-                    biz_size: item.size
-                });
                 modeB = "Create";
 
             } else if (!producto) {
                 console.warn(`PRODUCTO con código ${item.codigo} no encontrado.`);
-
-                window.productos.push({
-                    code: item.codigo,
-                });
                 modeP = "Create";
                 modeB = "Update";
 
             } else if (!bizcocho) {
                 console.warn(`BIZCOCHO ${item.categoria} (${item.size}) no encontrado.`);
-
-                window.bizcochos.push({
-                    biz_category: item.categoria,
-                    biz_size: item.size
-                });
                 modeB = "Create";
                 modeP = "Update";
 
@@ -530,10 +512,15 @@ async function imprimirRecibo() {
                 console.log(`PRODUCTO con código ${item.codigo} y BIZCOCHO ${item.categoria} (${item.size}) encontrados.`);
                 modeB = "Update";
                 modeP = "Update";
+
             }
 
             const faltante = await productosActions(item, modeP, producto);
-            const faltanteRestante = await bizcosActions(item, modeB, bizcocho, faltante);
+            await cargarProductos();
+            
+            const bizcochoActualizado = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
+            const faltanteRestante = await bizcosActions(item, modeB, bizcochoActualizado, faltante);
+            await cargarBizcochos();
 
             let newOrden = null;
             if (faltanteRestante > 0) {
