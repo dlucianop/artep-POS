@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cerámica Artep | Panel de Producción</title>
     <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../css/produccion.css">
 </head>
 <body>
     <div id="nav-menu">
@@ -23,15 +24,49 @@
         <a href="ventas.html" class="menu-btn">Historial de Ventas
             <img src="../img/nav-icons/history.png" alt="">
         </a>
-        <!--a href="dashboard.html" class="menu-btn">Dashboard
-            <img src="../img/nav-icons/dashboard.png" alt="">
-        </a>
-        <a href="configuracion.html" class="menu-btn">Configuración
-            <img src="../img/nav-icons/settings.png" alt="">
-        </a-->
     </div>
-    <div id="content-section">
+    <div id="content-section-s">
+
+        <div class="kanban-container">
+        </div>
+        
+        <dialog id="detail-dialog">
+            <form method="dialog" class="dialog-content">
+                <h3>Detalles de Orden</h3>
+                <div id="detail-content">
+                </div>
+                <menu>
+                    <button id="close-detail">Cerrar</button>
+                </menu>
+            </form>
+        </dialog>
+
+        <dialog id="edit-dialog">
+            <form method="dialog" class="dialog-content">
+                <h6 id="noOrdenH"></h6>
+                <h3 id="fases"></h3>
+                <div id="edit-content">
+                </div>
+                <menu>
+                    <button id="update-edit">Aceptar</button>
+                    <button id="cancel-edit">Cancelar</button-->
+                </menu>
+            </form>
+        </dialog>
     </div>
     <script src="../js/window-lock.js"></script>
+    <script src="../js/kanban.js"></script>
+
+    <!-- Toast de notificación -->
+    <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
+
+    <!-- Confirmación personalizada -->
+    <div id="confirm-toast" class="hidden-toast">
+        <span id="confirm-msg">¿Estás seguro?</span>
+        <div class="confirm-buttons">
+            <button id="btn-confirm-ok">Sí</button>
+            <button id="btn-confirm-cancel">Cancelar</button>
+        </div>
+    </div>
 </body>
 </html>

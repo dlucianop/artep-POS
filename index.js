@@ -1,16 +1,25 @@
-const {app, BrowserWindow} = require('electron');
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const fs = require('fs');
 
-function createWindow(){
+function createWindow() {
     let win = new BrowserWindow({
         width: 1280,
         height: 720,
-        webPreferences:{
+        webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
         }
     });
 
-    win.loadFile("html/index.html");
+    const indexPath = path.join(__dirname, 'html', 'index.html');
+    console.log("Index Path: ", indexPath);
+    win.loadFile(indexPath);
 }
 
 app.whenReady().then(createWindow);
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});

@@ -1,0 +1,138 @@
+#content-section-s{
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    animation: fade-content ease 1.5s forwards;
+    align-items: center;
+    width: 95%;
+}
+
+.kanban-container {
+    display: flex;
+    flex-grow: 1;
+    background: #f0f0f0;
+    width: 85%;
+}
+  
+.kanban-column {
+    flex: 0 0 14.28%;
+    border-right: 2px solid white;
+    padding: 10px;
+    background-color: #e2b492;
+    height: 100vh;
+    overflow-y: auto;
+}
+  
+.kanban-column h3 {
+    text-align: center;
+    margin-top: 0;
+    color: #300907;
+}
+  
+.kanban-cards {
+    min-height: 100px;
+}
+  
+.kanban-card {
+    background-color: white;
+    border: 1px solid #ccc;
+    margin: 10px 0;
+    padding: 8px;
+    cursor: grab;
+    border-radius: 5px;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.kanban-card > article ul{
+    list-style: none;
+}
+  
+.kanban-card:hover {
+    background-color: #e9f5ff;
+}
+  
+#detail-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#detail-dialog, 
+#edit-dialog {
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    justify-self: center;
+    align-self: center;
+}
+
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.dialog-content h3,
+.dialog-content h6 {
+    margin: 0;
+    font-size: 1.25rem;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+    color: #390101;
+}
+  
+#detail-content, 
+#edit-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+  
+#detail-content p, #edit-content p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+  
+#detail-content p strong,
+#edit-content p strong {
+    color: #954e38;
+}
+  
+.dialog-content menu {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+}
+  
+#close-detail,
+#update-edit,
+#cancel-edit {
+    background-color: #954e38;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+  
+#close-detail:hover,
+#update-edit:hover
+#cancel-edit:hover {
+    background: #390101;
+}

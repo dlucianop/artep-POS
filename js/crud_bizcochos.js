@@ -2,17 +2,16 @@ const { join } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname,'..', 'js', 'connection.js'));
 
 function createBizcocho(bizcocho) {
-    console.log(bizcocho);
+    //console.log(bizcocho);
     return new Promise((resolve, reject) => {
         const db = openDataBase();
         const query = `
             INSERT INTO inventario_bizcochos
-                (id_biz, biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
-            VALUES (?, ?, ?, 0, ?, ?, ?, 0, 0, 0);
+                (biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
+            VALUES (?, ?, 0, ?, ?, ?, 0, 0, 0);
         `;
 
         const params = [
-            bizcocho.id_biz,
             bizcocho.biz_category,
             bizcocho.biz_size,
             bizcocho.stock_apartado,

@@ -187,6 +187,7 @@ function createDetalle(detalles){
                 }
         
                 const newDetalle = {
+                    id_detalle: this.lastID,
                     id_venta: detalles.id_venta, 
                     code: detalles.code,
                     price: detalles.price,
@@ -209,6 +210,7 @@ function readDetalles(id_venta) {
         const db = openDataBase();
         const query = `
             SELECT 
+                id_detalle,
                 v.id_venta AS noDeVenta,
                 v.fecha_venta,
                 v.hora AS hora_venta,

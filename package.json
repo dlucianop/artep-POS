@@ -2,20 +2,51 @@
   "name": "artep-pos",
   "version": "2.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
-  },
+  "description": "",
   "author": "dlucianop31",
   "license": "ISC",
-  "description": "",
   "type": "commonjs",
+  "scripts": {
+    "start": "electron .",
+    "rebuild": "electron-rebuild -f -w better-sqlite3 sqlite3",
+    "package": "npm run rebuild && electron-packager . ArtepPOS --platform=win32 --arch=x64 --out=release --overwrite --prune=true"
+  },
   "dependencies": {
+    "better-sqlite3": "^11.9.1",
     "jspdf": "^3.0.0",
     "jspdf-autotable": "^5.0.2",
     "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "electron": "^33.4.1"
+    "electron": "^33.4.1",
+    "electron-builder": "^26.0.12",
+    "electron-packager": "^17.1.2",
+    "electron-rebuild": "^3.2.9"
+  },
+  "build": {
+    "appId": "com.artep.pos",
+    "productName": "artep-POS",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.js",
+      "package.json",
+      "html/**/*",
+      "css/**/*",
+      "js/**/*",
+      "img/**/*",
+      "db/data-artep.db",
+      "icon.ico"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
