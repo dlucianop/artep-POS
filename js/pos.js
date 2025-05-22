@@ -355,14 +355,15 @@ async function ventasActions() {
 
 async function productosActions(item, mode, prod) {
     try {
-        let stock = parseInt(item.stock) || 0;
-        let pedido = parseInt(item.pedido) || 0;
+        let stock = parseInt(item.stock ?? prod?.stock_disponible ?? 0);
+        let pedido = parseInt(item.pedido ?? prod?.stock_apartado ?? 0);
+
         let faltante = Math.max(0, pedido - stock);
         let apartar = Math.min(stock, pedido);
 
         if (mode === "Create") {
             const producto = {
-                code: Math.max(0, item.codigo),
+                code: item.codigo,
                 category: item.categoria,
                 model: item.modelo,
                 size: item.size,
@@ -376,17 +377,6 @@ async function productosActions(item, mode, prod) {
             await createProducto(producto);
 
         } else if (mode === "Update") {
-            stock = (item.stock !== undefined && item.stock !== "") 
-                ? parseInt(item.stock) 
-                : prod.stock_disponible;
-
-            pedido = (item.pedido !== undefined && item.pedido !== "") 
-                ? parseInt(item.pedido) 
-                : prod.stock_apartado;
-
-            apartar = Math.min(stock, pedido);
-            faltante = Math.max(0, pedido - stock);
-
             const producto = {
                 code: prod.code,
                 category: prod.category,
@@ -415,15 +405,19 @@ async function bizcosActions(item, mode, bizcocho, faltante) {
         let faltanteRestante = faltante;
 
         if (mode === "Create") {
+            const stock_disponible = parseInt(item.stock ?? 0);
+            const apartar = Math.min(stock_disponible, faltanteRestante);
+
             const bizco = {
                 biz_category: item.categoria,
                 biz_size: item.size,
-                stock_apartado: 0,
-                stock_disponible: 0,
-                stock_en_proceso: faltanteRestante,
+                stock_apartado: apartar,
+                stock_disponible: Math.max(0, stock_disponible - apartar),
+                stock_en_proceso: Math.max(0, faltanteRestante - apartar),
             };
             await createBizcocho(bizco);
-            faltanteRestante = 0;
+
+            faltanteRestante = faltanteRestante - apartar;
 
         } else if (mode === "Update") {
             const apartar = Math.min(bizcocho.stock_disponible, faltanteRestante);
@@ -433,15 +427,14 @@ async function bizcosActions(item, mode, bizcocho, faltante) {
                 biz_size: item.size,
                 stock_apartado: bizcocho.stock_apartado + apartar,
                 stock_disponible: Math.max(0, bizcocho.stock_disponible - apartar),
-                stock_en_proceso: Math.max(0, bizcocho.stock_en_proceso + (faltanteRestante - apartar)),
+                stock_en_proceso: bizcocho.stock_en_proceso + (faltanteRestante - apartar),
             };
             await updateBizcocho(bizco);
 
             faltanteRestante = faltanteRestante - apartar;
-            if (faltanteRestante < 0) faltanteRestante = 0;
         }
 
-        return faltanteRestante;
+        return Math.max(0, faltanteRestante);
 
     } catch (error) {
         console.error('❌ bizcosActions ERROR:', error);
@@ -449,7 +442,6 @@ async function bizcosActions(item, mode, bizcocho, faltante) {
         throw error;
     }
 }
-
 
 async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
     try {
@@ -466,6 +458,23 @@ async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
     } catch (error) {
         console.error('❌ ordenesActions ERROR:', error);
         showToast(`Error en ordenesActions: ${error.message}`, ICONOS.error);
+        throw error;
+    }
+}
+
+async function detallesActions(ventaId, item) {
+    try {
+        const newDetalle = await createDetalle({
+            id_venta:    ventaId,
+            code:        item.codigo,
+            price:       item.precio,
+            quantity:    item.pedido,
+            importe:     item.precio * item.pedido
+        });
+        return newDetalle;
+    } catch (error) {
+        console.error('❌ detallesActions ERROR:', error);
+        showToast(`Error en detallesActions: ${error.message}`, ICONOS.error);
         throw error;
     }
 }
@@ -523,20 +532,31 @@ async function imprimirRecibo() {
                 modeP = "Update";
             }
 
-            let faltante = await productosActions(item, modeP, producto);
-            let faltanteRestante = await bizcosActions(item, modeB, bizcocho, faltante);
-            
-            if (faltanteRestante > 0) {
-                await ordenesActions(ventaId, fecha_entrega, item, faltanteRestante);
-            }
-            await detallesActions(item, newOrden); 
-        }
+            const faltante = await productosActions(item, modeP, producto);
+            const faltanteRestante = await bizcosActions(item, modeB, bizcocho, faltante);
 
+            let newOrden = null;
+            if (faltanteRestante > 0) {
+                newOrden = await ordenesActions(ventaId, fecha_entrega, item, faltanteRestante);
+            }
+
+            const newDetalle = await detallesActions(ventaId, item);
+
+            if (faltanteRestante > 0) {
+                const payload = {
+                    id_detalle: parseInt(newDetalle.id_detalle, 10) || null,
+                    id_orden:   newOrden ? parseInt(newOrden.id_orden, 10) : null
+                };
+                console.log(payload);
+                await insertDetalle(payload);
+            }
+            
+        }
         const detalles_venta = await readDetalles(ventaId);
         await generarRecibos({ venta_datos: detalles_venta });
         showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
 
-        /*setTimeout(() => window.location.reload(), 2000);*/
+        setTimeout(() => window.location.reload(), 3000);
         
     } catch (error) {
         console.error("❌ Error al imprimir recibo:", error?.message || error);

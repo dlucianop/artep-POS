@@ -111,7 +111,7 @@ function insertDetalle(orden) {
                     return reject(new Error("Error al actualizar orden: " + err.message));
                 }
                 if (this.changes === 0) {
-                    return reject(new Error("No se encontró ninguna orden con ese identificador"));
+                    return reject(new Error("Error al insertar detalle en Orden: no se encontro coincidencias"));
                 }
 
                 resolve("Orden actualizada correctamente.");

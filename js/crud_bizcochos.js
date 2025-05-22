@@ -2,7 +2,7 @@ const { join } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname,'..', 'js', 'connection.js'));
 
 function createBizcocho(bizcocho) {
-    console.log(bizcocho);
+    //console.log(bizcocho);
     return new Promise((resolve, reject) => {
         const db = openDataBase();
         const query = `
