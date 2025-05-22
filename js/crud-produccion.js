@@ -181,10 +181,39 @@ function readOrden(id_orden) {
     });
 }
 
+function readOrdenesByVenta(id_venta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            SELECT op.*, oo.nombre AS origen, f.name_fase AS fase_actual, f.tipo_fase
+            FROM orden_produccion op
+            INNER JOIN origen_orden oo ON op.id_origen = oo.id_origen
+            INNER JOIN fase f ON f.id_fase = op.id_fase
+            WHERE op.id_venta = ?
+        `;
+
+        db.all(query, [id_venta], (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("Error al leer órdenes por venta: " + err.message));
+                }
+                resolve(rows || []);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+
 module.exports = { 
     createOrden, 
     updateOrden,
     insertDetalle,
     readOrdenByFase,
-    readOrden
+    readOrden,
+    readOrdenesByVenta
 }

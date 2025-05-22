@@ -251,3 +251,72 @@ async function imprimirRecibo() {
         showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
     }
 }
+
+
+/*------------------------------------------------------------------------------------------------- */
+async function updateData(detalleV, detalleO, ordenData) {
+    try {
+        const orden = {
+            id_fase: ordenData.id_fase,
+            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
+            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
+            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
+            id_orden: ordenData.id_orden
+        };
+
+        const cantidadProducida = orden.cantidad_buenos;
+
+        await updateOrden(orden);
+
+        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
+
+        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
+
+        if (newFase.tipo_fase === "Bizcocho") {
+            const bizcocho = await searchBizcocho({
+                biz_category: detalleO.categoria,
+                biz_size: detalleO.size
+            });
+
+            if (bizcocho && bizcocho.id_biz) {
+                bizcocho.stock_en_proceso = Math.max(0, bizcocho.stock_en_proceso - cantidadProducida);
+
+                if (orden.id_fase === ultimaFase.id_fase) {
+                    bizcocho.stock_apartado += cantidadProducida;
+                } else {
+                    bizcocho.stock_en_proceso += cantidadProducida;
+                }
+
+                await updateBizcocho(bizcocho);
+            } else {
+                showToast("❌ No se encontró el bizcocho para actualizar.", ICONOS.error);
+                console.error('❌ No se encontró el bizcocho para actualizar');
+            }
+
+        } else if (newFase.tipo_fase === "Producto") {
+            const producto = await searchProduct(detalleV.codigo);
+
+            if (producto && producto.code) {
+                producto.stock_en_proceso = Math.max(0, producto.stock_en_proceso - cantidadProducida);
+
+                if (orden.id_fase === ultimaFase.id_fase) {
+                    producto.stock_apartado += cantidadProducida;
+                } else {
+                    producto.stock_en_proceso += cantidadProducida;
+                }
+
+                await updateProducto(producto);
+            } else {
+                showToast("❌ No se encontró el producto para actualizar.", ICONOS.error);
+                console.error('❌ No se encontró el producto para actualizar');
+            }
+        }
+
+        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
+        initProduccion();
+
+    } catch (error) {
+        console.error('❌ ERROR:', error.message);
+        showToast(`ERROR: ${error.message}`, ICONOS.error);
+    }
+}
