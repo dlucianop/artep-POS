@@ -26,7 +26,14 @@
         </a>
     </div>
     <div id="content-section-s">
-
+        <div class="panel-header">
+            <h2>Panel de Produccion</h2>
+            <!--div class="toggle-mode">
+                <input type="checkbox" id="modoToggle">
+                <label for="modoToggle">MODO AUTOMÁTICO</label>
+            </div-->
+            <button type="button" onclick="agregarNuevaOrden()">➕ Agregar Orden</button>
+        </div>
         <div class="kanban-container">
         </div>
         
@@ -54,7 +61,51 @@
             </form>
         </dialog>
     </div>
+
+    <div id="editOrdenModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('editOrdenModal')">&times;</span>
+            <form id="formOrden" data-mode="" onsubmit="guardarOrden(event)">
+            
+            <div class="orden-form-field" id="ordenCodeField" style="display:none;">
+                <label for="ordenId">ID Orden:</label>
+                <input id="ordenId" name="ordenId" type="number" step="1" min="0" readonly>
+            </div>
+
+            <!-- Campo para elegir si la orden es para inventario de bizcocho o de producto -->
+            <div class="orden-form-field">
+                <label for="tipoInventario">Tipo de Inventario:</label>
+                <select id="tipoInventario" name="tipoInventario" required onchange="cargarOpcionesProducto()">
+                <option value="" disabled selected>-- Elija tipo --</option>
+                <option value="bizcocho">Inventario de Bizcocho</option>
+                <option value="producto">Inventario de Producto</option>
+                </select>
+            </div>
+
+            <!-- Campo vacío que se llenará con opciones de bizcocho o producto según la selección anterior -->
+            <div class="orden-form-field">
+                <label for="itemSeleccionado">Bizcocho / Producto:</label>
+                <select id="itemSeleccionado" name="itemSeleccionado" required>
+                <!-- Opciones se llenarán por JS -->
+                </select>
+            </div>
+
+            <!-- Cantidad inicial -->
+            <div class="orden-form-field">
+                <label for="cantidadInicial">Cantidad Inicial:</label>
+                <input id="cantidadInicial" name="cantidadInicial" type="number" min="0" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" disabled>Guardar</button>
+                <button type="button" onclick="closeModal('editOrdenModal')">Cancelar</button>
+            </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../js/window-lock.js"></script>
+    <script src="../js/modal.js"></script>
     <script src="../js/kanban.js"></script>
 
     <!-- Toast de notificación -->

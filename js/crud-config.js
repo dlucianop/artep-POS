@@ -6,13 +6,13 @@ function readFases() {
         const db = openDataBase();
         const query = `
             SELECT *
-            FROM fase
+            FROM fase;
         `;
 
         db.all(query, (err, rows) => {
             try {
                 if (err) {
-                    return reject(new Error("Error al leer fases: " + err.message));
+                    return reject(new Error("[readFases] Error al leer fases: " + err.message));
                 }
 
                 if (!rows || rows.length === 0) {
@@ -64,7 +64,63 @@ function updateFase(fase) {
     });
 }
 
+function readCategorias() {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT *
+            FROM productos_categorias;
+        `;
+
+        db.all(query, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readCategorias] Error al leer categorias: " + err.message));
+                }
+
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function readSizes() {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT *
+            FROM productos_size;
+        `;
+
+        db.all(query, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readSizes] Error al leer tamaños: " + err.message));
+                }
+
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 module.exports = {
     readFases,
     updateFase,
+    readCategorias,
+    readSizes
 }

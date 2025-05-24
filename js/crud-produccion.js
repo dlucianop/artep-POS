@@ -89,6 +89,41 @@ function updateOrden(orden) {
     });
 }
 
+function updateRepo(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                cantidad_inicial = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.cantidad_inicial,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateRepo] Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateRepo] No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function insertDetalle(orden) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -231,6 +266,32 @@ function updateCantidadInicial(id_orden, cantidad_inicial) {
     });
 }
 
+function searchReposicionOrden(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT *
+            FROM orden_produccion
+            WHERE id_venta = ? AND id_detalle = ? AND id_origen = 5;
+        `;
+
+        const params = [
+            orden.id_venta, 
+            orden.id_detalle
+        ];
+
+        db.get(query, params, (err, row) => {
+            if (err) {
+                closeDatabase(db);
+                return reject(new Error("[searchReposicionOrden] Error al leer la orden: " + err.message));
+            }
+
+            closeDatabase(db);
+            resolve(row || undefined);
+        });
+    });
+}
+
 module.exports = { 
     createOrden, 
     updateOrden,
@@ -238,5 +299,7 @@ module.exports = {
     readOrdenByFase,
     readOrden,
     readOrdenesByVenta,
-    updateCantidadInicial
+    updateCantidadInicial,
+    searchReposicionOrden,
+    updateRepo
 }

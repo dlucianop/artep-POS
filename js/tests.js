@@ -1,103 +1,15 @@
-async function productosActions(item, mode, prod) {
-    try {
-        let stock = parseInt(item.stock ?? prod?.stock_disponible ?? 0);
-        let pedido = parseInt(item.pedido ?? prod?.stock_apartado ?? 0);
-
-        let faltante = Math.max(0, pedido - stock);
-        let apartar = Math.min(stock, pedido);
-
-        if (mode === "Create") {
-            const producto = {
-                code: item.codigo,
-                category: item.categoria,
-                model: item.modelo,
-                size: item.size,
-                decoration: item.decoracion,
-                color: item.color,
-                price: parseFloat(item.precio) || 0,
-                stock_apartado: apartar,
-                stock_disponible: Math.max(0, stock - pedido),
-                stock_en_proceso: 0
-            };
-            await createProducto(producto);
-
-        } else if (mode === "Update") {
-            const producto = {
-                code: prod.code,
-                category: prod.category,
-                model: prod.model,
-                size: prod.size,
-                decoration: prod.decoration,
-                color: prod.color,
-                price: parseFloat(item.precio) || prod.price,
-                stock_apartado: apartar,
-                stock_disponible: Math.max(0, stock - pedido),
-                stock_en_proceso: prod.stock_en_proceso
-            };
-            await updateProducto(producto);
-        }
-        return faltante;
-
-    } catch (error) {
-        console.error('❌ productosActions ERROR:', error);
-        showToast(`Error en productosActions: ${error.message}`, ICONOS.error);
-        throw error;
-    }
-}
-
-async function bizcosActions(item, mode, bizcocho, faltante) {
-    try {
-        let faltanteRestante = faltante;
-
-        if (mode === "Create") {
-            const stock_disponible = parseInt(item.stock ?? 0);
-            const apartar = Math.min(stock_disponible, faltanteRestante);
-
-            const bizco = {
-                biz_category: item.categoria,
-                biz_size: item.size,
-                stock_apartado: apartar,
-                stock_disponible: Math.max(0, stock_disponible - apartar),
-                stock_en_proceso: Math.max(0, faltanteRestante - apartar),
-            };
-            await createBizcocho(bizco);
-
-            faltanteRestante = faltanteRestante - apartar;
-
-        } else if (mode === "Update") {
-            const apartar = Math.min(bizcocho.stock_disponible, faltanteRestante);
-
-            const bizco = {
-                biz_category: item.categoria,
-                biz_size: item.size,
-                stock_apartado: bizcocho.stock_apartado + apartar,
-                stock_disponible: Math.max(0, bizcocho.stock_disponible - apartar),
-                stock_en_proceso: bizcocho.stock_en_proceso + (faltanteRestante - apartar),
-            };
-            await updateBizcocho(bizco);
-
-            faltanteRestante = faltanteRestante - apartar;
-        }
-
-        return Math.max(0, faltanteRestante);
-
-    } catch (error) {
-        console.error('❌ bizcosActions ERROR:', error);
-        showToast(`Error en bizcosActions: ${error.message}`, ICONOS.error);
-        throw error;
-    }
-}
-
-async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
+async function crearOrdenReposicion(ventaId, fecha_entrega, item, faltanteRestante) {
     try {
         const orden = {
             id_venta: ventaId,
-            id_origen: 1,
+            id_origen: 5,
             fecha_entrega,
             categoria: item.categoria,
             size: item.size,
-            cantidad_inicial: faltanteRestante
+            cantidad_inicial: faltanteRestante,
+            id_detalle: item.id_detalle
         };
+
         const newOrden = await createOrden(orden);
         return newOrden;
     } catch (error) {
@@ -107,170 +19,13 @@ async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
     }
 }
 
-async function detallesActions(ventaId, item) {
+async function updateOrdenInventario(orden) {
     try {
-        const newDetalle = await createDetalle({
-            id_venta:    ventaId,
-            code:        item.codigo,
-            price:       item.precio,
-            quantity:    item.pedido,
-            importe:     item.precio * item.pedido
-        });
-        return newDetalle;
-    } catch (error) {
-        console.error('❌ detallesActions ERROR:', error);
-        showToast(`Error en detallesActions: ${error.message}`, ICONOS.error);
-        throw error;
-    }
-}
-
-async function imprimirRecibo() {
-    try {
-        await validaciones();
-
-        const { ventaId, fecha_entrega } = await ventasActions();
-
-        for (const item of window.carrito) {
-            const pedido = item.pedido;
-            const producto = window.productos.find(p => p.code === item.codigo);
-            const bizcocho = window.bizcochos.find(b => b.biz_category === item.categoria && b.biz_size === item.size);
-
-            let modeP = "";
-            let modeB = "";
-
-            if (!producto && !bizcocho) {
-                console.warn(`Ni el PRODUCTO con código ${item.codigo} ni el BIZCOCHO ${item.categoria} (${item.size}) fueron encontrados.`);
-
-                window.productos.push({
-                    code: item.codigo,
-                    category: item.categoria || "",
-                    model: item.modelo || "",
-                    size: item.size || "",
-                    decoration: item.decoracion || "",
-                    color: item.color || "",
-                    price: parseFloat(item.precio) || 0,
-                    stock_apartado: 0,
-                    stock_critico: 0,
-                    stock_disponible: 0,
-                    stock_en_proceso: 0,
-                    stock_max: 0,
-                    stock_min: 0,
-                    stock_total: 0
-                });
-
-                modeP = "Create";
-
-                window.bizcochos.push({
-                    biz_category: item.categoria || "",
-                    biz_size: item.size || "",
-                    stock_apartado: 0,
-                    stock_critico: 0,
-                    stock_disponible: parseInt(item.stock) || 0,
-                    stock_en_proceso: 0,
-                    stock_max: 0,
-                    stock_min: 0,
-                    stock_total: 0
-                });
-
-                modeB = "Create";
-
-            } else if (!producto) {
-                console.warn(`PRODUCTO con código ${item.codigo} no encontrado.`);
-
-                window.productos.push({
-                    code: item.codigo,
-                    category: item.categoria || "",
-                    model: item.modelo || "",
-                    size: item.size || "",
-                    decoration: item.decoracion || "",
-                    color: item.color || "",
-                    price: parseFloat(item.precio) || 0,
-                    stock_apartado: 0,
-                    stock_critico: 0,
-                    stock_disponible: 0,
-                    stock_en_proceso: 0,
-                    stock_max: 0,
-                    stock_min: 0,
-                    stock_total: 0
-                });
-
-                modeP = "Create";
-                modeB = "Update";
-
-            } else if (!bizcocho) {
-                console.warn(`BIZCOCHO ${item.categoria} (${item.size}) no encontrado.`);
-
-                window.bizcochos.push({
-                    biz_category: item.categoria || "",
-                    biz_size: item.size || "",
-                    stock_apartado: 0,
-                    stock_critico: 0,
-                    stock_disponible: parseInt(item.stock) || 0,
-                    stock_en_proceso: 0,
-                    stock_max: 0,
-                    stock_min: 0,
-                    stock_total: 0
-                });
-                modeB = "Create";
-                modeP = "Update";
-
-            } else {
-                console.log(`PRODUCTO con código ${item.codigo} y BIZCOCHO ${item.categoria} (${item.size}) encontrados.`);
-                modeB = "Update";
-                modeP = "Update";
-            }
-
-            const faltante = await productosActions(item, modeP, producto);
-            const faltanteRestante = await bizcosActions(item, modeB, bizcocho, faltante);
-
-            let newOrden = null;
-            if (faltanteRestante > 0) {
-                newOrden = await ordenesActions(ventaId, fecha_entrega, item, faltanteRestante);
-            }
-
-            const newDetalle = await detallesActions(ventaId, item);
-
-            if (faltanteRestante > 0) {
-                const payload = {
-                    id_detalle: parseInt(newDetalle.id_detalle, 10) || null,
-                    id_orden:   newOrden ? parseInt(newOrden.id_orden, 10) : null
-                };
-                console.log(payload);
-                await insertDetalle(payload);
-            }
-            
-        }
-        const detalles_venta = await readDetalles(ventaId);
-        await generarRecibos({ venta_datos: detalles_venta });
-        showToast("Venta y recibo procesados exitosamente.", ICONOS.exito);
-
-        setTimeout(() => window.location.reload(), 3000);
-        
-    } catch (error) {
-        console.error("❌ Error al imprimir recibo:", error?.message || error);
-        showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
-    }
-}
-
-
-/*------------------------------------------------------------------------------------------------- */
-async function updateData(detalleV, detalleO, ordenData) {
-    try {
-        const orden = {
-            id_fase: ordenData.id_fase,
-            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
-            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
-            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
-            id_orden: ordenData.id_orden
-        };
+        const ordenData = await readOrdenById(orden.id_orden);
+        const detalleO = await readDetalleOrden(orden.id_orden);
+        const newFase = await getFaseById(orden.id_fase);
 
         const cantidadProducida = orden.cantidad_buenos;
-
-        await updateOrden(orden);
-
-        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
-
-        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
 
         if (newFase.tipo_fase === "Bizcocho") {
             const bizcocho = await searchBizcocho({
@@ -278,226 +33,83 @@ async function updateData(detalleV, detalleO, ordenData) {
                 biz_size: detalleO.size
             });
 
-            if (bizcocho && bizcocho.id_biz) {
-                bizcocho.stock_en_proceso = Math.max(0, bizcocho.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    bizcocho.stock_apartado += cantidadProducida;
-                } else {
-                    bizcocho.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateBizcocho(bizcocho);
-            } else {
-                showToast("❌ No se encontró el bizcocho para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el bizcocho para actualizar');
-            }
-
-        } else if (newFase.tipo_fase === "Producto") {
-            const producto = await searchProduct(detalleV.codigo);
-
-            if (producto && producto.code) {
-                producto.stock_en_proceso = Math.max(0, producto.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    producto.stock_apartado += cantidadProducida;
-                } else {
-                    producto.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateProducto(producto);
-            } else {
-                showToast("❌ No se encontró el producto para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el producto para actualizar');
-            }
-        }
-
-        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
-        initProduccion();
-
-    } catch (error) {
-        console.error('❌ ERROR:', error.message);
-        showToast(`ERROR: ${error.message}`, ICONOS.error);
-    }
-}
-
-
-
-
-async function updateData(detalleV, detalleO, ordenData) {
-    try {
-        const orden = {
-            id_fase: ordenData.id_fase,
-            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
-            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
-            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
-            id_orden: ordenData.id_orden
-        };
-
-        const cantidadProducida = orden.cantidad_buenos;
-
-        await updateOrden(orden);
-
-        // Actualización stocks (tu lógica actual)
-        // ...
-
-        if (cantidadProducida < detalleO.cantidad_inicial) {
-            const faltante = detalleO.cantidad_inicial - cantidadProducida;
-
-            // Buscamos orden de reposición existente
-            const ordenes = await readOrdenesByVenta(ordenData.id_venta);
-            const ordenReposicion = ordenes.find(o =>
-                o.id_origen === 5 &&
-                o.categoria === detalleO.categoria &&
-                o.size === detalleO.size
-            );
-
-            if (!ordenReposicion) {
-                // No existe, creamos una nueva orden de reposición
-                await ordenesActions(
-                    ordenData.id_venta,
-                    ordenData.fecha_entrega,
-                    {
-                        categoria: detalleO.categoria,
-                        size: detalleO.size
-                    },
-                    faltante
-                );
-
-                showToast(`🛠 Se creó una orden de reposición por ${faltante} piezas.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
-
-            } else {
-                // Ya existe, actualizamos cantidad pendiente sumando el faltante actual
-                const nuevaCantidad = ordenReposicion.cantidad_inicial + faltante;
-
-                const ordenActualizada = {
-                    id_orden: ordenReposicion.id_orden,
-                    cantidad_inicial: nuevaCantidad,
-                };
-
-                await updateOrden(ordenActualizada);
-
-                showToast(`🔄 Se actualizó la orden de reposición con ${faltante} piezas adicionales.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
-            }
-        }
-
-        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
-        initProduccion();
-
-    } catch (error) {
-        console.error('❌ ERROR:', error.message);
-        showToast(`ERROR: ${error.message}`, ICONOS.error);
-    }
-}
-
-
-
-async function updateData(detalleV, detalleO, ordenData) {
-    try {
-        const orden = {
-            id_fase: ordenData.id_fase,
-            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
-            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
-            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
-            id_orden: ordenData.id_orden
-        };
-
-        const cantidadProducida = orden.cantidad_buenos;
-        console.log('🔄 Orden a actualizar:', orden);
-
-        await updateOrden(orden);
-
-        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
-        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
-
-        if (newFase.tipo_fase === "Bizcocho") {
-            const bizcocho = await searchBizcocho({
-                biz_category: detalleO.categoria,
-                biz_size: detalleO.size
+            await updateBizcocho({
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: bizcocho.stock_disponible + cantidadProducida,
+                stock_en_proceso: bizcocho.stock_en_proceso,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
             });
-
-            if (bizcocho && bizcocho.id_biz) {
-                bizcocho.stock_en_proceso = Math.max(0, bizcocho.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    bizcocho.stock_apartado += cantidadProducida;
-                } else {
-                    bizcocho.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateBizcocho(bizcocho);
-            } else {
-                showToast("❌ No se encontró el bizcocho para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el bizcocho para actualizar');
-            }
-
         } else if (newFase.tipo_fase === "Producto") {
-            const producto = await searchProduct(detalleV.codigo);
+            const producto = await searchProduct(detalleO.codigo);
 
-            if (producto && producto.code) {
-                producto.stock_en_proceso = Math.max(0, producto.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    producto.stock_apartado += cantidadProducida;
-                } else {
-                    producto.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateProducto(producto);
-            } else {
-                showToast("❌ No se encontró el producto para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el producto para actualizar');
-            }
+            await updateStockProducto({
+                stock_apartado: producto.stock_apartado,
+                stock_disponible: producto.stock_disponible + cantidadProducida,
+                stock_en_proceso: producto.stock_en_proceso,
+                code: producto.code
+            });
         }
 
-        const esReposicion = ordenData.id_origen === 5;
+        await updateOrden(orden);
+    } catch (error) {
+        console.error("❌ Error en updateOrdenInventario:", error);
+        showToast("Error en orden de inventario", ICONOS.error);
+    }
+}
+
+async function updateOrdenReposicion(orden) {
+    try {
+        const ordenData = await readOrdenById(orden.id_orden);
+        const detalleO = await readDetalleOrden(orden.id_orden);
+        const detalleV = await searchDetalleVenta(detalleO.id_detalle);
+
+        const cantidadProducida = orden.cantidad_buenos;
         const cantidadInicialActual = detalleO?.cantidad_inicial || ordenData?.cantidad_inicial || 0;
+        const faltante = cantidadInicialActual - cantidadProducida;
 
-        if (!esReposicion && cantidadProducida < cantidadInicialActual) {
-            const faltante = cantidadInicialActual - cantidadProducida;
+        const newFase = await getFaseById(orden.id_fase);
+        const ultimaFase = await getUltimaFase();
 
-            const ordenes = await readOrdenesByVenta(ordenData.id_venta);
-            const ordenReposicion = ordenes.find(o =>
-                o.id_origen === 5 &&
-                o.categoria === detalleO.categoria &&
-                o.size === detalleO.size
-            );
+        if (newFase.tipo_fase === "Bizcocho") {
+            const bizcocho = await searchBizcocho({
+                biz_category: detalleO.categoria,
+                biz_size: detalleO.size
+            });
 
-            if (!ordenReposicion) {
-                await ordenesActions(
-                ordenData.id_venta,
-                ordenData.fecha_entrega,
-                {
-                    categoria: detalleO.categoria,
-                    size: detalleO.size,
-                    id_detalle: detalleO.id_detalle
-                },
-                faltante
-            );
-                showToast(`🛠 Se creó una orden de reposición por ${faltante} piezas.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
+            await updateBizcocho({
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: faltante > 0
+                    ? bizcocho.stock_disponible - faltante
+                    : bizcocho.stock_disponible,
+                stock_en_proceso: bizcocho.stock_en_proceso + cantidadProducida,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
+            });
+        } else if (newFase.tipo_fase === "Producto") {
+            const producto = await searchProduct(detalleV.codigo);
+            const esUltimaFase = newFase.id_fase === ultimaFase.id_fase;
 
-            } else {
-                const nuevaCantidad = ordenReposicion.cantidad_inicial + faltante;
-
-                await updateCantidadInicial(ordenReposicion.id_orden, nuevaCantidad);
-
-                showToast(`🔄 Se actualizó la orden de reposición con ${faltante} piezas adicionales.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
-            }
+            await updateStockProducto({
+                stock_apartado: esUltimaFase
+                    ? producto.stock_apartado + cantidadProducida
+                    : producto.stock_apartado,
+                stock_disponible: producto.stock_disponible,
+                stock_en_proceso: esUltimaFase
+                    ? producto.stock_en_proceso
+                    : producto.stock_en_proceso + cantidadProducida,
+                code: producto.code
+            });
         }
 
-        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
-        initProduccion();
-
+        await updateOrden(orden);
     } catch (error) {
-        console.error('❌ ERROR:', error.message);
-        showToast(`ERROR: ${error.message}`, ICONOS.error);
+        console.error("❌ Error en updateOrdenReposicion:", error);
+        showToast("Error en orden de reposición", ICONOS.error);
     }
+}
+
+async function getCantidadConDefault(idCampo, valorAnterior) {
+    const valor = parseInt(document.getElementById(idCampo).value.trim(), 10);
+    return isNaN(valor) ? valorAnterior : valor;
 }

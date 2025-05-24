@@ -152,6 +152,42 @@ function updateProducto(producto) {
     });
 }
 
+function updateStockProducto(producto) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            UPDATE inventario_productos
+            SET 
+                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
+            WHERE code = ?;
+        `;
+
+        const params = [
+            producto.stock_apartado,
+            producto.stock_disponible,
+            producto.stock_en_proceso,
+            producto.code
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateStockProducto] Error al actualizar producto: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateStockProducto] No se encontró ningún producto con ese código"));
+                }
+
+                resolve("Producto actualizado correctamente");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function deleteProducto(code) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -185,5 +221,6 @@ module.exports = {
     readProductos, 
     searchProduct, 
     updateProducto, 
-    deleteProducto 
+    deleteProducto,
+    updateStockProducto
 };
