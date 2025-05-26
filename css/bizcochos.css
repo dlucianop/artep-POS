@@ -35,114 +35,118 @@ table {
 }
 
 /************** MODAL *******************/
-.modal {
-    display: none;
-    opacity: 0;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgb(0,0,0);
-    background-color: rgba(0,0,0,0.4);
-    padding-top: 60px;
-}
-  
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 60%;
+#create-dialog,
+#update-dialog,
+#delete-dialog {
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    justify-self: center;
+    align-self: center;
 }
 
-.modal-content > div form {
-    width: 100%;
-    background-color: #954e38;
-    color: white;
-    border-radius: 5px;
-    padding: 20px;
-}
-
-.modal-content > div {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-  
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.bizco-form-field {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 0;
-    width: 100%;
-}
-
-.bizco-form-field > input, .bizco-form-field > select{
-    width: 75%;
-    padding: 5px 0;
-    padding-left: 10px;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.bizco-form-field > div{
+.dialog-content {
     display: flex;
     flex-direction: column;
-    width: 30%;
+    gap: 1rem;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
 }
 
-.bizco-form-field > div input {
-    width: 80%;
-    padding: 5px 0;
-    padding-left: 10px;
-    border-radius: 5px;
+.dialog-content h3,
+.dialog-content h6 {
+    margin: 0;
+    font-size: 1.25rem;
     text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+    color: #390101;
 }
-
-.modal-actions{
+  
+#update-content, 
+#create-content,
+#delete-content {
+    max-height: 60vh;
+    overflow-y: auto;
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+  
+#update-content p, 
+#create-content p,
+#delete-content p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
     width: 100%;
 }
 
-.modal-actions > button{
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    width: 30%;
+#update-content p strong,
+#create-content p strong,
+#delete-content p strong {
+    color: #954e38;
+    white-space: nowrap;
+    min-width: 150px;
 }
 
-.modal-actions > button:hover{
+#update-content p input, 
+#create-content p input,
+#update-content p select,
+#create-content p select {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+}
+
+#delete-content p input {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#delete-content p input[readonly],
+#delete-content p input[disabled] {
+    background-color: #f0f0f0;
+    color: #666;
+    cursor: default;
+}
+  
+.dialog-content menu {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+}
+  
+.dialog-btn {
+    background-color: #e2b492;
+    color: #390101;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 4px;
     cursor: pointer;
-    background-color: #390101;
-    color: white;
-    transition: background-color 0.3s, color 0.3s;
+    transition: background-color 0.2s ease-in-out;
+}
+  
+.dialog-btn:hover {
+    background: #390101;
+    color: #e2b492;
 }
 
-.btn-row {
+.panel-header {
     display: flex;
-    gap: 0.5rem;
-    justify-content: space-between;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+    width: 100%;
 }

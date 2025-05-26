@@ -14,6 +14,9 @@ const {
 const { 
     showToast, showConfirmToast, ICONOS 
 } = require(join(__dirname, "..", "js", "toast.js"));
+const {
+    readFases, updateFase, readCategorias, readSizes
+} = require(join(__dirname, "..", "js", "crud-config.js"));
 const { generarRecibos } = require(join(__dirname, "..", "js", "generador-ticket.js"));
 
 const inputSearch = document.getElementById("product-by-search");
@@ -24,6 +27,7 @@ window.addEventListener('DOMContentLoaded', initPOS);
 
 async function initPOS() {
     try {
+        await cargarConfig();
         await cargarProductos();
         await cargarBizcochos();
         await cargarVentas();
@@ -32,6 +36,23 @@ async function initPOS() {
     } catch (error) {
         console.error('❌ Error inesperado en la carga del sistema:', error.message);
         showToast('Error al iniciar el sistema POS', ICONOS.error);
+    }
+}
+
+async function cargarConfig() {
+    try {
+        const fases = await readFases();
+        window.fases = fases;
+        console.warn('📦 Fases cargadas.');
+        const categorias = await readCategorias();
+        window.categorias = categorias;
+        console.warn('📦 Categorias cargadas.');
+        const sizes = await readSizes();
+        window.sizes = sizes;
+        console.warn('📦 Tamaños cargados.');
+    } catch (err) {
+        console.error('❌ Error al cargar productos:', err.message);
+        showToast('Error al cargar productos', ICONOS.error);
     }
 }
 
@@ -123,18 +144,20 @@ function renderResults(filteredProducts) {
     resultsContainer.style.display = "block";
 }
 
-inputSearch.addEventListener("input", (e) => {
-    const texto = e.target.value.trim();
+/*document.addEventListener("input", function(e) {
+    if (e.target && e.target.id === "product-by-search") {
+        const texto = e.target.value.trim();
 
-    if (texto === "") {
-        resultsContainer.style.display = "none";
-        resultsContainer.innerHTML = "";
-        return;
+        if (texto === "") {
+            resultsContainer.style.display = "none";
+            resultsContainer.innerHTML = "";
+            return;
+        }
+
+        const productosFiltrados = filtrarProductos(texto);
+        renderResults(productosFiltrados);
     }
-
-    const productosFiltrados = filtrarProductos(texto);
-    renderResults(productosFiltrados);
-});
+});*/
 
 function agregarProductoCarrito() {
     inputSearch.focus();
@@ -208,7 +231,7 @@ function agregarProductoCarrito() {
     tableBody.appendChild(newRow);
 
     agregarAlCarrito(producto);
-    closeModal('addProductModal');
+    closeModalPOS('addProductModal');
     totalVenta();
 }
 
@@ -548,5 +571,93 @@ async function imprimirRecibo() {
     } catch (error) {
         console.error("❌ Error al imprimir recibo:", error?.message || error);
         showToast(`Error al imprimir recibo: ${error?.message || error}`, ICONOS.error);
+    }
+}
+
+/*--------------------------------------MODALES------------------------------- */
+async function openModalPOS(modalId) {
+    await cargarCategorias();
+    await cargarTamanos();
+
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'block';
+    modal.style.animation = "fadeIn ease 0.5s forwards";
+
+    configurarBusqueda();
+}
+
+function cargarCategorias() {
+    return new Promise((resolve) => {
+        const selectCate = document.getElementById("productCategory");
+        selectCate.innerHTML = `<option value="" disabled selected>-- Elija una categoría --</option>`;
+        window.categorias.forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.name_categoria;
+            option.textContent = c.name_categoria;
+            selectCate.appendChild(option);
+        });
+        resolve();
+    });
+}
+
+function cargarTamanos() {
+    return new Promise((resolve) => {
+        const selectSize = document.getElementById("productSize");
+        selectSize.innerHTML = `<option value="" disabled selected>-- Elija un tamaño --</option>`;
+        window.sizes.forEach(s => {
+            const option = document.createElement("option");
+            option.value = s.name_size;
+            option.textContent = s.name_size;
+            selectSize.appendChild(option);
+        });
+        resolve();
+    });
+}
+
+function configurarBusqueda() {
+    const inputSearch = document.getElementById("product-by-search");
+    const resultsContainer = document.getElementById("search-results");
+
+    inputSearch.addEventListener("input", (e) => {
+        const texto = e.target.value.trim();
+
+        if (texto === "") {
+            resultsContainer.style.display = "none";
+            resultsContainer.innerHTML = "";
+            return;
+        }
+
+        const productosFiltrados = filtrarProductos(texto);
+        renderResults(productosFiltrados);
+    });
+}
+
+function closeModalPOS(modalId) {
+    const modal = document.getElementById(modalId);
+    resetModalInputs(modal);
+
+    modal.style.animation = "fadeOut ease 0.5s forwards";
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 500);
+}
+
+function resetModalInputs(modal) {
+    modal.querySelectorAll('input').forEach(input => {
+        if(input.type === 'number') {
+            input.value = 0;
+        } else {
+            input.value = '';
+        }
+    });
+
+    modal.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+
+    const resultados = document.getElementById("search-results");
+    if (resultados){
+        resultados.style.display = "none";
+        resultados.innerHTML = "";
     }
 }
