@@ -7,6 +7,16 @@ const {
     deleteProducto  
 } = require(join(__dirname, '..', 'js', 'crud-productos.js'));
 const { 
+    createBizcocho, 
+    readBizcochos, 
+    updateBizcocho, 
+    searchBizcocho, 
+    deleteBizcocho 
+} = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
+const {
+    readFases, updateFase, readCategorias, readSizes
+} = require(join(__dirname, "..", "js", "crud-config.js"));
+const { 
     showToast, 
     showConfirmToast, 
     ICONOS 
@@ -16,10 +26,19 @@ window.addEventListener('DOMContentLoaded', initProductos);
 
 async function initProductos() {
     try {
+        const fases = await readFases();
+        window.fases = fases;
+        console.warn('📦 Fases cargadas.');
+        const categorias = await readCategorias();
+        window.categorias = categorias;
+        console.warn('📦 Categorias cargadas.');
+        const sizes = await readSizes();
+        window.sizes = sizes;
+        console.warn('📦 Tamaños cargados.');
         const productos = await readProductos();
         window.productos = productos;
         fillTableProductos(productos);
-        console.log('📦 Se cargaron productos.');
+        console.warn('📦 Se cargaron productos.');
     } catch (error) {
         console.error('❌ Error al cargar productos:', error.message);
         showToast('Error al cargar inventario', ICONOS.error);
@@ -46,8 +65,8 @@ function fillTableProductos(productos) {
             <td>${p.stock_apartado}</td>
             <td>${p.stock_en_proceso}</td>
             <td class="col-btn">
-                <button onclick="editarProducto('${p.code}');">✏️ Editar</button>
-                <button onclick="eliminarProducto('${p.code}');">🗑️ Eliminar</button>
+                <button onclick="showUpdate(${p.code});">✏️ Editar</button>
+                <button onclick="showDelete(${p.code});">🗑️ Eliminar</button>
             </td>
         `;
         fragment.appendChild(row);
@@ -56,146 +75,178 @@ function fillTableProductos(productos) {
     tableBody.appendChild(fragment);
 }
 
-function eliminarProducto(code) {
-    showConfirmToast(
-        `¿Seguro que quieres eliminar el producto #${code}?`,
-        async (confirmado) => {
-            if (!confirmado) {
-                showToast("Eliminación cancelada", ICONOS.info);
-                return;
-            }
-
-            try {
-                await deleteProducto(code);
-                console.log('📦 Se elimino un producto.');
-                showToast("Producto eliminado 📦.", ICONOS.success);
-                initProductos();
-            } catch (err) {
-                console.error("[ERROR] eliminarProducto:", err.message);
-                showToast("Error al eliminar", ICONOS.error);
-            }
-        },
-        ICONOS.peligro
-    );
+async function showUpdate(code) {
+    document.getElementById('update-content').innerHTML = '';
+    const mode = "update";
+    await fillProducto(code, mode);
+    document.getElementById("update-dialog-s").showModal();
 }
 
-function agregarNuevoProducto() {
-    const form = document.getElementById('formProd');
-    form.dataset.mode = 'create';
-    renderProducto();
+async function showCreate() {
+    document.getElementById('create-content').innerHTML = '';
+    const mode = "create";
+    await fillProducto(null, mode);
+    document.getElementById("create-dialog-s").showModal();
 }
 
-function editarProducto(code) {
-    const form = document.getElementById('formProd');
-    form.dataset.mode = 'edit';
-    renderProducto(code);
+async function showDelete(code){
+    document.getElementById('delete-content').innerHTML = '';
+    const mode = "delete";
+    await fillProducto(code, mode);
+    document.getElementById("delete-dialog-s").showModal();
 }
 
-function renderProducto(code) {
-    const form = document.getElementById('formProd');
-    const prodCodeField = document.getElementById('prodCodeField');
-
-    if (form.dataset.mode === 'create') {
-        form.reset();
-        prodCodeField.style.display = 'block';
-        console.log('Creando nuevo producto 📦');
-    } else if (form.dataset.mode === 'edit') {
-        const p = window.productos.find(x => x.code === parseInt(code));
-        if (!p) return showToast('Producto no encontrado', ICONOS.error);
-
-        document.getElementById('prodCode').value = p.code;
-        prodCodeField.style.display = 'none';
-
-        document.getElementById('prodCategory').value = p.category;
-        document.getElementById('prodModel').value = p.model;
-        document.getElementById('prodSize').value = p.size;
-        document.getElementById('prodDecoration').value = p.decoration;
-        document.getElementById('prodColor').value = p.color;
-        document.getElementById('prodPrice').value = parseFloat(p.price);
-        document.getElementById('prodDisp').value = parseInt(p.stock_disponible);
-        document.getElementById('prodApr').value = parseInt(p.stock_apartado);
-        document.getElementById('prodProc').value = parseInt(p.stock_en_proceso);
-
-        console.log('Editando producto con código:', p.code);
+async function fillProducto(code, mode) {
+    if (mode !== "create") {
+        window.productoCRUD = window.productos.find(p => p.code === code);
     }
 
-    openModal('editProductoModal');
+    let html = "";
+    let contenedorId = "";
+
+    switch (mode) {
+        case "create":
+            contenedorId = "create-content";
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value=""></p>
+                <p><strong>Categoria:</strong>
+                    <select id="categoria_producto"></select></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value=""></p>
+                <p><strong>Tamaño:</strong>
+                    <select id="size_producto"></select></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value=""></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value=""></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value=""></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value=""></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value=""></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value=""></p>
+            `;
+            document.getElementById(contenedorId).innerHTML = html;
+            await cargarCategorias(contenedorId);
+            await cargarTamanos(contenedorId);
+            break;
+
+        case "update":
+            contenedorId = "update-content";
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value=""></p>
+                <p><strong>Categoria:</strong>
+                    <select id="categoria_producto"></select></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value=""></p>
+                <p><strong>Tamaño:</strong>
+                    <select id="size_producto"></select></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value=""></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value=""></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value=""></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value=""></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value=""></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value=""></p>
+                <p><strong>¿Alarma?:</strong>
+                    <input type="checkbox" id="alarma_producto" ${productoCRUD.stock_critico === 1 ? 'checked' : ''}></p>
+                <p><strong>Min. Stock:</strong>
+                    <input type="number" id="stock_min_producto" step="1" min="0" value=""></p>
+            `;
+
+            document.getElementById(contenedorId).innerHTML = html;
+            await cargarCategorias(contenedorId);
+            await cargarTamanos(contenedorId);
+            await cargarData(productoCRUD);
+            break;
+
+        case "delete":
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value="${productoCRUD.code}" readonly></p>
+                <p><strong>Categoria:</strong>
+                    <input id="categoria_producto" value="${productoCRUD.category}" readonly></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value="${productoCRUD.model}" readonly></p>
+                <p><strong>Tamaño:</strong>
+                    <input id="size_producto" value="${productoCRUD.size}" readonly></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value="${productoCRUD.decoration}" readonly></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value="${productoCRUD.color}" readonly></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value="${productoCRUD.price}" readonly></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="${productoCRUD.stock_disponible}" readonly></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="${productoCRUD.stock_apartado}" readonly></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="${productoCRUD.stock_en_proceso}" readonly></p>
+            `;
+
+            document.getElementById('delete-content').innerHTML = html;
+            break;
+    }
 }
 
-async function guardarProducto(event) {
-    event.preventDefault();
 
-    const form = document.getElementById('formProd');
-    const mode = form.dataset.mode;
-    const code = parseInt(document.getElementById('prodCode').value.trim());
+function cargarCategorias(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectCate = modal.querySelector("#categoria_producto");
+        selectCate.innerHTML = `<option value="" disabled selected>-- Elija una categoría --</option>`;
 
-    const payload = {
-        code, 
-        category: document.getElementById('prodCategory').value,
-        model: document.getElementById('prodModel').value,
-        size: document.getElementById('prodSize').value,
-        decoration: document.getElementById('prodDecoration').value,
-        color: document.getElementById('prodColor').value,
-        price: +document.getElementById('prodPrice').value,
-        stock_disponible: +document.getElementById('prodDisp').value,
-        stock_apartado: +document.getElementById('prodApr').value,
-        stock_en_proceso: +document.getElementById('prodProc').value
-    };
+        window.categorias.forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.name_categoria;
+            option.textContent = c.name_categoria;
+            selectCate.appendChild(option);
+        });
 
-    try {
-        if (mode === 'create') {
-            const dupCode = window.productos.some(p => p.code === payload.code);
-            if (dupCode) {
-                return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
-            }
+        resolve();
+    });
+}
 
-            const dupCombo = window.productos.some(p =>
-                p.category === payload.category &&
-                p.model === payload.model &&
-                p.size === payload.size &&
-                p.decoration === payload.decoration &&
-                p.color === payload.color
-            );
-            if (dupCombo) {
-                return showToast(
-                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                    ICONOS.advertencia
-                );
-            }
+function cargarTamanos(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectSize = modal.querySelector("#size_producto");
+        selectSize.innerHTML = `<option value="" disabled selected>-- Elija un tamaño --</option>`;
 
-            await createProducto(payload);
-            console.log('📦 Se agrego un nuevo producto.');
-            showToast('Producto agregado', ICONOS.success);
-            closeModal('editProductoModal');
-            await initProductos();
+        window.sizes.forEach(s => {
+            const option = document.createElement("option");
+            option.value = s.name_size;
+            option.textContent = s.name_size;
+            selectSize.appendChild(option);
+        });
 
-        } else if (mode === 'edit') {
-            const dupCombo = window.productos.some(p =>
-                p.category === payload.category &&
-                p.model === payload.model &&
-                p.size === payload.size &&
-                p.decoration === payload.decoration &&
-                p.color === payload.color &&
-                p.code !== payload.code
-            );
-            if (dupCombo) {
-                return showToast(
-                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                    ICONOS.advertencia
-                );
-            }
+        resolve();
+    });
+}
 
-            await updateProducto(payload);
-            console.log('📦 Se modifico un producto.');
-            showToast('Producto actualizado', ICONOS.success);
-            closeModal('editProductoModal');
-            await initProductos();
+function cargarData(productoCRUD) {
+    return new Promise((resolve) => {
+        const modal = document.querySelector("#update-content");
+        modal.querySelector("#code_producto").value = productoCRUD.code;
+        modal.querySelector("#categoria_producto").value = productoCRUD.category; 
+        modal.querySelector("#modelo_producto").value = productoCRUD.model; 
+        modal.querySelector("#size_producto").value = productoCRUD.size; 
+        modal.querySelector("#decoracion_producto").value = productoCRUD.decoration; 
+        modal.querySelector("#precio_producto").value = productoCRUD.price;
+        modal.querySelector("#disponibles_producto").value = productoCRUD.stock_disponible; 
+        modal.querySelector("#apartados_producto").value = productoCRUD.stock_apartado; 
+        modal.querySelector("#procesos_producto").value = productoCRUD.stock_en_proceso; 
+        modal.querySelector("#stock_min_producto").value = productoCRUD.stock_min;
 
-        } else {
-            console.warn('guardarProducto: modo desconocido', mode);
-        }
-    } catch (err) {
-        console.error('[ERROR] guardarProducto:', err);
-        showToast('Error al guardar el producto', ICONOS.error);
-    }
+        resolve();
+    });
 }

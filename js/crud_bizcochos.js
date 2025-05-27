@@ -116,7 +116,7 @@ function updateBizcocho(bizcocho) {
         const db = openDataBase();
         const query = `
             UPDATE inventario_bizcochos
-            SET stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
+            SET stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_critico = ?, stock_min = ?
             WHERE biz_category = ? AND biz_size = ?;
         `;
 
@@ -124,6 +124,8 @@ function updateBizcocho(bizcocho) {
             bizcocho.stock_apartado,
             bizcocho.stock_disponible, 
             bizcocho.stock_en_proceso, 
+            bizcocho.stock_critico,
+            bizcocho.stock_min,
             bizcocho.biz_category,
             bizcocho.biz_size,
         ];
