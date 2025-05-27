@@ -241,6 +241,7 @@ function cargarData(productoCRUD) {
         modal.querySelector("#modelo_producto").value = productoCRUD.model; 
         modal.querySelector("#size_producto").value = productoCRUD.size; 
         modal.querySelector("#decoracion_producto").value = productoCRUD.decoration; 
+        modal.querySelector("#color_producto").value = productoCRUD.color;
         modal.querySelector("#precio_producto").value = productoCRUD.price;
         modal.querySelector("#disponibles_producto").value = productoCRUD.stock_disponible; 
         modal.querySelector("#apartados_producto").value = productoCRUD.stock_apartado; 
@@ -340,8 +341,8 @@ document.getElementById("save-create").addEventListener("click", async () => {
     const mode = "create";
     try {
         await verificacionesProducto(contenedorId, mode);
-        //await guardarBizcocho(mode, contenedorId);
-        document.getElementById("create-dialog").close();
+        await guardarProducto(mode, contenedorId);
+        document.getElementById("create-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
         console.error("[ERROR] ", err.message);
@@ -353,8 +354,8 @@ document.getElementById("save-update").addEventListener("click", async () => {
     const mode = "update";
     try {
         await verificacionesProducto(contenedorId, mode);
-        //await guardarBizcocho(mode, contenedorId);
-        document.getElementById("update-dialog").close();
+        await guardarProducto(mode, contenedorId);
+        document.getElementById("update-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
         console.error("[ERROR] ", err.message);
@@ -423,4 +424,56 @@ async function guardarProducto(mode, contenedorId) {
     }
 
     await initProductos();
+}
+
+document.getElementById("save-delete").addEventListener("click", async () => {
+    const contenedorId = "delete-content";
+    const code = parseInt(document.querySelector(`#${contenedorId} #code_producto`).value.trim());
+
+    const confirmed = await showConfirmDialog(
+        `¿Seguro que quieres eliminar el producto #${code}?`,
+        "Confirmación"
+    );
+
+    if (!confirmed) {
+        document.getElementById("delete-dialog-s").close();
+        showToast("Eliminación cancelada", ICONOS.info);
+        return;
+    }
+
+    try {
+        await deleteProducto(code);
+        showToast("Producto eliminado 📦.", ICONOS.success);
+        console.warn('📦 Se elimino un producto.');
+        document.getElementById("delete-dialog-s").close();
+        await initProductos();
+    } catch (err) {
+        console.error("❌ Error al eliminar producto:", err.message);
+        showToast(`[ERROR] al eliminar: ${err.message}`, ICONOS.error);
+    }
+});
+
+function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acción") {
+    return new Promise((resolve) => {
+        const dialog = document.getElementById('confirm-dialog-s');
+        const titleEl = document.getElementById('confirm-title');
+        const messageEl = document.getElementById('confirm-message');
+        const yesBtn = document.getElementById('confirm-yes');
+        const noBtn = document.getElementById('confirm-no');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        yesBtn.onclick = () => {
+            dialog.close();
+            resolve(true);
+        };
+
+        noBtn.onclick = () => {
+            dialog.close();
+            resolve(false);
+        };
+
+        dialog.showModal();
+    });
 }

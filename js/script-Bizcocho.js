@@ -331,7 +331,7 @@ async function guardarBizcocho(mode, contenedorId) {
         }
 
         await createBizcocho(payload);
-        console.log('📦 Se agregó un nuevo bizcocho.');
+        console.warn('📦 Se agregó un nuevo bizcocho.');
         showToast('Bizcocho agregado 📦.', ICONOS.success);
 
     } else if (mode === "update") {
@@ -345,7 +345,7 @@ async function guardarBizcocho(mode, contenedorId) {
         }
 
         await updateBizcocho(payload);
-        console.log('📦 Se actualizó un bizcocho.');
+        console.warn('📦 Se actualizó un bizcocho.');
         showToast('Bizcocho actualizado 🛠️.', ICONOS.success);
     }
 

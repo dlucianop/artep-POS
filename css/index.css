@@ -277,7 +277,8 @@ body {
     width: 100%;
 }
 
-#confirm-dialog {
+#confirm-dialog,
+#confirm-dialog-s {
     position: fixed;
     top: 50%;
     left: 50%;
