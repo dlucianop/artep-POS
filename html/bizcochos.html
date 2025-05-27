@@ -95,6 +95,18 @@
         </form>
     </dialog>
 
+    <dialog id="confirm-dialog" class="confirm-dialog">
+        <form method="dialog" class="dialog-content confirm-content">
+            <h3 id="confirm-title">¿Estás seguro?</h3>
+            <p id="confirm-message">Esta acción no se puede deshacer.</p>
+            <menu>
+                <button id="confirm-yes" type="button" class="dialog-btn">Sí</button>
+                <button id="confirm-no" class="dialog-btn">No</button>
+            </menu>
+        </form>
+    </dialog>
+
+
     <script src="../js/window-lock.js"></script>
     <!--script src="../js/modal.js"></script-->
     <script src="../js/script-Bizcocho.js"></script>
@@ -102,13 +114,13 @@
     <!-- Toast de notificación -->
     <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
 
-    <!-- Confirmación personalizada -->
+    <!-- Confirmación personalizada >
     <div id="confirm-toast" class="hidden-toast">
         <span id="confirm-msg">¿Estás seguro?</span>
         <div class="confirm-buttons">
             <button id="btn-confirm-ok">Sí</button>
             <button id="btn-confirm-cancel">Cancelar</button>
         </div>
-    </div>
+    </div-->
 </body>
 </html>

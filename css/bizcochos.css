@@ -150,3 +150,28 @@ table {
     padding: 1rem;
     width: 100%;
 }
+
+#confirm-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: none;
+  padding: 0;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 9999; /* 👈 Muy alto para estar encima de todo */
+  background: white;
+}
+
+.confirm-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+}
