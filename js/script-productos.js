@@ -250,3 +250,177 @@ function cargarData(productoCRUD) {
         resolve();
     });
 }
+
+async function verificacionesProducto(contenedorId, mode) {
+    const modal = document.getElementById(contenedorId);
+
+    const getNumber = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
+    };
+
+    const getValue = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
+
+    const code_producto = getNumber("#code_producto");
+    if (isNaN(code_producto) || code_producto <= 0) {
+        showToast("El código de producto es inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Código de producto inválido."));
+    }
+
+    const categoria = getValue("#categoria_producto");
+    if (!categoria) {
+        showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
+        return Promise.reject(new Error("Categoría vacía."));
+    }
+
+    const modelo = getValue("#modelo_producto").trim();
+    if (!modelo) {
+        showToast("Falta llenar el campo de modelo.", ICONOS.advertencia);
+        return Promise.reject(new Error("Modelo vacío."));
+    }
+
+    const tamano = getValue("#size_producto");
+    if (!tamano) {
+        showToast("Debe seleccionar un tamaño.", ICONOS.advertencia);
+        return Promise.reject(new Error("Tamaño vacío."));
+    }
+
+    const decoracion = getValue("#decoracion_producto").trim();
+    if (!decoracion) {
+        showToast("Falta llenar el campo de decoración.", ICONOS.advertencia);
+        return Promise.reject(new Error("Decoración vacío."));
+    }
+
+    const color = getValue("#color_producto").trim();
+    if (!color) {
+        showToast("Falta llenar el campo de color.", ICONOS.advertencia);
+        return Promise.reject(new Error("Color vacío."));
+    }
+
+    const precio = getNumber("#precio_producto");
+    if (isNaN(precio) || precio <= 0) {
+        showToast("El precio unitario es inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Precio unitario inválido."));
+    }
+
+    const disponibles = getNumber("#disponibles_producto");
+    if (isNaN(disponibles) || disponibles < 0) {
+        showToast("Stock disponible inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Stock disponible inválido."));
+    }
+
+    const apartados = getNumber("#apartados_producto");
+    if (isNaN(apartados) || apartados < 0) {
+        showToast("Stock apartado inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Stock apartado inválido."));
+    }
+
+    const procesos = getNumber("#procesos_producto");
+    if (isNaN(procesos) || procesos < 0) {
+        showToast("Stock en proceso inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Stock en proceso inválido."));
+    }
+
+    if (mode === "update") {
+        const stock_min = getNumber("#stock_min_producto");
+        if (isNaN(stock_min) || stock_min < 0) {
+            showToast("Stock mínimo inválido.", ICONOS.advertencia);
+            return Promise.reject(new Error("Stock mínimo inválido."));
+        }
+    }
+
+    return Promise.resolve();
+}
+
+document.getElementById("save-create").addEventListener("click", async () => {
+    const contenedorId = "create-content";
+    const mode = "create";
+    try {
+        await verificacionesProducto(contenedorId, mode);
+        //await guardarBizcocho(mode, contenedorId);
+        document.getElementById("create-dialog").close();
+    } catch (err) {
+        showToast(err.message, ICONOS.error);
+        console.error("[ERROR] ", err.message);
+    }
+});
+
+document.getElementById("save-update").addEventListener("click", async () => {
+    const contenedorId = "update-content";
+    const mode = "update";
+    try {
+        await verificacionesProducto(contenedorId, mode);
+        //await guardarBizcocho(mode, contenedorId);
+        document.getElementById("update-dialog").close();
+    } catch (err) {
+        showToast(err.message, ICONOS.error);
+        console.error("[ERROR] ", err.message);
+    }
+});
+
+async function guardarProducto(mode, contenedorId) {
+    const code = parseInt(document.querySelector(`#${contenedorId} #code_producto`).value.trim());
+
+    const payload = {
+        code, 
+        category: document.querySelector(`#${contenedorId} #categoria_producto`).value.trim(),
+        model: document.querySelector(`#${contenedorId} #modelo_producto`).value.trim(),
+        size: document.querySelector(`#${contenedorId} #size_producto`).value.trim(),
+        decoration: document.querySelector(`#${contenedorId} #decoracion_producto`).value.trim(),
+        color: document.querySelector(`#${contenedorId} #color_producto`).value.trim(),
+        price: +document.querySelector(`#${contenedorId} #precio_producto`).value,
+        stock_disponible: +document.querySelector(`#${contenedorId} #disponibles_producto`).value,
+        stock_apartado: +document.querySelector(`#${contenedorId} #apartados_producto`).value,
+        stock_en_proceso: +document.querySelector(`#${contenedorId} #procesos_producto`).value,
+        stock_min: mode === "update"
+            ? +document.querySelector(`#${contenedorId} #stock_min_producto`).value
+            : 0,
+        stock_critico: mode === "update"
+            ? (document.querySelector(`#${contenedorId} #alarma_producto`).checked ? 1 : 0)
+            : 0,
+    };
+
+    if (mode === "create") {
+        const dupCode = window.productos.some(p => p.code === payload.code);
+        if (dupCode) {
+            throw new Error(`Ya existe un producto con Código ${payload.code}.`);
+        }
+        
+        const dupCombo = window.productos.some(p =>
+            p.category    === payload.category &&
+            p.model       === payload.model &&
+            p.size        === payload.size &&
+            p.decoration  === payload.decoration &&
+            p.color       === payload.color
+        );
+        if (dupCombo) {
+            throw new Error(`Ya existe un producto con esa combinación de categoría, modelo, tamaño, decoración y color.`);
+        }
+
+        await createProducto(payload);
+        console.warn('📦 Se agregó un nuevo producto.');
+        showToast('Producto agregado 📦.', ICONOS.success);
+
+    } else if (mode === "update") {
+        const dupCombo = window.productos.some(p =>
+            p.category    === payload.category &&
+            p.model       === payload.model &&
+            p.size        === payload.size &&
+            p.decoration  === payload.decoration &&
+            p.color       === payload.color &&
+            p.code        !== payload.code
+        );
+        if (dupCombo) {
+            throw new Error(`Ya existe un producto con esa combinación de categoría, modelo, tamaño, decoración y color.`);
+        }
+
+        await updateProducto(payload);
+        console.warn('📦 Se actualizó un producto.');
+        showToast('Producto actualizado 📦.', ICONOS.success);
+    }
+
+    await initProductos();
+}

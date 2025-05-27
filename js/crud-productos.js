@@ -116,7 +116,7 @@ function updateProducto(producto) {
             UPDATE inventario_productos
             SET 
                 category = ?, model = ?, size = ?, decoration = ?, color = ?, price = ?,
-                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
+                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_critico = ?, stock_min = ?
             WHERE code = ?;
         `;
 
@@ -130,6 +130,8 @@ function updateProducto(producto) {
             producto.stock_apartado,
             producto.stock_disponible,
             producto.stock_en_proceso,
+            producto.stock_critico,
+            producto.stock_min,
             producto.code
         ];
 
