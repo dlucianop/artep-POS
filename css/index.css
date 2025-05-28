@@ -241,7 +241,9 @@ body {
 }
 
 #delete-content p input[readonly],
-#delete-content p input[disabled] {
+#delete-content p input[disabled],
+#update-content p input[readonly],
+#update-content p input[disabled] {
     background-color: #f0f0f0;
     color: #666;
     cursor: default;

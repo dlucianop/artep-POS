@@ -35,6 +35,9 @@ async function initProductos() {
         const sizes = await readSizes();
         window.sizes = sizes;
         console.warn('📦 Tamaños cargados.');
+        const bizcochos = await readBizcochos();
+        window.bizcochos = bizcochos;
+        console.warn('📦 Se cargaron bizcochos.');
         const productos = await readProductos();
         window.productos = productos;
         fillTableProductos(productos);
@@ -421,6 +424,33 @@ async function guardarProducto(mode, contenedorId) {
         await updateProducto(payload);
         console.warn('📦 Se actualizó un producto.');
         showToast('Producto actualizado 📦.', ICONOS.success);
+    }
+
+    const bizcochoRelacionado = window.bizcochos.some(b =>
+        b.biz_category === payload.category &&
+        b.biz_size     === payload.size
+    );
+
+    if (!bizcochoRelacionado) {
+        const confirmed = await showConfirmDialog(
+            `No se encontró un bizcocho con categoría "${payload.category}" y tamaño "${payload.size}". ¿Desea crear este bizcocho base ahora?`,
+            "Bizcocho relacionado no encontrado"
+        );
+
+        if (confirmed) {
+            const nuevoBizcocho = {
+                biz_category:     payload.category,
+                biz_size:         payload.size,
+                stock_disponible: 0,
+                stock_apartado:   0,
+                stock_en_proceso: 0,
+                stock_min: 0,
+                stock_critico: 0,
+            };
+
+            await createBizcocho(nuevoBizcocho);
+            showToast("Bizcocho base creado automáticamente.", ICONOS.info);
+        }
     }
 
     await initProductos();

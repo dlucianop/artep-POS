@@ -146,8 +146,6 @@ async function fillBizcocho(id_biz, mode) {
         case "create":
             contenedorId = "create-content";
             html = `
-                <p><strong>Código Bizcocho:</strong>
-                    <input type="number" id="id_bizcocho" step="1" min="0" value=""></p>
                 <p><strong>Categoria:</strong>
                     <select id="categoria_bizcocho"></select></p>
                 <p><strong>Tamaño:</strong>
@@ -168,11 +166,11 @@ async function fillBizcocho(id_biz, mode) {
             contenedorId = "update-content";
             html = `
                 <p><strong>Código Bizcocho:</strong>
-                    <input type="number" id="id_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="id_bizcocho" value="" readonly></p>
                 <p><strong>Categoria:</strong>
-                    <select id="categoria_bizcocho"></select></p>
+                    <input type="text" id="categoria_bizcocho" value="" readonly></p>
                 <p><strong>Tamaño:</strong>
-                    <select id="size_bizcocho"></select></p>
+                    <input type="text" id="size_bizcocho" value="" readonly></p>
                 <p><strong>Stock Disponible:</strong>
                     <input type="number" id="disponibles_bizcocho" step="1" min="0" value=""></p>
                 <p><strong>Stock Apartado:</strong>
