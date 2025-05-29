@@ -232,6 +232,15 @@ body {
     box-sizing: border-box;
 }
 
+#update-content p textarea,
+#create-content p textarea {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+    resize: none;
+    min-height: 8em;
+}
+
 #delete-content p input {
     text-align: center;
     flex: 1;

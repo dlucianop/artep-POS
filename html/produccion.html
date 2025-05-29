@@ -31,25 +31,25 @@
             <button type="button" onclick="agregarNuevaOrden()">➕ Agregar Orden</button>
         </div>
         <div class="kanban-container">
-            <div class="kanban-column" data-estado="pendiente">
+            <div class="kanban-column" data-estado="pendiente" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <h3>PENDIENTE</h3>
                 <div class="kanban-cards">
                 </div>
             </div>
 
-            <div class="kanban-column" data-estado="proceso">
+            <div class="kanban-column" data-estado="proceso" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <h3>EN PROCESO</h3>
                 <div class="kanban-cards"></div>
             </div>
 
-            <div class="kanban-column" data-estado="terminado">
+            <div class="kanban-column" data-estado="terminado" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <h3>TERMINADO</h3>
                 <div class="kanban-cards"></div>
             </div>
         </div>
     </div>
 
-    <dialog id="update-dialog">
+    <dialog id="update-dialog-s">
         <form method="dialog" class="dialog-content">
             <h3>Modificar Orden</h3>
             <div id="update-content">

@@ -92,6 +92,41 @@ function readOrdenes() {
     });
 }
 
+function updateEstado(orden){
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                estado = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.estado,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateEstado] Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateEstado] No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("[updateEstado] Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function updateOrden(orden) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -338,5 +373,6 @@ function searchReposicionOrden(orden) {
 
 module.exports = { 
     readOrdenes,
-    createOrden
+    createOrden,
+    updateEstado
 }
