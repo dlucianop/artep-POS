@@ -151,11 +151,11 @@ async function fillBizcocho(id_biz, mode) {
                 <p><strong>Tamaño:</strong>
                     <select id="size_bizcocho"></select></p>
                 <p><strong>Stock Disponible:</strong>
-                    <input type="number" id="disponibles_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="disponibles_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock disponible del bizcocho"></p>
                 <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="apartados_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock apartado del bizcocho"></p>
                 <p><strong>Stock en Proceso:</strong>
-                    <input type="number" id="procesos_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="procesos_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock en proceso del bizcocho"></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarCategorias(contenedorId);
@@ -172,15 +172,15 @@ async function fillBizcocho(id_biz, mode) {
                 <p><strong>Tamaño:</strong>
                     <input type="text" id="size_bizcocho" value="" readonly></p>
                 <p><strong>Stock Disponible:</strong>
-                    <input type="number" id="disponibles_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="disponibles_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock disponible del bizcocho"></p>
                 <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="apartados_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock apartado del bizcocho"></p>
                 <p><strong>Stock en Proceso:</strong>
-                    <input type="number" id="procesos_bizcocho" step="1" min="0" value=""></p>
-                <p><strong>¿Alarma?:</strong>
+                    <input type="number" id="procesos_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock en proceso del bizcocho"></p>
+                <p><strong>¿Activar alarma?:</strong>
                     <input type="checkbox" id="alarma_bizcocho" ${bizcochoCRUD.stock_critico === 1 ? 'checked' : ''}></p>
                 <p><strong>Min. Stock:</strong>
-                    <input type="number" id="stock_min_bizcocho" step="1" min="0" value=""></p>
+                    <input type="number" id="stock_min_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock minimo para activar la alarma"></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarCategorias(contenedorId);

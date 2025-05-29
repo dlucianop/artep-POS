@@ -3,20 +3,29 @@ const {
     createVenta, readVentas, searchVenta, updateVenta, createDetalle, readDetalles, deleteVentaConDetalles,
 } = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const { 
-    createProducto, readProductos, searchProduct, updateProducto, deleteProducto, updateStockProducto
+    createProducto, 
+    readProductos, 
+    searchProduct, 
+    updateProducto, 
+    deleteProducto  
 } = require(join(__dirname, '..', 'js', 'crud-productos.js'));
 const { 
-    createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
-} = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
+    createBizcocho, 
+    readBizcochos, 
+    updateBizcocho, 
+    searchBizcocho, 
+    deleteBizcocho 
+} = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
+const {
+    readFases, updateFase, readCategorias, readSizes
+} = require(join(__dirname, "..", "js", "crud-config.js"));
 const {
     readOrdenes, createOrden, updateEstado
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
 } = require(join(__dirname, "..", "js", "toast.js"));
-const {
-    readFases, updateFase
-} = require(join(__dirname, '..', 'js', 'crud-config.js'));
+
 
 window.addEventListener('DOMContentLoaded', initProduccion);
 
@@ -24,6 +33,13 @@ async function initProduccion() {
     try {
         const fases = await readFases();
         window.fases = fases;
+        console.warn('📦 Fases cargadas.');
+        const categorias = await readCategorias();
+        window.categorias = categorias;
+        console.warn('📦 Categorias cargadas.');
+        const sizes = await readSizes();
+        window.sizes = sizes;
+        console.warn('📦 Tamaños cargados.');
         window.today = new Date();
         window.meses = [
             'Enero', 'Febrero', 'Marzo', 'Abril',
@@ -180,13 +196,13 @@ async function fillOrden(id_orden) {
                 <p><strong>Cantidad Pedida:</strong>
                     <input type="number" id="orden_cantidad_pedida" step="1" min="0" value="" readonly></p>
                 <p><strong>Piezas Buenas:</strong>
-                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas buenas"></p>
                 <p><strong>Piezas Rotas:</strong>
-                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas rotas"></p>
                 <p><strong>Piezas Deformes:</strong>
-                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas deformes"></p>
                 <p><strong>Observaciones:</strong>
-                    <textarea name="" id="orden_observaciones"></textarea></p>
+                    <textarea id="orden_observaciones" placeholder="Ingrese observaciones sobre esta orden"></textarea></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarFases(contenedorId);
@@ -198,20 +214,20 @@ async function fillOrden(id_orden) {
                     <input type="text" id="orden_name_item" value="" readonly></p>
                 <p><strong>Tipo:</strong>
                     <select id="orden_tipo_item">
-                        <option value="" disabled selected>-- Elija una fase --</option>
+                        <option value="" disabled selected>-- Elija un tipo --</option>
                         <option value="bizcocho">Bizcocho</option>
                         <option value="producto">Producto</option>
                     </select></p>
                 <p><strong>Fase:</strong>
                     <select id="orden_fase_actual"></select></p>
                 <p><strong>Piezas Buenas:</strong>
-                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas buenas"></p>
                 <p><strong>Piezas Rotas:</strong>
-                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas rotas"></p>
                 <p><strong>Piezas Deformes:</strong>
-                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas deformes"></p>
                 <p><strong>Observaciones:</strong>
-                    <textarea name="" id="orden_observaciones"></textarea></p>
+                    <textarea id="orden_observaciones" placeholder="Ingrese observaciones sobre esta orden"></textarea></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarFases(contenedorId);
@@ -228,13 +244,13 @@ async function fillOrden(id_orden) {
                 <p><strong>Cantidad Restante:</strong>
                     <input type="number" id="orden_cantidad_pedida" step="1" min="0" value="" readonly></p>
                 <p><strong>Piezas Buenas:</strong>
-                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas buenas"></p>
                 <p><strong>Piezas Rotas:</strong>
-                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas rotas"></p>
                 <p><strong>Piezas Deformes:</strong>
-                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value=""></p>
+                    <input type="number" id="orden_cantidad_deformes" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas deformes"></p>
                 <p><strong>Observaciones:</strong>
-                    <textarea name="" id="orden_observaciones"></textarea></p>
+                    <textarea id="orden_observaciones" placeholder="Ingrese observaciones sobre esta orden"></textarea></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarFases(contenedorId);
@@ -258,6 +274,40 @@ function cargarFases(contenedorId) {
             option.value = c.id_fase;
             option.textContent = c.name_fase;
             selectFase.appendChild(option);
+        });
+
+        resolve();
+    });
+}
+
+function cargarCategorias(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectCate = modal.querySelector("#orden_categoria");
+        selectCate.innerHTML = `<option value="" disabled selected>-- Elija una categoría --</option>`;
+
+        window.categorias.forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.name_categoria;
+            option.textContent = c.name_categoria;
+            selectCate.appendChild(option);
+        });
+
+        resolve();
+    });
+}
+
+function cargarTamanos(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectSize = modal.querySelector("#orden_size");
+        selectSize.innerHTML = `<option value="" disabled selected>-- Elija un tamaño --</option>`;
+
+        window.sizes.forEach(s => {
+            const option = document.createElement("option");
+            option.value = s.name_size;
+            option.textContent = s.name_size;
+            selectSize.appendChild(option);
         });
 
         resolve();
@@ -300,7 +350,6 @@ function cargarData(ordenCRUD, origen) {
                 modal.querySelector("#orden_cantidad_deformes").value = ordenCRUD.cantidad_deformes;
                 modal.querySelector("#orden_observaciones").value = ordenCRUD.observaciones;
                 break;
-                break;
 
             default:
                 console.warn("Origen no reconocido:", origen);
@@ -310,6 +359,62 @@ function cargarData(ordenCRUD, origen) {
         resolve();
     });
 }
+
+async function agregarNuevaOrden() {
+    document.getElementById('create-content').innerHTML = '';
+    document.getElementById("create-dialog-s").showModal();
+
+    let contenedorId = "create-content";
+    let html = `
+        <p><strong>Inventario:</strong>
+            <select id="orden_tipo_item">
+                <option value="" disabled selected>-- Elija un inventario --</option>
+                <option value="bizcocho">Bizcocho</option>
+                <option value="producto">Producto</option>
+            </select>
+        </p>
+
+        <p><strong>Categoria:</strong>
+            <select id="orden_categoria"></select></p>
+        <p><strong>Modelo:</strong>
+            <input type="text" id="orden_modelo" value="" placeholder="Ingrese modelo"></p>
+        <p><strong>Tamaño:</strong>
+            <select id="orden_size"></select></p>
+
+        <div id="grupo-producto">
+            <p><strong>Decoración:</strong>
+                <input type="text" id="orden_decoracion" value="" placeholder="Ingrese decoracion"></p>
+            <p><strong>Color:</strong>
+                <input type="text" id="orden_color" value="" placeholder="Ingrese color"></p>
+        </div>
+
+        <p><strong>Fase:</strong>
+            <select id="orden_fase_actual"></select></p>
+        <p><strong>Piezas a Producir:</strong>
+            <input type="number" id="orden_cantidad_buenos" step="1" min="0" value=""></p>
+    `;
+
+    document.getElementById(contenedorId).innerHTML = html;
+    await cargarFases(contenedorId);
+    await cargarCategorias(contenedorId);
+    await cargarTamanos(contenedorId);
+
+    document.getElementById('grupo-producto').style.display = 'none';
+
+    document.getElementById('orden_tipo_item').addEventListener('change', function () {
+        const tipo = this.value;
+        const grupoProducto = document.getElementById('grupo-producto');
+
+        if (tipo === 'producto') {
+            grupoProducto.style.display = 'block';
+        } else {
+            grupoProducto.style.display = 'none';
+            document.getElementById('orden_decoracion').value = '';
+            document.getElementById('orden_color').value = '';
+        }
+    });
+}
+
 
 function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acción") {
     return new Promise((resolve) => {
@@ -343,10 +448,10 @@ function cerrarDialogo(dialogId, dialogContent, mensaje) {
 }
 
 document.getElementById("close-dialog-delete").addEventListener("click", () =>
-    cerrarDialogo("delete-dialog", "delete-content", "Eliminación cancelada"));
+    cerrarDialogo("delete-dialog-s", "delete-content", "Eliminación cancelada"));
 
 document.getElementById("close-dialog-create").addEventListener("click", () =>
-    cerrarDialogo("create-dialog", "create-content", "Creación cancelada"));
+    cerrarDialogo("create-dialog-s", "create-content", "Creación cancelada"));
 
 document.getElementById("close-dialog-update").addEventListener("click", () =>
-    cerrarDialogo("update-dialog-s", "update-content", "Actualización cancelada"));
+    cerrarDialogo("update-dialog-s", "update-content", "Modificación cancelada"));

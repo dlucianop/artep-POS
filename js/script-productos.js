@@ -112,25 +112,25 @@ async function fillProducto(code, mode) {
             contenedorId = "create-content";
             html = `
                 <p><strong>Código Producto:</strong>
-                    <input type="number" id="code_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="code_producto" step="1" min="0" value="" placeholder="Ingrese codigo del producto"></p>
                 <p><strong>Categoria:</strong>
                     <select id="categoria_producto"></select></p>
                 <p><strong>Modelo:</strong>
-                    <input type="text" id="modelo_producto" value=""></p>
+                    <input type="text" id="modelo_producto" value="" placeholder="Ingrese modelo del producto"></p>
                 <p><strong>Tamaño:</strong>
                     <select id="size_producto"></select></p>
                 <p><strong>Decoración:</strong>
-                    <input type="text" id="decoracion_producto" value=""></p>
+                    <input type="text" id="decoracion_producto" value="" placeholder="Ingrese decoracion del producto"></p>
                 <p><strong>Color:</strong>
-                    <input type="text" id="color_producto" value=""></p>
+                    <input type="text" id="color_producto" value="" placeholder="Ingrese color del producto"></p>
                 <p><strong>Precio Unitario($):</strong>
-                    <input type="number" id="precio_producto" min="0" value=""></p>
+                    <input type="number" id="precio_producto" min="0" value="" placeholder="$$$$$"></p>
                 <p><strong>Stock Disponible:</strong>
-                    <input type="number" id="disponibles_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="" placeholder="Ingrese stock disponible del producto"></p>
                 <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="" placeholder="Ingrese stock apartado del producto"></p>
                 <p><strong>Stock en Proceso:</strong>
-                    <input type="number" id="procesos_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="" placeholder="Ingrese stock en proceso del producto"></p>
             `;
             document.getElementById(contenedorId).innerHTML = html;
             await cargarCategorias(contenedorId);
@@ -141,29 +141,29 @@ async function fillProducto(code, mode) {
             contenedorId = "update-content";
             html = `
                 <p><strong>Código Producto:</strong>
-                    <input type="number" id="code_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="code_producto" step="1" min="0" value="" placeholder="Ingrese codigo del producto" readonly></p>
                 <p><strong>Categoria:</strong>
                     <select id="categoria_producto"></select></p>
                 <p><strong>Modelo:</strong>
-                    <input type="text" id="modelo_producto" value=""></p>
+                    <input type="text" id="modelo_producto" value="" placeholder="Ingrese modelo del producto"></p>
                 <p><strong>Tamaño:</strong>
                     <select id="size_producto"></select></p>
                 <p><strong>Decoración:</strong>
-                    <input type="text" id="decoracion_producto" value=""></p>
+                    <input type="text" id="decoracion_producto" value="" placeholder="Ingrese decoracion del producto"></p>
                 <p><strong>Color:</strong>
-                    <input type="text" id="color_producto" value=""></p>
+                    <input type="text" id="color_producto" value="" placeholder="Ingrese color del producto"></p>
                 <p><strong>Precio Unitario($):</strong>
-                    <input type="number" id="precio_producto" min="0" value=""></p>
+                    <input type="number" id="precio_producto" min="0" value="" placeholder="$$$$$"></p>
                 <p><strong>Stock Disponible:</strong>
-                    <input type="number" id="disponibles_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="" placeholder="Ingrese stock disponible del producto"></p>
                 <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="" placeholder="Ingrese stock apartado del producto"></p>
                 <p><strong>Stock en Proceso:</strong>
-                    <input type="number" id="procesos_producto" step="1" min="0" value=""></p>
-                <p><strong>¿Alarma?:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="" placeholder="Ingrese stock en proceso del producto"></p>
+                <p><strong>¿Activar alarma?:</strong>
                     <input type="checkbox" id="alarma_producto" ${productoCRUD.stock_critico === 1 ? 'checked' : ''}></p>
                 <p><strong>Min. Stock:</strong>
-                    <input type="number" id="stock_min_producto" step="1" min="0" value=""></p>
+                    <input type="number" id="stock_min_producto" step="1" min="0" value="" placeholder="Ingrese stock minimo para activar la alarma"></p>
             `;
 
             document.getElementById(contenedorId).innerHTML = html;
