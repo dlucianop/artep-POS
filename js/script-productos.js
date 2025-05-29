@@ -508,16 +508,17 @@ function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acci
     });
 }
 
-function cerrarDialogo(dialogId, mensaje) {
+function cerrarDialogo(dialogId, dialogContent, mensaje) {
     document.getElementById(dialogId).close();
+    document.getElementById(dialogContent).innerHTML = '';
     showToast(mensaje, ICONOS.info);
 }
 
 document.getElementById("close-dialog-delete").addEventListener("click", () =>
-    cerrarDialogo("delete-dialog-s", "Eliminación cancelada"));
+    cerrarDialogo("delete-dialog-s", "delete-content", "Eliminación cancelada"));
 
 document.getElementById("close-dialog-create").addEventListener("click", () =>
-    cerrarDialogo("create-dialog-s", "Creación cancelada"));
+    cerrarDialogo("create-dialog-s", "create-content", "Creación cancelada"));
 
 document.getElementById("close-dialog-update").addEventListener("click", () =>
-    cerrarDialogo("update-dialog-s", "Actualización cancelada"));
+    cerrarDialogo("update-dialog-s", "update-content", "Actualización cancelada"));

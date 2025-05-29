@@ -401,16 +401,17 @@ function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acci
     });
 }
 
-function cerrarDialogo(dialogId, mensaje) {
+function cerrarDialogo(dialogId, dialogContent, mensaje) {
     document.getElementById(dialogId).close();
+    document.getElementById(dialogContent).innerHTML = '';
     showToast(mensaje, ICONOS.info);
 }
 
 document.getElementById("close-dialog-delete").addEventListener("click", () =>
-    cerrarDialogo("delete-dialog", "Eliminación cancelada"));
+    cerrarDialogo("delete-dialog", "delete-content", "Eliminación cancelada"));
 
 document.getElementById("close-dialog-create").addEventListener("click", () =>
-    cerrarDialogo("create-dialog", "Creación cancelada"));
+    cerrarDialogo("create-dialog", "create-content", "Creación cancelada"));
 
 document.getElementById("close-dialog-update").addEventListener("click", () =>
-    cerrarDialogo("update-dialog", "Actualización cancelada"));
+    cerrarDialogo("update-dialog", "update-content","Actualización cancelada"));
