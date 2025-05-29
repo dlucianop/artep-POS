@@ -61,10 +61,11 @@ body {
     height: 100vh;
     padding-left: 10vh;
     background-color: white;
-    animation: fade-content ease 1.5s forwards;
+    animation: fadeIn ease 2s forwards;
     align-items: end;
     padding: 0;
     margin: 0;
+    margin-left: 80px;
 }
 
 

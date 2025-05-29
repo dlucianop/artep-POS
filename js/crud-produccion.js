@@ -1,7 +1,24 @@
 const { join, resolve } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'connection.js'));
 
-function createOrden(orden) {
+function createOrden(orden, origen) {
+    switch (origen) {
+        case "VENTA":
+            console.warn(origen);
+            console.log(orden);
+            break;
+        case "INVENTARIO":
+            console.warn(origen);
+            console.log(orden);
+            break;
+        case "REPOSICION":
+            console.warn(origen);
+            console.log(orden);
+            break;
+        default:
+            break;
+    }
+    /*
     return new Promise((resolve, reject) => {
         const db = openDataBase();
 
@@ -39,6 +56,33 @@ function createOrden(orden) {
                 };
 
                 resolve(newOrden);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });*/
+}
+
+function readOrdenes() {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT * 
+            FROM orden_produccion;
+        `;
+    
+        db.all(query, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readOrdenes] Error al leer ordenes de Produccion: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
             } catch (err) {
                 reject(err);
             } finally {
@@ -293,13 +337,6 @@ function searchReposicionOrden(orden) {
 }
 
 module.exports = { 
-    createOrden, 
-    updateOrden,
-    insertDetalle,
-    readOrdenByFase,
-    readOrden,
-    readOrdenesByVenta,
-    updateCantidadInicial,
-    searchReposicionOrden,
-    updateRepo
+    readOrdenes,
+    createOrden
 }
