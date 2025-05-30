@@ -105,86 +105,22 @@
                         </tr>
                     </thead>
                     <tbody id="carrito">
-                        <tr>
+                        <!--tr>
                             <td>123456789012</td>
                             <td>Descripción</td>
                             <td>100.00</td>
                             <td>999999</td>
                             <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
-                        <tr>
-                            <td>123456789012</td>
-                            <td>Descripción</td>
-                            <td>100.00</td>
-                            <td>999999</td>
-                            <td>100000.00</td>
-                            <td> <button>🗑️ Eliminar</button></td>
-                        </tr>
+                            <td> <button onclick="quitCarrito()">🗑️ Eliminar</button></td>
+                        </tr-->
                     </tbody>
                 </table>
             </div>
 
             <div id="final-pos">
                 <div id="actions-pos">
-                    <button type="button" onclick="addCarrito()">➕ Limpiar Venta</button>
-                    <button type="button" onclick="addCarrito()">➕ Imprimir Venta</button>
+                    <button type="button" onclick="cleanCarrito()">➕ Limpiar Venta</button>
+                    <button type="button" onclick="printCarrito()">➕ Imprimir Venta</button>
                 </div>
                 <div id="total-container">
                     <p>
@@ -205,7 +141,7 @@
         </div>
     </div>
 
-    <dialog id="update-dialog-s">
+    <!--dialog id="update-dialog-s">
         <form method="dialog" class="dialog-content">
             <h3>Modificar Orden</h3>
             <div id="update-content">
@@ -215,11 +151,11 @@
                 <button id="close-dialog-update" class="dialog-btn">Cancelar</button>
             </menu>
         </form>
-    </dialog>
+    </dialog-->
 
     <dialog id="create-dialog-s">
         <form method="dialog" class="dialog-content">
-            <h3>Agregar Orden</h3>
+            <h3>Agregar producto a la venta</h3>
             <div id="create-content">
             </div>
             <menu>
@@ -231,7 +167,7 @@
 
     <dialog id="delete-dialog-s">
         <form method="dialog" class="dialog-content">
-            <h3>¿Desea eliminar este Orden?</h3>
+            <h3>¿Desea quitar este producto de la venta?</h3>
             <div id="delete-content">
             </div>
             <menu>
@@ -253,6 +189,7 @@
     </dialog>
 
     <script src="../js/window-lock.js"></script>
+    <script src="../js/script-pos.js"></script>
     <!--script src="../js/pos.js"></script>
     <script src="../js/hour-date.js"></script-->
 
