@@ -73,6 +73,10 @@ body {
     width: 100%;
 }
 
+button:hover {
+    cursor: pointer;
+}
+
 /*******************************TABLES***************************************/
 table,
 .kanban-container {
