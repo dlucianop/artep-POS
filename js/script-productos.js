@@ -428,12 +428,13 @@ async function guardarProducto(mode, contenedorId) {
 
     const bizcochoRelacionado = window.bizcochos.some(b =>
         b.biz_category === payload.category &&
-        b.biz_size     === payload.size
+        b.biz_size     === payload.size &&
+        b.biz_model    === payload.model
     );
 
     if (!bizcochoRelacionado) {
         const confirmed = await showConfirmDialog(
-            `No se encontró un bizcocho con categoría "${payload.category}" y tamaño "${payload.size}". ¿Desea crear este bizcocho base ahora?`,
+            `No se encontró un bizcocho con categoría "${payload.category}", tamaño "${payload.size}" y modelo "${payload.model}". ¿Desea crear este bizcocho base ahora?`,
             "Bizcocho relacionado no encontrado"
         );
 
@@ -441,6 +442,7 @@ async function guardarProducto(mode, contenedorId) {
             const nuevoBizcocho = {
                 biz_category:     payload.category,
                 biz_size:         payload.size,
+                biz_model:        payload.model,
                 stock_disponible: 0,
                 stock_apartado:   0,
                 stock_en_proceso: 0,

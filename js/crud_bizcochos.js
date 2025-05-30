@@ -7,13 +7,14 @@ function createBizcocho(bizcocho) {
         const db = openDataBase();
         const query = `
             INSERT INTO inventario_bizcochos
-                (biz_category, biz_size, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
-            VALUES (?, ?, 0, ?, ?, ?, 0, 0, 0);
+                (biz_category, biz_size, biz_model, stock_total, stock_apartado, stock_disponible, stock_en_proceso, stock_min, stock_max, stock_critico)
+            VALUES (?, ?, ?, 0, ?, ?, ?, 0, 0, 0);
         `;
 
         const params = [
             bizcocho.biz_category,
             bizcocho.biz_size,
+            bizcocho.biz_model,
             bizcocho.stock_apartado,
             bizcocho.stock_disponible,
             bizcocho.stock_en_proceso,
@@ -83,12 +84,13 @@ function searchBizcocho(bizcocho) {
         const query = `
             SELECT * 
             FROM inventario_bizcochos
-            WHERE biz_category = ? AND biz_size = ?
-        `;
+            WHERE biz_category = ? AND biz_size = ? AND biz_model = ?
+        ;`;
 
         const params = [
             bizcocho.biz_category, 
-            bizcocho.biz_size
+            bizcocho.biz_size,
+            bizcocho.biz_model
         ];
 
         db.get(query, params, (err, row) => {
@@ -117,8 +119,8 @@ function updateBizcocho(bizcocho) {
         const query = `
             UPDATE inventario_bizcochos
             SET stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_critico = ?, stock_min = ?
-            WHERE biz_category = ? AND biz_size = ?;
-        `;
+            WHERE biz_category = ? AND biz_size = ? AND biz_model = ?
+        ;`;
 
         const params = [
             bizcocho.stock_apartado,
@@ -128,6 +130,7 @@ function updateBizcocho(bizcocho) {
             bizcocho.stock_min,
             bizcocho.biz_category,
             bizcocho.biz_size,
+            bizcocho.biz_model
         ];
 
         db.run(query, params, function (err) {

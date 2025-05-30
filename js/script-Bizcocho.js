@@ -49,6 +49,7 @@ function fillTableBizcochos(bizcochos){
         row.innerHTML = `
         <td>${b.id_biz}</td>
         <td>${b.biz_category}</td>
+        <td>${b.biz_model}</td>
         <td>${b.biz_size}</td>
         <td>${b.stock_disponible}</td>
         <td>${b.stock_apartado}</td>
@@ -67,21 +68,21 @@ async function showUpdate(id_biz) {
     document.getElementById('update-content').innerHTML = '';
     const mode = "update";
     await fillBizcocho(id_biz, mode);
-    document.getElementById("update-dialog").showModal();
+    document.getElementById("update-dialog-s").showModal();
 }
 
 async function showCreate() {
     document.getElementById('create-content').innerHTML = '';
     const mode = "create";
     await fillBizcocho(null, mode);
-    document.getElementById("create-dialog").showModal();
+    document.getElementById("create-dialog-s").showModal();
 }
 
 async function showDelete(id_biz){
     document.getElementById('delete-content').innerHTML = '';
     const mode = "delete";
     await fillBizcocho(id_biz, mode);
-    document.getElementById("delete-dialog").showModal();
+    document.getElementById("delete-dialog-s").showModal();
 }
 
 function cargarCategorias(contenedorId) {
@@ -124,6 +125,7 @@ function cargarData(bizcochoCRUD) {
 
         modal.querySelector("#id_bizcocho").value = bizcochoCRUD.id_biz;
         modal.querySelector("#categoria_bizcocho").value = bizcochoCRUD.biz_category;
+        modal.querySelector("#model_bizcocho").value = bizcochoCRUD.biz_model;
         modal.querySelector("#size_bizcocho").value = bizcochoCRUD.biz_size;
         modal.querySelector("#disponibles_bizcocho").value = bizcochoCRUD.stock_disponible;
         modal.querySelector("#apartados_bizcocho").value = bizcochoCRUD.stock_apartado;
@@ -148,6 +150,8 @@ async function fillBizcocho(id_biz, mode) {
             html = `
                 <p><strong>Categoria:</strong>
                     <select id="categoria_bizcocho"></select></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="model_bizcocho" value="" placeholder="Ingrese modelo del bizcocho"></p>
                 <p><strong>Tamaño:</strong>
                     <select id="size_bizcocho"></select></p>
                 <p><strong>Stock Disponible:</strong>
@@ -169,6 +173,8 @@ async function fillBizcocho(id_biz, mode) {
                     <input type="number" id="id_bizcocho" value="" readonly></p>
                 <p><strong>Categoria:</strong>
                     <input type="text" id="categoria_bizcocho" value="" readonly></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="model_bizcocho" value="" readonly></p>
                 <p><strong>Tamaño:</strong>
                     <input type="text" id="size_bizcocho" value="" readonly></p>
                 <p><strong>Stock Disponible:</strong>
@@ -194,6 +200,8 @@ async function fillBizcocho(id_biz, mode) {
                     <input type="number" id="id_bizcocho" value="${bizcochoCRUD.id_biz}" readonly></p>
                 <p><strong>Categoria:</strong>
                     <input type="text" id="categoria_bizcocho" value="${bizcochoCRUD.biz_category}" readonly></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="model_bizcocho" value="${bizcochoCRUD.biz_model}" readonly></p>
                 <p><strong>Tamaño:</strong>
                     <input type="text" id="size_bizcocho" value="${bizcochoCRUD.biz_size}" readonly></p>
                 <p><strong>Stock Disponible:</strong>
@@ -222,16 +230,24 @@ async function verificacionesBiz(contenedorId, mode) {
         return input ? input.value.trim() : "";
     };
 
-    const id_bizcocho = getNumber("#id_bizcocho");
-    if (isNaN(id_bizcocho) || id_bizcocho <= 0) {
-        showToast("El código de bizcocho es inválido.", ICONOS.advertencia);
-        return Promise.reject(new Error("ID de bizcocho inválido."));
+    if (mode !== "create") {
+        const id_bizcocho = getNumber("#id_bizcocho");
+        if (isNaN(id_bizcocho) || id_bizcocho <= 0) {
+            showToast("El código de bizcocho es inválido.", ICONOS.advertencia);
+            return Promise.reject(new Error("ID de bizcocho inválido."));
+        }
     }
 
     const categoria = getValue("#categoria_bizcocho");
     if (!categoria) {
         showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
         return Promise.reject(new Error("Categoría vacía."));
+    }
+
+    const modelo = getValue("#model_bizcocho");
+    if (!modelo) {
+        showToast("El modelo del bizcocho es inválido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Modelo vacio."));
     }
 
     const tamano = getValue("#size_bizcocho");
@@ -275,7 +291,7 @@ document.getElementById("save-create").addEventListener("click", async () => {
     try {
         await verificacionesBiz(contenedorId, mode);
         await guardarBizcocho(mode, contenedorId);
-        document.getElementById("create-dialog").close();
+        document.getElementById("create-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
         console.error("[ERROR] ", err.message);
@@ -288,7 +304,7 @@ document.getElementById("save-update").addEventListener("click", async () => {
     try {
         await verificacionesBiz(contenedorId, mode);
         await guardarBizcocho(mode, contenedorId);
-        document.getElementById("update-dialog").close();
+        document.getElementById("update-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
         console.error("[ERROR] ", err.message);
@@ -296,11 +312,12 @@ document.getElementById("save-update").addEventListener("click", async () => {
 });
 
 async function guardarBizcocho(mode, contenedorId) {
-    const id_biz = parseInt(document.querySelector(`#${contenedorId} #id_bizcocho`).value.trim());
-
     const payload = {
-        id_biz,
+        id_biz: mode === "create"
+            ? 0
+            : +document.querySelector(`#${contenedorId} #id_bizcocho`).value.trim(),
         biz_category:     document.querySelector(`#${contenedorId} #categoria_bizcocho`).value.trim(),
+        biz_model:        document.querySelector(`#${contenedorId} #model_bizcocho`).value.trim(),
         biz_size:         document.querySelector(`#${contenedorId} #size_bizcocho`).value.trim(),
         stock_disponible: +document.querySelector(`#${contenedorId} #disponibles_bizcocho`).value,
         stock_apartado:   +document.querySelector(`#${contenedorId} #apartados_bizcocho`).value,
@@ -320,12 +337,13 @@ async function guardarBizcocho(mode, contenedorId) {
             throw new Error(`Ya existe un bizcocho con ID ${payload.id_biz}.`);
         }
 
-        const dupCatSize = window.bizcochos.some(b =>
+        const dupCatSizeModel = window.bizcochos.some(b =>
             b.biz_category === payload.biz_category &&
-            b.biz_size     === payload.biz_size
+            b.biz_size     === payload.biz_size &&
+            b.biz_model    === payload.biz_model
         );
-        if (dupCatSize) {
-            throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}” y tamaño “${payload.biz_size}”.`);
+        if (dupCatSizeModel) {
+            throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}”, tamaño “${payload.biz_size}” y modelo “${payload.biz_model}”.`);
         }
 
         await createBizcocho(payload);
@@ -333,13 +351,14 @@ async function guardarBizcocho(mode, contenedorId) {
         showToast('Bizcocho agregado 📦.', ICONOS.success);
 
     } else if (mode === "update") {
-        const dupCatSize = window.bizcochos.some(b =>
+        const dupCatSizeModel = window.bizcochos.some(b =>
             b.biz_category === payload.biz_category &&
             b.biz_size     === payload.biz_size &&
+            b.biz_model    === payload.biz_model &&
             b.id_biz       !== payload.id_biz
         );
-        if (dupCatSize) {
-            throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}” y tamaño “${payload.biz_size}”.`);
+        if (dupCatSizeModel) {
+            throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}”, tamaño “${payload.biz_size}” y modelo “${payload.biz_model}”.`);
         }
 
         await updateBizcocho(payload);
@@ -360,7 +379,7 @@ document.getElementById("save-delete").addEventListener("click", async () => {
     );
 
     if (!confirmed) {
-        document.getElementById("delete-dialog").close();
+        document.getElementById("delete-dialog-s").close();
         showToast("Eliminación cancelada", ICONOS.info);
         return;
     }
@@ -368,7 +387,7 @@ document.getElementById("save-delete").addEventListener("click", async () => {
     try {
         await deleteBizcocho(id_biz);
         showToast("Bizcocho eliminado 📦.", ICONOS.success);
-        document.getElementById("delete-dialog").close();
+        document.getElementById("delete-dialog-s").close();
         await initBizcochos();
     } catch (err) {
         console.error("❌ Error al eliminar bizcocho:", err.message);
@@ -408,10 +427,10 @@ function cerrarDialogo(dialogId, dialogContent, mensaje) {
 }
 
 document.getElementById("close-dialog-delete").addEventListener("click", () =>
-    cerrarDialogo("delete-dialog", "delete-content", "Eliminación cancelada"));
+    cerrarDialogo("delete-dialog-s", "delete-content", "Eliminación cancelada"));
 
 document.getElementById("close-dialog-create").addEventListener("click", () =>
-    cerrarDialogo("create-dialog", "create-content", "Creación cancelada"));
+    cerrarDialogo("create-dialog-s", "create-content", "Creación cancelada"));
 
 document.getElementById("close-dialog-update").addEventListener("click", () =>
-    cerrarDialogo("update-dialog", "update-content","Actualización cancelada"));
+    cerrarDialogo("update-dialog-s", "update-content","Actualización cancelada"));

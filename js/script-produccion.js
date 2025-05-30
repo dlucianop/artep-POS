@@ -391,7 +391,7 @@ async function agregarNuevaOrden() {
         <p><strong>Fase:</strong>
             <select id="orden_fase_actual"></select></p>
         <p><strong>Piezas a Producir:</strong>
-            <input type="number" id="orden_cantidad_buenos" step="1" min="0" value=""></p>
+            <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese el numero de piezas a producir"></p>
     `;
 
     document.getElementById(contenedorId).innerHTML = html;
