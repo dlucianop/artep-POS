@@ -82,7 +82,7 @@ table,
 }
 
 #table-productos > thead tr th,
-#table-bizcochos > thead tr th{
+#table-bizcochos > thead tr th {
     background-color: #300907;
     color: white;
     border: 1px solid #ccc;
@@ -90,7 +90,7 @@ table,
 }
 
 #table-productos > tbody tr td,
-#table-bizcochos > tbody tr td{
+#table-bizcochos > tbody tr td {
     width: 0;
     background-color: whitesmoke;
     color: #300907;

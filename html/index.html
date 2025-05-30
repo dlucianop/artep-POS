@@ -32,9 +32,9 @@
         </a>
     </div>
     <div id="content-section">
-        <div class="panel-header">
+        <!--div class="panel-header">
             <h2>Cerámica Artep | Punto de Venta</h2>
-        </div>
+        </div-->
         <div class="panel-info">
             <form action="">
                 <div id="info-content">
@@ -89,7 +89,60 @@
                 </div>
             </form>
         </div>
-        <div class="panel-venta"></div>
+        <div class="panel-venta">
+            <button type="button" onclick="addCarrito()">➕ Agregar Producto</button>
+            
+            <div class="tabla-scroll-container">
+                <table class="tabla-carrito">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Descripción</th>
+                            <th>Precio Unitario ($)</th>
+                            <th>Cantidad</th>
+                            <th>Importe ($)</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="carrito">
+                        <!--tr>
+                            <td>123456789012</td>
+                            <td>Descripción</td>
+                            <td>100.00</td>
+                            <td>999999</td>
+                            <td>100000.00</td>
+                            <td> <button>🗑️ Eliminar</button></td>
+                        </tr-->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="final-pos">
+                <div id="actions-pos">
+                    <div class="botton-actions">
+                        <button type="button" onclick="addCarrito()">➕ Limpiar Venta</button>
+                    </div>
+                    <div class="botton-actions">
+                        <button type="button" onclick="addCarrito()">➕ Imprimir Venta</button>
+                    </div>
+                </div>
+                <div id="total-container">
+                    <div class="campo-total">
+                        <label for="pos_monto">Monto a pagar:</label>
+                        <input type="number" id="pos_monto" placeholder="$$$$$" readonly>
+                    </div>
+                    <div class="campo-total">
+                        <label for="pos_pago">Pago:</label>
+                        <input type="number" id="pos_pago" placeholder="$$$$$">
+                    </div>
+                    <div class="campo-total">
+                        <label for="pos_cambio">Cambio:</label>
+                        <input type="number" id="pos_cambio" placeholder="$$$$$" readonly>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <dialog id="update-dialog-s">
