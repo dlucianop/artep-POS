@@ -32,234 +32,118 @@
         </a>
     </div>
     <div id="content-section">
-        <div class="info-client" id="info-client">
-            <form action="" id="form-info-client">
-                <div class="form-group tooltip">
-                    <label for="id-sale">No. de venta*: </label>
-                    <input type="number" id="id-sale" placeholder="0" required>
-                    <span class="tooltiptext">Número de la venta.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="sale-date">Fecha: </label>
-                    <input type="text" id="sale-date" readonly>
-                    <span class="tooltiptext">Fecha en que se realiza la venta.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="sale-hour">Hora: </label>
-                    <input type="text" id="sale-hour" readonly>
-                    <span class="tooltiptext">Hora en que se realiza la venta.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="client-name">Cliente: </label>
-                    <input type="text" id="client-name" placeholder="Nombre">
-                    <span class="tooltiptext">Nombre del cliente que realiza la compra.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="client-phone">Teléfono: </label>
-                    <input type="number" id="client-phone" placeholder="0" min="1000000000" step="1">
-                    <span class="tooltiptext">Número de teléfono del cliente para contacto.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="client-mail">Correo: </label>
-                    <input type="text" id="client-mail" placeholder="nombre@algo.com">
-                    <span class="tooltiptext">Correo electrónico del cliente para confirmaciones.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="client-address">Domicilio: </label>
-                    <input type="text" id="client-address" placeholder="0">
-                    <span class="tooltiptext">Domicilio del cliente para la entrega del pedido.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="sale-entrega">Fecha de entrega*: </label>
-                    <input type="date" id="sale-entrega" required>
-                    <span class="tooltiptext">Fecha estimada para la entrega del pedido.</span>
-                </div>
-            </form>
-            <form action="" id="form-info-payment">
-                <div class="form-group tooltip">
-                    <label for="payment-method">Método de pago*: </label>
-                    <select id="payment-method">
-                        <option value="">----Seleccionar----</option>
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-                        <option value="Tarjeta de Débito/Crédito">Tarjeta de Débito/Crédito</option>
-                    </select>
-                    <span class="tooltiptext">Método de pago seleccionado por el cliente.</span>
-                </div>
-                <div class="form-group tooltip">
-                    <label for="payment-form">Forma de pago*:  </label>
-                    <select id="payment-form">
-                        <option value="">----Seleccionar----</option>
-                        <option value="Pago en una sola exhibición">Pago en una sola exhibición</option>
-                        <option value="Pago a plazos">Pago a plazos</option>
-                    </select>
-                    <span class="tooltiptext">Forma en que se realizará el pago del pedido.</span>
+        <div class="panel-header">
+            <h2>Cerámica Artep | Punto de Venta</h2>
+        </div>
+        <div class="panel-info">
+            <form action="">
+                <div id="info-content">
+                    <div id="info-content-client">
+                        <p>
+                            <strong>No. de Venta:</strong>
+                            <input type="text" id="pos_id_venta" value="" placeholder="Ingrese el numero de venta" required>
+                        </p>
+                        <p>
+                            <strong>Fecha de entrega:</strong>
+                            <input type="date" id="pos_fecha_entrega" value="" placeholder="Ingrese la fecha de entrega" required>
+                        </p>
+                        <p>
+                            <strong>Forma de pago:</strong>
+                            <select id="pos_forma_pago" required>
+                                <option value="" disabled selected>-- Elija una forma de pago --</option>
+                                <option value="Pago en una sola exhibición">Pago único (una sola vez)</option>
+                                <option value="Pago a plazos">Pago en partes</option>
+                                <option value="Anticipo y liquidación">Anticipo y luego el resto</option>
+                                <option value="Pago contra entrega">Pago al recoger la pieza</option>
+                            </select>
+                        </p>
+                        <p>
+                            <strong>Método de pago:</strong>
+                            <select id="pos_metodo_pago" required>
+                                <option value="" disabled selected>-- Elija un método de pago --</option>
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia Bancaria">Transferencia (banco o app)</option>
+                                <option value="Tarjeta de Débito/Crédito">Tarjeta (débito o crédito)</option>
+                                <option value="Pago con Código QR">Pago por código QR</option>
+                            </select>
+                        </p>
+                    </div>
+                    <div id="info-content-venta">
+                        <p>
+                            <strong>Cliente:</strong>
+                            <input type="text" id="pos_nombre" value="" placeholder="Ingrese el nombre del cliente">
+                        </p>
+                        <p>
+                            <strong>Télefono:</strong>
+                            <input type="text" id="pos_telefono" value="" placeholder="Ingrese el teléfono del cliente">
+                        </p>
+                        <p>
+                            <strong>Correo electrónico:</strong>
+                            <input type="text" id="pos_correo" value="" placeholder="Ingrese el correo electrónico del cliente">
+                        </p>
+                        <p>
+                            <strong>Domicilio:</strong>
+                            <input type="text" id="pos_domicilio" value="" placeholder="Ingrese el domicilio del cliente">
+                        </p>
+                    </div>
                 </div>
             </form>
         </div>
-        <div class="info-sale" id="info-sale">
-            <div class="info-products" id="info-products">
-                <table id="table-products" class="table-products">
-                    <thead>
-                        <tr>
-                            <th>Codigo</th>
-                            <th>Descripcion</th>
-                            <th>Precio Unitario($)</th>
-                            <th>Cantidad</th>
-                            <th>Importe($)</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr id="rowvoid">
-                            <td colspan="6">Agregue productos al carrito...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="actions-total">
-                <div class="info-actions" id="info-actions">
-                    <div id="actions1">
-                        <button onclick="openModalPOS('addProductModal')">
-                            <img src="../img/pos-actions/add.png" alt="">Agregar Producto
-                        </button>
-                    </div>
-                    <div id="actions2">
-                        <button onclick="cancelarVenta()" type="submit">
-                            <img src="../img/pos-actions/cancel.png" alt="">Cancelar/Limpiar Venta
-                        </button>
-                        <button id="btn-imprimir" onclick="imprimirRecibo()" type="submit">
-                            <img src="../img/pos-actions/printer.png" alt="">Imprimir Ticket
-                        </button>
-                    </div>
-                </div>
-                <div class="info-total" id="info-total">
-                    <form action="" id="total-pay-form">
-                        <div class="total-field">
-                            <label for="monto">Monto: </label>
-                            <div class="pay-form-data tooltip">
-                                <label>$
-                                    <input type="number" id="monto" readonly placeholder="0.00">
-                                </label>
-                                <span class="tooltiptext">Monto total de los productos.</span>
-                            </div>
-                        </div>
-                        <div class="total-field">
-                            <label for="pago">Pago: </label>
-                            <div class="pay-form-data tooltip">
-                                <label>$
-                                    <input type="number" id="pago">
-                                </label>
-                                <span class="tooltiptext">Cantidad de dinero entregada por el cliente.</span>
-                            </div>
-                        </div>
-                        <div class="total-field">
-                            <label for="cambio">Cambio: </label>
-                            <div class="pay-form-data tooltip">
-                                <label>$
-                                    <input type="number" id="cambio" readonly value="0.00">
-                                </label>
-                                <span class="tooltiptext">Dinero que se le devuelve al cliente si pagó de más.</span>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
+        <div class="panel-venta"></div>
     </div>
 
-        <!-- MODAL -->
-        <div id="addProductModal" class="modal">
-            <div class="modal-content">
-                <span class="close" onclick="closeModalPOS('addProductModal')">&times;</span>
-                <div id="modal-dynamic-content">
-                    <div id="modal-content-1">
-                        <input type="text" placeholder="Buscar producto" id="product-by-search">
-                        <div id="search-results" class="dropdown-list"></div>
-                    </div>
-
-                    <div id="modal-content-2">
-                        <form id="modalAdd-form">
-                            <div class="product-form-field">
-                                <label for="productCode">Código del Producto: </label>
-                                <input type="text" id="productCode" placeholder="Código del Producto" required>
-                            </div>
-
-                            <div class="product-form-field">
-                                <label for="productCategory">Categoría: </label>
-                                <select id="productCategory" required>
-                                <option value="" disabled selected>-- Elija una categoría --</option>
-                                </select>
-                            </div>
-
-                            <div class="product-form-field">
-                                <label for="productModel">Modelo: </label>
-                                <input type="text" id="productModel" required>
-                            </div>
-
-                            <div class="product-form-field">
-                                <label for="productDecoration">Decoración: </label>
-                                <input type="text" id="productDecoration" required>
-                            </div>
-
-                            <div class="product-form-field">
-                                <label for="productColor">Color: </label>
-                                <input type="text" id="productColor" required>
-                            </div>
-
-                            <div id="product-stocks">
-                                <div class="product-form-field tooltip">
-                                    <label for="productPrice">Precio Unit. ($): </label>
-                                    <input type="number" id="productPrice" min="1" required value="0">
-                                    <span class="tooltiptext">Costo individual de cada producto.</span>
-                                </div>
-
-                                <div class="product-form-field">
-                                    <label for="productSize">Tamaño: </label>
-                                    <select id="productSize" required>
-                                        <option value="" disabled selected>-- Elija un tamaño --</option>
-                                    </select>
-                                </div>
-
-                                <div class="product-form-field tooltip">
-                                    <label for="product-stock-disponible">Stock Disponible:</label>
-                                    <input type="number" id="product-stock-disponible" step="1" min="0" value="0">
-                                    <span class="tooltiptext">Este campo muestra el stock disponible para la venta.</span>
-                                </div>
-
-                                <div class="product-form-field tooltip">
-                                    <label for="product-stock-pedido">Pedido:</label>
-                                    <input type="number" id="product-stock-pedido" step="1" min="1" value="0">
-                                    <span class="tooltiptext">Cantidad de productos del pedido.</span>
-                                </div>
-                            </div>
-                            <button type="button" onclick="agregarProductoCarrito()">
-                                <img src="../img/pos-actions/add.png" alt="">Agregar Producto
-                            </button>
-                        </form>
-                    </div>
-
-                </div>
+    <dialog id="update-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>Modificar Orden</h3>
+            <div id="update-content">
             </div>
-        </div>
+            <menu>
+                <button id="save-update" type="button" class="dialog-btn">Guardar</button>
+                <button id="close-dialog-update" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
 
-        <script src="../js/window-lock.js"></script>
-        <!--script src="../js/modal.js"></script-->
-        <script src="../js/pos.js"></script>
-        <script src="../js/hour-date.js"></script>
-
-        <!-- Toast de notificación -->
-        <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
-
-        <!-- Confirmación personalizada -->
-        <div id="confirm-toast" class="hidden-toast">
-            <span id="confirm-msg">¿Estás seguro?</span>
-            <div class="confirm-buttons">
-                <button id="btn-confirm-ok">Sí</button>
-                <button id="btn-confirm-cancel">Cancelar</button>
+    <dialog id="create-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>Agregar Orden</h3>
+            <div id="create-content">
             </div>
-        </div>
+            <menu>
+                <button id="save-create" type="button" class="dialog-btn">Guardar</button>
+                <button id="close-dialog-create" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="delete-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>¿Desea eliminar este Orden?</h3>
+            <div id="delete-content">
+            </div>
+            <menu>
+                <button id="save-delete" type="button" class="dialog-btn">Aceptar</button>
+                <button id="close-dialog-delete" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="confirm-dialog" class="confirm-dialog">
+        <form method="dialog" class="dialog-content confirm-content">
+            <h3 id="confirm-title">¿Estás seguro?</h3>
+            <p id="confirm-message">Esta acción no se puede deshacer.</p>
+            <menu>
+                <button id="confirm-yes" type="button" class="dialog-btn">Sí</button>
+                <button id="confirm-no" class="dialog-btn">No</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <script src="../js/window-lock.js"></script>
+    <!--script src="../js/pos.js"></script>
+    <script src="../js/hour-date.js"></script-->
+
+    <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
 
 </body>
 </html>
