@@ -15,7 +15,7 @@ const {
     deleteBizcocho 
 } = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
 const {
-    readDetalles
+    readDetalles, createVenta
 } = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const {
     readFases, updateFase, readCategorias, readSizes
@@ -449,8 +449,37 @@ async function cleanCarrito() {
     }
 }
 
+function formatearFechaLarga(fecha) {
+    const meses = [
+        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    const mes = meses[fecha.getMonth()];
+    const año = fecha.getFullYear();
+
+    return `${dia}-${mes}-${año}`;
+}
+
+function formatearHora(fecha) {
+    let horas = fecha.getHours();
+    const minutos = fecha.getMinutes();
+    const ampm = horas >= 12 ? 'PM' : 'AM';
+    horas = horas % 12 || 12;
+    const minutosFormat = minutos.toString().padStart(2, '0');
+    return `${horas}:${minutosFormat} ${ampm}`;
+}
+
 async function printCarrito() {
-    await validacionesVenta();
+    let dataVenta;
+    try {
+        dataVenta = await validacionesVenta();
+    } catch (error) {
+        console.error("Error en la validación de la venta:", error.message);
+        showToast(`Error en la validación de la venta: ${error.message}`, ICONOS.error);
+        return;
+    }
 
     const confirmed = await showConfirmDialog(
         `¿Desea terminar la venta e imprimir la nota de venta?`,
@@ -458,7 +487,9 @@ async function printCarrito() {
     );
 
     if (confirmed) {
-        await crudVenta();
+        console.log(dataVenta); 
+        //await createVenta(dataVenta);
+
         await crudProducto();
         await crudBizcocho();
 
@@ -513,8 +544,8 @@ async function validacionesVenta() {
         return Promise.reject(new Error("Número de venta inválido."));
     }
     
-    const fecha_entrega = getValue("#pos_fecha_entrega");
-    if (!fecha_entrega) {
+    const fecha_entregaN = getValue("#pos_fecha_entrega");
+    if (!fecha_entregaN) {
         showToast("Falta ingresar la fecha de entrega.", ICONOS.advertencia);
         return Promise.reject(new Error("Fecha de entrega inválida."));
     }
@@ -531,13 +562,44 @@ async function validacionesVenta() {
         return Promise.reject(new Error("Método de pago inválido."));
     }
 
-    const pago = getValue("#pos_pago");
-    if (!pago) {
+    const pago = getNumber("#pos_pago");
+    if (isNaN(pago) || pago <= 0) {
         showToast("Falta ingresar una cantidad de pago.", ICONOS.advertencia);
         return Promise.reject(new Error("Cantidad de pago inválido."));
     }
 
-    return Promise.resolve();
+    const monto = getNumber("#pos_monto");
+    if (isNaN(monto) || monto <= 0) {
+        showToast("Error interno: monto no calculado.", ICONOS.error);
+        return Promise.reject(new Error("Monto inválido."));
+    }
+    
+    const nombre = getValue("#pos_nombre");
+    const telefono = getValue("#pos_telefono");
+    const correo = getValue("#pos_correo");
+    const domicilio = getValue("#pos_domicilio");
+
+    //return Promise.resolve();
+
+    const now = new Date();
+    const fecha_venta = formatearFechaLarga(now);
+    const hora = formatearHora(now);
+    const fecha_entrega = formatearFechaLarga(new Date(fecha_entregaN));
+
+    return {
+        id_venta,
+        fecha_venta,
+        hora,
+        nombre,
+        telefono,
+        correo,
+        domicilio,
+        fecha_entrega,
+        metodo_pago,
+        forma_pago,
+        monto,
+        pago
+    };
 }
 
 /*--------------------------------------DIALOGOS------------------------------------------- */
