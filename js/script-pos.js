@@ -45,12 +45,28 @@ async function initPOS() {
         const productos = await readProductos();
         window.productos = productos;
 
+        window.carrito = [];
+
         console.warn('Se cargaron los datos en cache.');
 
     } catch (error) {
         console.error('❌ Error al cargar bizcochos:', error.message);
         showToast(`[ERROR] al cargar bizcochos: ${error.message}`, ICONOS.error);
     }
+}
+
+async function addOrUpdateCart(producto) {
+    const index = window.carrito.findIndex(item => item.codigo === producto.codigo);
+    if (index === -1) {
+        window.carrito.push(producto);
+    } else {
+        window.carrito[index].cantidad = producto.cantidad;
+        window.carrito[index].importe = producto.importe;
+    }
+}
+
+async function removeFromCart(codigoProducto) {
+    window.carrito = window.carrito.filter(item => item.codigo !== codigoProducto);
 }
 
 function cargarCategorias(contenedorId) {
@@ -282,11 +298,13 @@ async function agregarProductoCarrito() {
         <td><button class="btn-quitar">🗑️ Quitar</button></td>
     `;
 
-    fila.querySelector(".input-cantidad").addEventListener("input", function () {
+    fila.querySelector(".input-cantidad").addEventListener("input", async function () {
         const nuevaCantidad = parseInt(this.value) || 0;
         const nuevoImporte = nuevaCantidad * precio;
         fila.querySelector(".importe").textContent = `$${nuevoImporte.toFixed(2)}`;
         actualizarMontoTotal();
+        await addOrUpdateCart({codigo, precio, cantidad: nuevaCantidad, importe: nuevoImporte});
+        //console.warn(carrito);
     });
 
     fila.querySelector(".btn-quitar").addEventListener("click", async function () {
@@ -298,6 +316,8 @@ async function agregarProductoCarrito() {
         if (confirmed) {
             fila.remove();
             actualizarMontoTotal();
+            await removeFromCart(codigo);
+            //console.warn(carrito);
             showToast("Se quito un producto de la venta.", ICONOS.advertencia);
         }
     });
@@ -308,6 +328,9 @@ async function agregarProductoCarrito() {
     document.getElementById("clean-create").click();
     document.getElementById("create-dialog-s").close();
     showToast("Se agrego un producto a la venta.", ICONOS.info);
+
+    await addOrUpdateCart({codigo, precio, cantidad, importe});
+    //console.warn(carrito);
 }
 
 async function validacionesProducto() {
@@ -435,6 +458,10 @@ async function printCarrito() {
     );
 
     if (confirmed) {
+        await crudVenta();
+        await crudProducto();
+        await crudBizcocho();
+
         //let ventaId = +document.getElementById("pos_id_venta").value;
         //const detalles_venta = await readDetalles(ventaId);
         
@@ -448,6 +475,18 @@ async function printCarrito() {
     } else {
         showToast("Acción IMPRIMIR NOTA cancelada", ICONOS.error);
     }
+}
+
+async function crudVenta() {
+    //crear venta y detalles venta
+}
+
+async function crudProducto() {
+    //ver si existen productos, sino crearlos o actualizarlos, verificar si hay disponible o sino crear orden desde bizcochso
+}
+
+async function crudBizcocho() {
+    //ver si existen bizcos, sino crearlos o actualizarlos, verificar si hay disponible o sino crear orden desde cero
 }
 
 async function validacionesVenta() {
