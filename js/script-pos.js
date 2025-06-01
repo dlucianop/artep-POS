@@ -291,7 +291,7 @@ async function agregarProductoCarrito() {
 
     fila.querySelector(".btn-quitar").addEventListener("click", async function () {
         const confirmed = await showConfirmDialog(
-            `¿Desea quitar este producto de la venta`,
+            `¿Desea quitar el producto "${descripcion}" de la venta?`,
             "Quitar producto de VENTA"
         );
 
@@ -363,23 +363,25 @@ async function validacionesProducto() {
     const precio = getNumber("#precio_producto");
     if (isNaN(precio) || precio <= 0) {
         showToast("Debe ingresar un precio unitario para el producto válido.", ICONOS.advertencia);
-        return Promise.reject(new Error("ID de producto inválido."));
+        return Promise.reject(new Error("Precio producto inválido."));
     }
 
     const stock_disponible = getNumber("#disponibles_producto");
     if (isNaN(stock_disponible) || stock_disponible < 0) {
         showToast("Debe ingresar una cantidad de stock disponible válido.", ICONOS.advertencia);
-        return Promise.reject(new Error("ID de producto inválido."));
+        return Promise.reject(new Error("Stock disponible producto inválido."));
     }
 
     const cantidad = getNumber("#cantidad");
     if (isNaN(cantidad) || cantidad <= 0) {
         showToast("Debe ingresar una cantidad válida para el pedido.", ICONOS.advertencia);
-        return Promise.reject(new Error("ID de producto inválido."));
+        return Promise.reject(new Error("Cantidad de pedido de producto inválido."));
     }
 
     return Promise.resolve();
 }
+
+/*--------------------------------------CAMPOS DE MONTO, PAGO Y CAMBIO------------------------------------------- */
 
 function actualizarMontoTotal() {
     const importes = document.querySelectorAll(".importe");
@@ -391,8 +393,19 @@ function actualizarMontoTotal() {
     });
 
     document.getElementById("pos_monto").value = total.toFixed(2);
+    actualizarCambio();
 }
 
+
+function actualizarCambio() {
+    const monto = parseFloat(document.getElementById("pos_monto").value) || 0;
+    const pago = parseFloat(document.getElementById("pos_pago").value) || 0;
+
+    const cambio = pago - monto;
+    document.getElementById("pos_cambio").value = cambio >= 0 ? cambio.toFixed(2) : "0.00";
+}
+
+document.getElementById("pos_pago").addEventListener("input", actualizarCambio);
 
 /*--------------------------------------ACCIONES------------------------------------------- */
 
@@ -414,13 +427,15 @@ async function cleanCarrito() {
 }
 
 async function printCarrito() {
+    await validacionesVenta();
+
     const confirmed = await showConfirmDialog(
-        `¿Desea terminar la venta e imprimir la nota de venta`,
+        `¿Desea terminar la venta e imprimir la nota de venta?`,
         "Imprimir venta"
     );
 
     if (confirmed) {
-        let ventaId = +document.getElementById("pos_id_venta").value || 0;
+        //let ventaId = +document.getElementById("pos_id_venta").value;
         //const detalles_venta = await readDetalles(ventaId);
         
         //await generarRecibos({ venta_datos: detalles_venta });
@@ -433,6 +448,57 @@ async function printCarrito() {
     } else {
         showToast("Acción IMPRIMIR NOTA cancelada", ICONOS.error);
     }
+}
+
+async function validacionesVenta() {
+    const carrito = document.querySelector("#carrito");
+    
+    if (!carrito || carrito.rows.length === 0) {
+        showToast("Debe agregar al menos un producto para realizar la venta.", ICONOS.advertencia);
+        return Promise.reject(new Error("El carrito está vacío."));
+    }
+
+    const getNumber = (selector) => {
+        const input = document.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
+    };
+
+    const getValue = (selector) => {
+        const input = document.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
+
+    const id_venta = getNumber("#pos_id_venta");
+    if (isNaN(id_venta) || id_venta <= 0) {
+        showToast("Falta ingresar un número de venta válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Número de venta inválido."));
+    }
+    
+    const fecha_entrega = getValue("#pos_fecha_entrega");
+    if (!fecha_entrega) {
+        showToast("Falta ingresar la fecha de entrega.", ICONOS.advertencia);
+        return Promise.reject(new Error("Fecha de entrega inválida."));
+    }
+
+    const forma_pago = getValue("#pos_forma_pago");
+    if (!forma_pago) {
+        showToast("Falta seleccionar una forma de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Forma de pago inválido."));
+    }
+
+    const metodo_pago = getValue("#pos_metodo_pago");
+    if (!metodo_pago) {
+        showToast("Falta seleccionar una método de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Método de pago inválido."));
+    }
+
+    const pago = getValue("#pos_pago");
+    if (!pago) {
+        showToast("Falta ingresar una cantidad de pago.", ICONOS.advertencia);
+        return Promise.reject(new Error("Cantidad de pago inválido."));
+    }
+
+    return Promise.resolve();
 }
 
 /*--------------------------------------DIALOGOS------------------------------------------- */
