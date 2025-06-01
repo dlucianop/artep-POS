@@ -131,15 +131,19 @@ async function searchProducto() {
 
     const resultados = await coincidenciasProducto(searchInput);
 
-    if (!resultados || resultados.length === 0) {
+    const carritoFilas = document.querySelectorAll("#carrito tr");
+    const codigosEnCarrito = Array.from(carritoFilas).map(fila => fila.getAttribute("data-code"));
+    const resultadosFiltrados = resultados.filter(producto => !codigosEnCarrito.includes(producto.code.toString()));
+
+    if (!resultadosFiltrados || resultadosFiltrados.length === 0) {
         mostrarSinCoincidencias();
     } else {
-        mostrarListaResultados(resultados);
+        mostrarListaResultados(resultadosFiltrados);
     }
-    
 
     document.getElementById("results-dialog-s").showModal();
 }
+
 
 function mostrarSinCoincidencias() {
     const content = document.getElementById('results-content');
@@ -160,7 +164,7 @@ async function coincidenciasProducto(searchInput) {
         const palabrasClave = input.split(/\s+/);
 
         const coincidencias = window.productos.filter(producto => {
-            const textoProducto = `${producto.category} MOD.${producto.model} TAM.${producto.size} DECOR.${producto.decoration} COL.${producto.color}`.toLowerCase();
+            const textoProducto = `${producto.category} TAM.${producto.size} MOD.${producto.model} DECOR.${producto.decoration} COLOR ${producto.color}`.toLowerCase();
             
             return palabrasClave.some(palabra => textoProducto.includes(palabra));
         });
@@ -190,11 +194,7 @@ function mostrarListaResultados(productos) {
 
         item.innerHTML = `
             <div style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid #ccc;">
-                <strong>${producto.category}</strong> - 
-                Modelo: ${producto.model}, 
-                Tamaño: ${producto.size}, 
-                Decoración: ${producto.decoration}, 
-                Color: ${producto.color}
+                ${producto.category} TAM.${producto.size} MOD.${producto.model} DECOR. ${producto.decoration} COLOR ${producto.color}
             </div>
         `;
 
@@ -238,9 +238,161 @@ async function limpiarFormularioProducto() {
     document.getElementById('disponibles_producto').value = '';
     document.getElementById('cantidad').value = '';
     document.getElementById("search-input").value = '';
-
-    showToast(`Todos los campos del formulario PRODUCTO han sido limpiados.`, ICONOS.advertencia);
 }
+
+
+document.getElementById("save-create").addEventListener("click", async () => {
+    await agregarProductoCarrito();
+});
+
+async function agregarProductoCarrito() {
+
+    await validacionesProducto();
+
+    const codigo = document.getElementById("code_producto").value;
+    const categoria = document.getElementById("categoria_producto").value;
+    const modelo = document.getElementById("modelo_producto").value;
+    const size = document.getElementById("size_producto").value;
+    const decoracion = document.getElementById("decoracion_producto").value;
+    const color = document.getElementById("color_producto").value;
+    const precio = parseFloat(document.getElementById("precio_producto").value) || 0;
+    const cantidad = parseInt(document.getElementById("cantidad").value) || 0;
+
+    if (!codigo || !cantidad || cantidad <= 0) {
+        showToast("Código o cantidad inválida. Ingrese un número.", ICONOS.error);
+        return;
+    }
+
+    const descripcion = `${categoria} TAM.${size} MOD.${modelo} DECOR. ${decoracion} COLOR ${color}`;
+    const importe = precio * cantidad;
+
+    const tbody = document.getElementById("carrito");
+
+    const fila = document.createElement("tr");
+    fila.setAttribute("data-code", codigo);
+
+    fila.innerHTML = `
+        <td>${codigo}</td>
+        <td>${descripcion}</td>
+        <td>$${precio.toFixed(2)}</td>
+        <td>
+            <input type="number" value="${cantidad}" min="1" step="1" class="input-cantidad">
+        </td>
+        <td class="importe">$${importe.toFixed(2)}</td>
+        <td><button class="btn-quitar">🗑️ Quitar</button></td>
+    `;
+
+    fila.querySelector(".input-cantidad").addEventListener("input", function () {
+        const nuevaCantidad = parseInt(this.value) || 0;
+        const nuevoImporte = nuevaCantidad * precio;
+        fila.querySelector(".importe").textContent = `$${nuevoImporte.toFixed(2)}`;
+        actualizarMontoTotal();
+    });
+
+    fila.querySelector(".btn-quitar").addEventListener("click", async function () {
+        const confirmed = await showConfirmDialog(
+            `¿Desea quitar este producto de la venta`,
+            "Quitar producto de VENTA"
+        );
+
+        if (confirmed) {
+            fila.remove();
+            actualizarMontoTotal();
+            showToast("Se quito un producto de la venta.", ICONOS.advertencia);
+        }
+    });
+
+    tbody.appendChild(fila);
+    actualizarMontoTotal();
+
+    document.getElementById("clean-create").click();
+    document.getElementById("create-dialog-s").close();
+    showToast("Se agrego un producto a la venta.", ICONOS.info);
+}
+
+async function validacionesProducto() {
+    const contenedorId = "create-content";
+    const modal = document.getElementById(contenedorId);
+
+    const getNumber = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
+    };
+
+    const getValue = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
+
+    const code_producto = getNumber("#code_producto");
+    if (isNaN(code_producto) || code_producto <= 0) {
+        showToast("Debe ingresar un código de producto válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("ID de producto inválido."));
+    }
+
+    const categoria = getValue("#categoria_producto");
+    if (!categoria) {
+        showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
+        return Promise.reject(new Error("Categoría vacía."));
+    }
+
+    const modelo = getValue("#modelo_producto");
+    if (!modelo) {
+        showToast("Debe ingresar un modelo de producto válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Modelo vacio."));
+    }
+
+    const tamano = getValue("#size_producto");
+    if (!tamano) {
+        showToast("Debe seleccionar un tamaño.", ICONOS.advertencia);
+        return Promise.reject(new Error("Tamaño vacío."));
+    }
+
+    const decoracion = getValue("#decoracion_producto");
+    if (!decoracion) {
+        showToast("Debe ingresar una decoración de producto válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Decoración vacía."));
+    }
+
+    const color = getValue("#color_producto");
+    if (!color) {
+        showToast("Debe ingresar un color de producto válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("Color vacío."));
+    }
+
+    const precio = getNumber("#precio_producto");
+    if (isNaN(precio) || precio <= 0) {
+        showToast("Debe ingresar un precio unitario para el producto válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("ID de producto inválido."));
+    }
+
+    const stock_disponible = getNumber("#disponibles_producto");
+    if (isNaN(stock_disponible) || stock_disponible < 0) {
+        showToast("Debe ingresar una cantidad de stock disponible válido.", ICONOS.advertencia);
+        return Promise.reject(new Error("ID de producto inválido."));
+    }
+
+    const cantidad = getNumber("#cantidad");
+    if (isNaN(cantidad) || cantidad <= 0) {
+        showToast("Debe ingresar una cantidad válida para el pedido.", ICONOS.advertencia);
+        return Promise.reject(new Error("ID de producto inválido."));
+    }
+
+    return Promise.resolve();
+}
+
+function actualizarMontoTotal() {
+    const importes = document.querySelectorAll(".importe");
+    let total = 0;
+
+    importes.forEach(el => {
+        const valor = parseFloat(el.textContent.replace("$", "")) || 0;
+        total += valor;
+    });
+
+    document.getElementById("pos_monto").value = total.toFixed(2);
+}
+
 
 /*--------------------------------------ACCIONES------------------------------------------- */
 
@@ -251,12 +403,11 @@ async function cleanCarrito() {
     );
 
     if (confirmed) {
-        let ventaId = +document.getElementById("pos_id_venta").value || 0;
-        showToast(`Venta #${ventaId} cancelada. Que tenga buen día.`, ICONOS.advertencia);
+        showToast(`Venta cancelada. Que tenga buen día.`, ICONOS.advertencia);
 
         setTimeout(() => {
             window.location.reload();
-        }, 2000);
+        }, 1500);
     } else {
         showToast("Acción LIMPIAR VENTA cancelada", ICONOS.error);
     }
@@ -277,7 +428,7 @@ async function printCarrito() {
 
         setTimeout(() => {
             window.location.reload();
-        }, 3000);
+        }, 2500);
         
     } else {
         showToast("Acción IMPRIMIR NOTA cancelada", ICONOS.error);
