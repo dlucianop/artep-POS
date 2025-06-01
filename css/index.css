@@ -198,7 +198,8 @@ table,
 
 #create-dialog-s,
 #update-dialog-s,
-#delete-dialog-s {
+#delete-dialog-s,
+#results-dialog-s {
     border: none;
     padding: 0;
     border-radius: 8px;

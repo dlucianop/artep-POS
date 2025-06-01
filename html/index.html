@@ -156,11 +156,27 @@
     <dialog id="create-dialog-s">
         <form method="dialog" class="dialog-content">
             <h3>Agregar producto a la venta</h3>
+            <div id="search-bar">
+                <p><strong>Buscar un producto:</strong>
+                <input type="text" value="" id="search-input" placeholder="Ingrese algún dato del producto"></p>
+                <button id="search-product" type="button" class="dialog-btn" onclick="searchProducto()">Buscar</button>
+            </div>
             <div id="create-content">
             </div>
             <menu>
-                <button id="save-create" type="button" class="dialog-btn">Guardar</button>
+                <button id="save-create" type="button" class="dialog-btn">Agregar</button>
+                <button id="clean-create" type="button" class="dialog-btn">Limpiar Campos</button>
                 <button id="close-dialog-create" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="results-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3 id="results-title">Coincidencias para: </h3>
+            <div id="results-content">
+            </div>
+            <menu id="menu-results">
             </menu>
         </form>
     </dialog>
