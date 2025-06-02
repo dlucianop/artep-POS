@@ -92,6 +92,34 @@ function readOrdenes() {
     });
 }
 
+function readOrdenesOrigen(origen) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT * 
+            FROM orden_produccion
+            WHERE origen = ?
+        ;`;
+    
+        db.all(query, origen,(err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readOrdenesOrigen] Error al leer ordenes de Produccion: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function updateEstado(orden){
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -374,5 +402,6 @@ function searchReposicionOrden(orden) {
 module.exports = { 
     readOrdenes,
     createOrden,
-    updateEstado
+    updateEstado,
+    readOrdenesOrigen
 }

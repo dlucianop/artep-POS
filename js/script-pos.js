@@ -15,11 +15,14 @@ const {
     deleteBizcocho 
 } = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
 const {
-    readDetalles, createVenta
+    readDetalles, createVenta, readVentas
 } = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const {
     readFases, updateFase, readCategorias, readSizes
 } = require(join(__dirname, "..", "js", "crud-config.js"));
+const {
+    readOrdenes, createOrden, updateEstado, readOrdenesOrigen
+} = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, 
     showConfirmToast, 
@@ -45,13 +48,19 @@ async function initPOS() {
         const productos = await readProductos();
         window.productos = productos;
 
+        const ordenes = await readOrdenesOrigen("INVENTARIO");
+        window.ordenesInv = ordenes;
+
+        const ventas = await readVentas();
+        window.ventas = ventas;
+
         window.carrito = [];
 
         console.warn('Se cargaron los datos en cache.');
 
     } catch (error) {
-        console.error('❌ Error al cargar bizcochos:', error.message);
-        showToast(`[ERROR] al cargar bizcochos: ${error.message}`, ICONOS.error);
+        console.error('❌ Error al cargar datos de POS:', error.message);
+        showToast(`[ERROR] al cargar datos: ${error.message}`, ICONOS.error);
     }
 }
 
@@ -265,17 +274,27 @@ async function agregarProductoCarrito() {
 
     await validacionesProducto();
 
-    const codigo = document.getElementById("code_producto").value;
+    const codigo = parseInt(document.getElementById("code_producto").value, 10);
     const categoria = document.getElementById("categoria_producto").value;
     const modelo = document.getElementById("modelo_producto").value;
     const size = document.getElementById("size_producto").value;
     const decoracion = document.getElementById("decoracion_producto").value;
     const color = document.getElementById("color_producto").value;
     const precio = parseFloat(document.getElementById("precio_producto").value) || 0;
-    const cantidad = parseInt(document.getElementById("cantidad").value) || 0;
+    const cantidad = parseInt(document.getElementById("cantidad").value, 10);
 
-    if (!codigo || !cantidad || cantidad <= 0) {
-        showToast("Código o cantidad inválida. Ingrese un número.", ICONOS.error);
+    if (isNaN(codigo) || codigo <= 0) {
+        showToast("Código de producto inválido. Debe ser un número mayor a 0.", ICONOS.error);
+        return;
+    }
+
+    if (isNaN(precio) || precio <= 0) {
+        showToast("El precio debe ser un número válido mayor a 0.", ICONOS.error);
+        return;
+    }
+
+    if (isNaN(cantidad) || cantidad <= 0) {
+        showToast("La cantidad debe ser un número entero mayor a 0.", ICONOS.error);
         return;
     }
 
@@ -303,7 +322,7 @@ async function agregarProductoCarrito() {
         const nuevoImporte = nuevaCantidad * precio;
         fila.querySelector(".importe").textContent = `$${nuevoImporte.toFixed(2)}`;
         actualizarMontoTotal();
-        await addOrUpdateCart({codigo, precio, cantidad: nuevaCantidad, importe: nuevoImporte});
+        await addOrUpdateCart({codigo, categoria, size, modelo, decoracion, color, precio, cantidad: nuevaCantidad, importe: nuevoImporte});
         //console.warn(carrito);
     });
 
@@ -329,7 +348,7 @@ async function agregarProductoCarrito() {
     document.getElementById("create-dialog-s").close();
     showToast("Se agrego un producto a la venta.", ICONOS.info);
 
-    await addOrUpdateCart({codigo, precio, cantidad, importe});
+    await addOrUpdateCart({codigo, categoria, size, modelo, decoracion, color, precio, cantidad, importe});
     //console.warn(carrito);
 }
 
@@ -471,6 +490,23 @@ function formatearHora(fecha) {
     return `${horas}:${minutosFormat} ${ampm}`;
 }
 
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
+async function usarStock(fuente, clave, nombreFuente, faltan) {
+    if (fuente && fuente[clave] > 0) {
+        console.log(`\x1b[32m[%s] Stock disponible: %s\x1b[0m`, nombreFuente, fuente[clave]);
+        const usado = Math.min(faltan, fuente[clave]);
+        faltan -= usado;
+        console.log(`\x1b[33m[${nombreFuente}] Se usaron ${usado}. Faltan ahora: ${faltan}\x1b[0m`);
+    } else if (faltan > 0) {
+        if (!fuente) {
+            console.log(`\x1b[31m[${nombreFuente}] ❌ No existe.\x1b[0m`);
+        } else {
+            console.log(`\x1b[31m[${nombreFuente}] ⚠️ Existe pero no hay stock disponible (${fuente[clave]}).\x1b[0m`);
+        }
+    }
+    return faltan;
+}
+
 async function printCarrito() {
     let dataVenta;
     try {
@@ -481,23 +517,67 @@ async function printCarrito() {
         return;
     }
 
+    for (const carrito_item of window.carrito) {
+        let productoEsperado = 
+            carrito_item.categoria + " TAM." +
+            carrito_item.size + " MOD." + carrito_item.modelo + " " +
+            "DECOR." + carrito_item.decoracion + " " +
+            "COLOR " + carrito_item.color;
+        let bizcochoEsperado = 
+            carrito_item.categoria + " TAM." +
+            carrito_item.size + " MOD." + carrito_item.modelo;
+
+
+        let existeProducto = window.productos.find(p => p.code === carrito_item.codigo);
+        let existeOrdenProducto = window.ordenesInv.find(o =>
+            o.tipo_item === "producto" &&
+            o.name_item === productoEsperado
+        );
+
+        let existeBizcocho = window.bizcochos.find(b => b.biz_category === carrito_item.categoria && b.biz_model === carrito_item.modelo && b.biz_size === carrito_item.size);
+        let existeOrdenBizcocho = window.ordenesInv.find(o =>
+            o.tipo_item === "bizcocho" &&
+            o.name_item === bizcochoEsperado
+        );
+
+        /*-------------------------------------------------LOGICA PARA ORDENES-------------------------------------------------------------------------------- */
+        let faltan = carrito_item.cantidad;
+        console.log(`\n🛒 Item: ${productoEsperado}`);
+        console.log(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
+
+        faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan);
+        if (faltan > 0) {
+            faltan = await usarStock(existeOrdenProducto, "cantidad_buenos", "ORDEN PRODUCTO", faltan);
+        }
+        if (faltan > 0) {
+            faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan);
+        }
+        if (faltan > 0) {
+            faltan = await usarStock(existeOrdenBizcocho, "cantidad_buenos", "ORDEN BIZCOCHO", faltan);
+        }
+        if (faltan > 0) {
+            console.log(`[NUEVA ORDEN]🆕 Se necesita nueva orden para ${faltan} unidad(es).`);
+        }
+
+        faltan = Math.max(faltan, 0);
+    }
+
     const confirmed = await showConfirmDialog(
         `¿Desea terminar la venta e imprimir la nota de venta?`,
         "Imprimir venta"
     );
 
     if (confirmed) {
-        console.log(dataVenta); 
-        //await createVenta(dataVenta);
+        console.log(dataVenta);
 
-        await crudProducto();
-        await crudBizcocho();
-
-        //let ventaId = +document.getElementById("pos_id_venta").value;
-        //const detalles_venta = await readDetalles(ventaId);
         
-        //await generarRecibos({ venta_datos: detalles_venta });
+        /* //esto ya esta bien
+        await createVenta(dataVenta);
+        let ventaId = +document.getElementById("pos_id_venta").value;
+        const detalles_venta = await readDetalles(ventaId);
+        await generarRecibos({ venta_datos: detalles_venta });
         showToast(`Venta #${ventaId} y recibo procesados exitosamente. Que tenga buen día.`, ICONOS.success);
+        */
 
         setTimeout(() => {
             window.location.reload();
@@ -506,18 +586,6 @@ async function printCarrito() {
     } else {
         showToast("Acción IMPRIMIR NOTA cancelada", ICONOS.error);
     }
-}
-
-async function crudVenta() {
-    //crear venta y detalles venta
-}
-
-async function crudProducto() {
-    //ver si existen productos, sino crearlos o actualizarlos, verificar si hay disponible o sino crear orden desde bizcochso
-}
-
-async function crudBizcocho() {
-    //ver si existen bizcos, sino crearlos o actualizarlos, verificar si hay disponible o sino crear orden desde cero
 }
 
 async function validacionesVenta() {
