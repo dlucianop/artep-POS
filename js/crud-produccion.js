@@ -4,16 +4,13 @@ const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'con
 function createOrden(orden, origen) {
     switch (origen) {
         case "VENTA":
-            console.warn(origen);
-            console.log(orden);
+
             break;
         case "INVENTARIO":
-            console.warn(origen);
-            console.log(orden);
+
             break;
         case "REPOSICION":
-            console.warn(origen);
-            console.log(orden);
+
             break;
         default:
             break;
