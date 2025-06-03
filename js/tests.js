@@ -36,6 +36,29 @@ async function crudBizcocho() {
 
 
 /*------------------------------------------------------------------------------------------------------------------------- */
+async function usarStock(fuente, clave, nombreFuente, faltan) {
+    if (fuente && fuente[clave] > 0) {
+        console.log(`\x1b[32m[%s] Stock disponible: %s\x1b[0m`, nombreFuente, fuente[clave]);
+        const usado = Math.min(faltan, fuente[clave]);
+        faltan -= usado;
+        console.log(`\x1b[33m[${nombreFuente}] Se usaron ${usado}. Faltan ahora: ${faltan}\x1b[0m`);
+        //se actualiza
+    } else if (faltan > 0) {
+        if (!fuente) {
+            console.log(`\x1b[31m[${nombreFuente}] ❌ No existe.\x1b[0m`);
+            //se crea
+            const payload = {
+                //data
+            }
+            createBizcocho(payload);
+            createProducto();
+        } else {
+            console.log(`\x1b[31m[${nombreFuente}] ⚠️ Existe pero no hay stock disponible (${fuente[clave]}).\x1b[0m`);
+            //no se hace nada
+        }
+    }
+    return faltan;
+}
 
 for (const carrito_item of window.carrito) {
         let productoEsperado = 
@@ -65,67 +88,95 @@ for (const carrito_item of window.carrito) {
         console.log(`\n🛒 Item: ${productoEsperado}`);
         console.log(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
 
-        // PRODUCTO
-        if (existeProducto && existeProducto.stock_disponible > 0) {
-            console.log(`[PRODUCTO] Stock disponible: ${existeProducto.stock_disponible}`);
-            const usado = Math.min(faltan, existeProducto.stock_disponible);
-            faltan -= usado;
-            console.log(`[PRODUCTO] Se usaron ${usado}. Faltan ahora: ${faltan}`);
-        } else {
-            if (!existeProducto) {
-                console.log(`[PRODUCTO] ❌ No existe el producto en catálogo.`);
-            } else {
-                console.log(`[PRODUCTO] ⚠️ Existe pero no hay stock disponible (${existeProducto.stock_disponible}).`);
-            }
+        faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan);
+        if (faltan > 0) {
+            faltan = await usarStock(existeOrdenProducto, "cantidad_buenos", "ORDEN PRODUCTO", faltan);
         }
-
-        // ORDEN PRODUCTO
-        if (faltan > 0 && existeOrdenProducto && existeOrdenProducto.cantidad_buenos > 0) {
-            console.log(`[ORDEN PRODUCTO] Cantidad en orden: ${existeOrdenProducto.cantidad_buenos}`);
-            const usado = Math.min(faltan, existeOrdenProducto.cantidad_buenos);
-            faltan -= usado;
-            console.log(`[ORDEN PRODUCTO] Se usaron ${usado}. Faltan ahora: ${faltan}`);
-        } else if (faltan > 0) {
-            if (!existeOrdenProducto) {
-                console.log(`[ORDEN PRODUCTO] ❌ No existe una orden de inventario para este producto.`);
-            } else {
-                console.log(`[ORDEN PRODUCTO] ⚠️ Existe pero no tiene cantidad disponible (${existeOrdenProducto.cantidad_buenos}).`);
-            }
+        if (faltan > 0) {
+            faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan);
         }
-
-        // BIZCOCHO
-        if (faltan > 0 && existeBizcocho && existeBizcocho.stock_disponible > 0) {
-            console.log(`[BIZCOCHO] Stock disponible: ${existeBizcocho.stock_disponible}`);
-            const usado = Math.min(faltan, existeBizcocho.stock_disponible);
-            faltan -= usado;
-            console.log(`[BIZCOCHO] Se usaron ${usado}. Faltan ahora: ${faltan}`);
-        } else if (faltan > 0) {
-            if (!existeBizcocho) {
-                console.log(`[BIZCOCHO] ❌ No existe bizcocho en bodega con esas características.`);
-            } else {
-                console.log(`[BIZCOCHO] ⚠️ Existe pero no hay stock disponible (${existeBizcocho.stock_disponible}).`);
-            }
+        if (faltan > 0) {
+            faltan = await usarStock(existeOrdenBizcocho, "cantidad_buenos", "ORDEN BIZCOCHO", faltan);
         }
-
-        // ORDEN BIZCOCHO
-        if (faltan > 0 && existeOrdenBizcocho && existeOrdenBizcocho.cantidad_buenos > 0) {
-            console.log(`[ORDEN BIZCOCHO] Cantidad en orden: ${existeOrdenBizcocho.cantidad_buenos}`);
-            const usado = Math.min(faltan, existeOrdenBizcocho.cantidad_buenos);
-            faltan -= usado;
-            console.log(`[ORDEN BIZCOCHO] Se usaron ${usado}. Faltan ahora: ${faltan}`);
-        } else if (faltan > 0) {
-            if (!existeOrdenBizcocho) {
-                console.log(`[ORDEN BIZCOCHO] ❌ No existe orden de inventario para bizcochos.`);
-            } else {
-                console.log(`[ORDEN BIZCOCHO] ⚠️ Existe pero no tiene cantidad disponible (${existeOrdenBizcocho.cantidad_buenos}).`);
-            }
-        }
-
-        // FINAL
         if (faltan > 0) {
             console.log(`[NUEVA ORDEN]🆕 Se necesita nueva orden para ${faltan} unidad(es).`);
         }
 
-        faltan = Math.max(faltan, 0); // Seguridad
-
+        faltan = Math.max(faltan, 0);
     }
+
+
+
+
+
+    switch (nombreFuente) {
+                case "PRODUCTO":
+                    payload = {
+                        stock_apartado: fuente.stock_apartado,
+                        stock_disponible: fuente.stock_disponible,
+                        stock_en_proceso: fuente.stock_en_proceso,
+                        code: fuente.code
+                    }
+                    await updateStockProducto(payload);
+                    break;
+                case "ORDEN PRODUCTO": // se actualiza el campo de orden.cantidad_buenos
+                    await updateOrden();
+                    break;
+                case "BIZCOCHO": // se actualiza el campo de producto.stock_disponible
+                    await updateBizcocho();
+                    break;
+                case "ORDEN BIZCOCHO": // se actualiza el campo de producto.stock_disponible
+                    await updateOrden();
+                    break;
+            
+                default:
+                    break;
+            }
+
+
+let faltan = carrito_item.cantidad; // 200 unidades solicitadas
+console.log(`\n🛒 Item: ${productoEsperado}`);
+console.log(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
+
+// Supongamos que existeProducto.stock_disponible = 50
+faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan);
+// consola:
+// [PRODUCTO] Stock disponible: 50
+// [PRODUCTO] Se usaron 50. Faltan ahora: 150
+// faltan = 150
+
+if (faltan > 0) {
+    // Supongamos que existeOrdenProducto.cantidad_buenos = 100
+    faltan = await usarStock(existeOrdenProducto, "cantidad_buenos", "ORDEN PRODUCTO", faltan);
+    // consola:
+    // [ORDEN PRODUCTO] Stock disponible: 100
+    // [ORDEN PRODUCTO] Se usaron 100. Faltan ahora: 50
+    // faltan = 50
+}
+
+if (faltan > 0) {
+    // Supongamos que existeBizcocho.stock_disponible = 30
+    faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan);
+    // consola:
+    // [BIZCOCHO] Stock disponible: 30
+    // [BIZCOCHO] Se usaron 30. Faltan ahora: 20
+    // faltan = 20
+}
+
+if (faltan > 0) {
+    // Supongamos que existeOrdenBizcocho.cantidad_buenos = 10
+    faltan = await usarStock(existeOrdenBizcocho, "cantidad_buenos", "ORDEN BIZCOCHO", faltan);
+    // consola:
+    // [ORDEN BIZCOCHO] Stock disponible: 10
+    // [ORDEN BIZCOCHO] Se usaron 10. Faltan ahora: 10
+    // faltan = 10
+}
+
+if (faltan > 0) {
+    // Como faltan 10 unidades, se crea una nueva orden para cubrirlas
+    console.log(`[NUEVA ORDEN]🆕 Se necesita nueva orden para 10 unidad(es).`);
+    await createOrden(faltan, productoEsperado);
+    faltan = 0; // asumimos que la nueva orden cubre todo lo faltante
+}
+
+faltan = Math.max(faltan, 0); // aseguramos que faltan no sea negativo

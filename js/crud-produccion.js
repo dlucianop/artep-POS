@@ -65,6 +65,57 @@ function createOrden(orden, origen) {
     });*/
 }
 
+function updateOrden(orden, origen) {
+    switch (origen) {
+        case "VENTA":
+            //pendiente
+            break;
+        case "INVENTARIO":
+            //pendiente
+            break;
+        case "REPOSICION":
+            //pendiente
+            break;
+        default:
+            break;
+    }
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                cantidad_buenos
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.id_fase,
+            orden.cantidad_buenos,
+            orden.cantidad_rotos,
+            orden.cantidad_deformes,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function readOrdenes() {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -146,47 +197,6 @@ function updateEstado(orden){
                 }
 
                 resolve("[updateEstado] Orden actualizada correctamente.");
-            } catch (err) {
-                reject(err);
-            } finally {
-                closeDatabase(db);
-            }
-        });
-    });
-}
-
-function updateOrden(orden) {
-    return new Promise((resolve, reject) => {
-        const db = openDataBase();
-
-        const query = `
-            UPDATE orden_produccion
-            SET
-                id_fase = ?,
-                cantidad_buenos = ?,
-                cantidad_rotos = ?,
-                cantidad_deformes = ?
-            WHERE id_orden = ?;
-        `;
-
-        const params = [
-            orden.id_fase,
-            orden.cantidad_buenos,
-            orden.cantidad_rotos,
-            orden.cantidad_deformes,
-            orden.id_orden
-        ];
-
-        db.run(query, params, function (err) {
-            try {
-                if (err) {
-                    return reject(new Error("Error al actualizar orden: " + err.message));
-                }
-                if (this.changes === 0) {
-                    return reject(new Error("No se encontró ninguna orden con ese identificador"));
-                }
-
-                resolve("Orden actualizada correctamente.");
             } catch (err) {
                 reject(err);
             } finally {
