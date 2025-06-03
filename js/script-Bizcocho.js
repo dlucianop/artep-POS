@@ -9,6 +9,9 @@ const {
 const {
     readFases, updateFase, readCategorias, readSizes
 } = require(join(__dirname, "..", "js", "crud-config.js"));
+const {
+    readOrdenes, createOrden, updateEstado, readOrdenesOrigen
+} = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, 
     showConfirmToast, 
@@ -21,17 +24,21 @@ async function initBizcochos() {
     try {
         const fases = await readFases();
         window.fases = fases;
-        console.warn('📦 Fases cargadas.');
+
         const categorias = await readCategorias();
         window.categorias = categorias;
-        console.warn('📦 Categorias cargadas.');
+
         const sizes = await readSizes();
         window.sizes = sizes;
-        console.warn('📦 Tamaños cargados.');
+
+        const ordenes = await readOrdenes();
+        window.ordenes = ordenes;
+
         const bizcochos = await readBizcochos();
         window.bizcochos = bizcochos;
         fillTableBizcochos(bizcochos);
-        console.warn('📦 Se cargaron bizcochos.');
+
+        console.warn('📦 Se cargaron todos los datos en caché.');
     } catch (error) {
         console.error('❌ Error al cargar bizcochos:', error.message);
         showToast(`[ERROR] al cargar bizcochos: ${error.message}`, ICONOS.error);
@@ -52,7 +59,6 @@ function fillTableBizcochos(bizcochos){
         <td>${b.biz_model}</td>
         <td>${b.biz_size}</td>
         <td>${b.stock_disponible}</td>
-        <td>${b.stock_apartado}</td>
         <td>${b.stock_en_proceso}</td>
         <td class="col-btn">
             <button onclick="showUpdate(${b.id_biz});">✏️ Editar</button>
@@ -128,7 +134,6 @@ function cargarData(bizcochoCRUD) {
         modal.querySelector("#model_bizcocho").value = bizcochoCRUD.biz_model;
         modal.querySelector("#size_bizcocho").value = bizcochoCRUD.biz_size;
         modal.querySelector("#disponibles_bizcocho").value = bizcochoCRUD.stock_disponible;
-        modal.querySelector("#apartados_bizcocho").value = bizcochoCRUD.stock_apartado;
         modal.querySelector("#procesos_bizcocho").value = bizcochoCRUD.stock_en_proceso;
         modal.querySelector("#stock_min_bizcocho").value = bizcochoCRUD.stock_min;
 
@@ -156,8 +161,6 @@ async function fillBizcocho(id_biz, mode) {
                     <select id="size_bizcocho"></select></p>
                 <p><strong>Stock Disponible:</strong>
                     <input type="number" id="disponibles_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock disponible del bizcocho"></p>
-                <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock apartado del bizcocho"></p>
                 <p><strong>Stock en Proceso:</strong>
                     <input type="number" id="procesos_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock en proceso del bizcocho"></p>
             `;
@@ -179,8 +182,6 @@ async function fillBizcocho(id_biz, mode) {
                     <input type="text" id="size_bizcocho" value="" readonly></p>
                 <p><strong>Stock Disponible:</strong>
                     <input type="number" id="disponibles_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock disponible del bizcocho"></p>
-                <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock apartado del bizcocho"></p>
                 <p><strong>Stock en Proceso:</strong>
                     <input type="number" id="procesos_bizcocho" step="1" min="0" value="" placeholder="Ingrese stock en proceso del bizcocho"></p>
                 <p><strong>¿Activar alarma?:</strong>
@@ -206,8 +207,6 @@ async function fillBizcocho(id_biz, mode) {
                     <input type="text" id="size_bizcocho" value="${bizcochoCRUD.biz_size}" readonly></p>
                 <p><strong>Stock Disponible:</strong>
                     <input type="number" id="disponibles_bizcocho" value="${bizcochoCRUD.stock_disponible}" readonly></p>
-                <p><strong>Stock Apartado:</strong>
-                    <input type="number" id="apartados_bizcocho" value="${bizcochoCRUD.stock_apartado}" readonly></p>
                 <p><strong>Stock en Proceso:</strong>
                     <input type="number" id="procesos_bizcocho" value="${bizcochoCRUD.stock_en_proceso}" readonly></p>
             `;
@@ -215,7 +214,6 @@ async function fillBizcocho(id_biz, mode) {
             break;
     }
 }
-
 
 async function verificacionesBiz(contenedorId, mode) {
     const modal = document.getElementById(contenedorId);
@@ -230,67 +228,72 @@ async function verificacionesBiz(contenedorId, mode) {
         return input ? input.value.trim() : "";
     };
 
+    let id_bizcocho = null;
     if (mode !== "create") {
-        const id_bizcocho = getNumber("#id_bizcocho");
+        id_bizcocho = getNumber("#id_bizcocho");
         if (isNaN(id_bizcocho) || id_bizcocho <= 0) {
             showToast("El código de bizcocho es inválido.", ICONOS.advertencia);
-            return Promise.reject(new Error("ID de bizcocho inválido."));
+            throw new Error("ID de bizcocho inválido.");
         }
     }
 
     const categoria = getValue("#categoria_bizcocho");
     if (!categoria) {
         showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
-        return Promise.reject(new Error("Categoría vacía."));
+        throw new Error("Categoría vacía.");
     }
 
     const modelo = getValue("#model_bizcocho");
     if (!modelo) {
         showToast("El modelo del bizcocho es inválido.", ICONOS.advertencia);
-        return Promise.reject(new Error("Modelo vacio."));
+        throw new Error("Modelo vacío.");
     }
 
     const tamano = getValue("#size_bizcocho");
     if (!tamano) {
         showToast("Debe seleccionar un tamaño.", ICONOS.advertencia);
-        return Promise.reject(new Error("Tamaño vacío."));
+        throw new Error("Tamaño vacío.");
     }
 
     const disponibles = getNumber("#disponibles_bizcocho");
     if (isNaN(disponibles) || disponibles < 0) {
         showToast("Stock disponible inválido.", ICONOS.advertencia);
-        return Promise.reject(new Error("Stock disponible inválido."));
-    }
-
-    const apartados = getNumber("#apartados_bizcocho");
-    if (isNaN(apartados) || apartados < 0) {
-        showToast("Stock apartado inválido.", ICONOS.advertencia);
-        return Promise.reject(new Error("Stock apartado inválido."));
+        throw new Error("Stock disponible inválido.");
     }
 
     const procesos = getNumber("#procesos_bizcocho");
     if (isNaN(procesos) || procesos < 0) {
         showToast("Stock en proceso inválido.", ICONOS.advertencia);
-        return Promise.reject(new Error("Stock en proceso inválido."));
+        throw new Error("Stock en proceso inválido.");
     }
 
+    let stock_min = 0;
     if (mode === "update") {
-        const stock_min = getNumber("#stock_min_bizcocho");
+        stock_min = getNumber("#stock_min_bizcocho");
         if (isNaN(stock_min) || stock_min < 0) {
             showToast("Stock mínimo inválido.", ICONOS.advertencia);
-            return Promise.reject(new Error("Stock mínimo inválido."));
+            throw new Error("Stock mínimo inválido.");
         }
     }
 
-    return Promise.resolve();
+    return {
+        ...(mode !== "create" ? { id_biz: id_bizcocho } : {}),
+        biz_category: categoria,
+        biz_model: modelo,
+        biz_size: tamano,
+        stock_disponible: disponibles,
+        stock_en_proceso: procesos,
+        ...(mode === "update" ? { stock_min } : {})
+    };
 }
+
 
 document.getElementById("save-create").addEventListener("click", async () => {
     const contenedorId = "create-content";
     const mode = "create";
     try {
-        await verificacionesBiz(contenedorId, mode);
-        await guardarBizcocho(mode, contenedorId);
+        const payload = await verificacionesBiz(contenedorId, mode);
+        await guardarBizcocho(mode, payload);
         document.getElementById("create-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
@@ -302,8 +305,8 @@ document.getElementById("save-update").addEventListener("click", async () => {
     const contenedorId = "update-content";
     const mode = "update";
     try {
-        await verificacionesBiz(contenedorId, mode);
-        await guardarBizcocho(mode, contenedorId);
+        const payload = await verificacionesBiz(contenedorId, mode);
+        await guardarBizcocho(mode, payload);
         document.getElementById("update-dialog-s").close();
     } catch (err) {
         showToast(err.message, ICONOS.error);
@@ -311,63 +314,75 @@ document.getElementById("save-update").addEventListener("click", async () => {
     }
 });
 
-async function guardarBizcocho(mode, contenedorId) {
-    const payload = {
-        id_biz: mode === "create"
-            ? 0
-            : +document.querySelector(`#${contenedorId} #id_bizcocho`).value.trim(),
-        biz_category:     document.querySelector(`#${contenedorId} #categoria_bizcocho`).value.trim(),
-        biz_model:        document.querySelector(`#${contenedorId} #model_bizcocho`).value.trim(),
-        biz_size:         document.querySelector(`#${contenedorId} #size_bizcocho`).value.trim(),
-        stock_disponible: +document.querySelector(`#${contenedorId} #disponibles_bizcocho`).value,
-        stock_apartado:   +document.querySelector(`#${contenedorId} #apartados_bizcocho`).value,
-        stock_en_proceso: +document.querySelector(`#${contenedorId} #procesos_bizcocho`).value,
-        stock_min: mode === "update"
-            ? +document.querySelector(`#${contenedorId} #stock_min_bizcocho`).value
-            : 0,
-        stock_critico: mode === "update"
-            ? (document.querySelector(`#${contenedorId} #alarma_bizcocho`).checked ? 1 : 0)
-            : 0,
-
-    };
-
+async function guardarBizcocho(mode, payload) {
     if (mode === "create") {
-        const dupId = window.bizcochos.some(b => b.id_biz === payload.id_biz);
-        if (dupId) {
-            throw new Error(`Ya existe un bizcocho con ID ${payload.id_biz}.`);
-        }
+        payload.id_biz = 0;
 
-        const dupCatSizeModel = window.bizcochos.some(b =>
+        const dup = window.bizcochos.some(b =>
             b.biz_category === payload.biz_category &&
-            b.biz_size     === payload.biz_size &&
-            b.biz_model    === payload.biz_model
+            b.biz_size === payload.biz_size &&
+            b.biz_model === payload.biz_model
         );
-        if (dupCatSizeModel) {
+        if (dup) {
             throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}”, tamaño “${payload.biz_size}” y modelo “${payload.biz_model}”.`);
         }
 
+        payload.stock_min = 0;
+        payload.stock_critico = 0;
+
         await createBizcocho(payload);
-        console.warn('📦 Se agregó un nuevo bizcocho.');
         showToast('Bizcocho agregado 📦.', ICONOS.success);
 
     } else if (mode === "update") {
-        const dupCatSizeModel = window.bizcochos.some(b =>
+        payload.id_biz = +document.querySelector("#update-content #id_bizcocho").value.trim();
+
+        const dup = window.bizcochos.some(b =>
             b.biz_category === payload.biz_category &&
-            b.biz_size     === payload.biz_size &&
-            b.biz_model    === payload.biz_model &&
-            b.id_biz       !== payload.id_biz
+            b.biz_size === payload.biz_size &&
+            b.biz_model === payload.biz_model &&
+            b.id_biz !== payload.id_biz
         );
-        if (dupCatSizeModel) {
+        if (dup) {
             throw new Error(`Ya existe un bizcocho de categoría “${payload.biz_category}”, tamaño “${payload.biz_size}” y modelo “${payload.biz_model}”.`);
         }
 
+        payload.stock_critico = document.querySelector("#update-content #alarma_bizcocho").checked ? 1 : 0;
+
         await updateBizcocho(payload);
-        console.warn('📦 Se actualizó un bizcocho.');
         showToast('Bizcocho actualizado 🛠️.', ICONOS.success);
+    }
+
+    const nombreBiz = `${payload.biz_category} ${payload.biz_size} Mod.${payload.biz_model}`;
+    const ordenRelacionada = window.ordenes.some(o =>
+        o.name_item === nombreBiz &&
+        o.tipo_item === "bizcocho" &&
+        o.origen === "INVENTARIO"
+    );
+
+    console.log("[Verificando orden relacionada] ->", nombreBiz);
+
+    if (!ordenRelacionada && (payload.stock_en_proceso ?? 0) > 0) {
+        const confirmed = await showConfirmDialog(
+            `No se encontró una orden de inventario para este bizcocho, pero la columna "En proceso" indica que hay ${payload.stock_en_proceso} unidad(es). Esto puede causar inconsistencias.`,
+            `¿Deseas crear una orden base de tipo "INVENTARIO"?`
+        );
+
+        if (confirmed) {
+            const nuevaOrdenInventario = {
+                tipo_item: "bizcocho",
+                name_item: nombreBiz,
+                cantidad_pedida: payload.stock_en_proceso ?? 0,
+                observaciones: `Creada automáticamente porque se detectó stock en proceso (${payload.stock_en_proceso}) sin orden registrada.`
+            };
+
+            await createOrden(nuevaOrdenInventario, "INVENTARIO");
+            showToast("Orden base creada automáticamente para el bizcocho.", ICONOS.info);
+        }
     }
 
     await initBizcochos();
 }
+
 
 document.getElementById("save-delete").addEventListener("click", async () => {
     const contenedorId = "delete-content";

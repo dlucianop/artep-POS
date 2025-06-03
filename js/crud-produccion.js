@@ -2,37 +2,79 @@ const { join, resolve } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'connection.js'));
 
 function createOrden(orden, origen) {
-    switch (origen) {
-        case "VENTA":
-
-            break;
-        case "INVENTARIO":
-
-            break;
-        case "REPOSICION":
-
-            break;
-        default:
-            break;
-    }
-    /*
     return new Promise((resolve, reject) => {
         const db = openDataBase();
 
-        const query = `
-            INSERT INTO orden_produccion
-                (id_venta, id_origen, id_fase, fecha_entrega, categoria, size, cantidad_inicial, cantidad_buenos, cantidad_rotos, cantidad_deformes) 
-            VALUES (?, ?, 1, ?, ?, ?, ?, 0, 0, 0);
-        `;
+        let query = '';
+        let params = [];
 
-        const params = [
-            orden.id_venta,
-            orden.id_origen,
-            orden.fecha_entrega,
-            orden.categoria,
-            orden.size,
-            orden.cantidad_inicial
-        ];
+        switch (origen) {
+            case "VENTA": {
+                if (!orden.id_venta || !orden.fecha_entrega) {
+                    return reject(new Error("Orden de venta requiere 'id_venta' y 'fecha_entrega'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (id_venta, origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, fecha_entrega, observaciones)
+                    VALUES (?, "VENTA", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?, ?);
+                `;
+
+                params = [
+                    orden.id_venta,
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.fecha_entrega,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            case "INVENTARIO": {
+                if (!orden.tipo_item || !orden.name_item || !orden.cantidad_pedida) {
+                    return reject(new Error("Orden de inventario requiere 'tipo_item', 'name_item' y 'cantidad_pedida'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, observaciones)
+                    VALUES ("INVENTARIO", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?);
+                `;
+
+                params = [
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            case "REPOSICION": {
+                if (!orden.id_orden_origen || !orden.name_item || !orden.tipo_item || !orden.cantidad_pedida) {
+                    return reject(new Error("Orden de reposición requiere 'id_orden_origen', 'name_item', 'tipo_item' y 'cantidad_pedida'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, id_orden_origen, observaciones)
+                    VALUES ("REPOSICION", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?, ?);
+                `;
+
+                params = [
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.id_orden_origen,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            default:
+                return reject(new Error("Origen de orden no válido"));
+        }
 
         db.run(query, params, function (err) {
             try {
@@ -49,7 +91,9 @@ function createOrden(orden, origen) {
                     ...orden,
                     cantidad_buenos: 0,
                     cantidad_rotos: 0,
-                    cantidad_deformes: 0
+                    cantidad_deformes: 0,
+                    estado: "PENDIENTE",
+                    fase_actual: 1
                 };
 
                 resolve(newOrden);
@@ -59,7 +103,7 @@ function createOrden(orden, origen) {
                 closeDatabase(db);
             }
         });
-    });*/
+    });
 }
 
 function updateOrden(orden, origen) {
