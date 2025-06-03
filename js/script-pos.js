@@ -134,7 +134,7 @@ async function addCarrito() {
             <p><strong>Precio Unitario($):</strong>
                 <input type="number" id="precio_producto" min="0" value="" placeholder="$$$$$"></p>
             <p><strong>Stock Disponible:</strong>
-                <input type="number" id="disponibles_producto" step="1" min="0" value="" placeholder="Ingrese stock disponible del producto"></p>
+                <input type="number" id="disponibles_producto" step="1" min="0" value="0" placeholder="Ingrese stock disponible del producto" readonly></p>
             <p><strong>Cantidad del Pedido:</strong>
                     <input type="number" id="cantidad" step="1" min="0" value="" placeholder="Ingrese pedido de la venta"></p>
     `;
@@ -261,7 +261,7 @@ async function limpiarFormularioProducto() {
     document.getElementById('decoracion_producto').value = '';
     document.getElementById('color_producto').value = '';
     document.getElementById('precio_producto').value = '';
-    document.getElementById('disponibles_producto').value = '';
+    document.getElementById('disponibles_producto').value = '0';
     document.getElementById('cantidad').value = '';
     document.getElementById("search-input").value = '';
 }
@@ -492,7 +492,7 @@ function formatearHora(fecha) {
 }
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
-function generarPayloadOrdenVenta(fuente, dataVenta, usado) {
+function generarPayloadOrdenVenta(fuente, dataVenta, usado, extraObs = "") {
     return {
         id_venta: dataVenta.id_venta,
         origen: "VENTA",
@@ -501,10 +501,10 @@ function generarPayloadOrdenVenta(fuente, dataVenta, usado) {
         cantidad_buenos: 0,
         cantidad_rotos: 0,
         cantidad_deformes: 0,
-        fase_actual: fuente.fase_actual,
-        estado: fuente.estado,
+        fase_actual: fuente.fase_actual ?? 1, 
+        estado: fuente.estado ?? "PENDIENTE",
         fecha_entrega: dataVenta.fecha_entrega,
-        observaciones: "",
+        observaciones: `${extraObs}Generada desde ${fuente.origen || "fuente"} para venta #${dataVenta.id_venta}.`,
     };
 }
 
@@ -528,7 +528,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
         const comunes = {
             stock_apartado: fuente.stock_apartado + usado,
             stock_disponible: fuente.stock_disponible - usado,
-            stock_en_proceso: fuente.stock_en_proceso + faltan
+            stock_en_proceso: fuente.stock_en_proceso + Math.max(0, faltan)
         };
 
         switch (nombreFuente) {
@@ -553,15 +553,15 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
                 payload = {
                     id_venta: dataVenta.id_venta,
                     origen: "VENTA",
-                    name_item: fuente.name_item,
+                    name_item: carrito_item.categoria + " TAM." + carrito_item.size + " MOD." + carrito_item.modelo + " " + "DECOR." + carrito_item.decoracion + " " + "COLOR " + carrito_item.color,
                     cantidad_pedida: usado,
                     cantidad_buenos: 0,
                     cantidad_rotos: 0,
                     cantidad_deformes: 0,
-                    fase_actual: 5, // Fase final, esmaltado u horneado final
+                    fase_actual: 5, // Fase inicial de productos, adefinir
                     estado: "PENDIENTE",
                     fecha_entrega: dataVenta.fecha_entrega,
-                    observaciones: `Se utilizaron ${usado} unidades de bizcocho para completar la venta #${dataVenta.id_venta}, requieren proceso final para ser convertidos en ${carrito_item.categoria + " TAM." + carrito_item.size + " MOD." + carrito_item.modelo + " " + "DECOR." + carrito_item.decoracion + " " + "COLOR " + carrito_item.color}.`,
+                    observaciones: `Se utilizaron ${usado} unidades de bizcocho para completar la venta #${dataVenta.id_venta}, requieren ser procesados para ser convertidos en Productos.`,
                 };
                 console.log(
                     `\x1b[32m[${nombreFuente}] ➕ Se creará una nueva ORDEN vinculada a la venta #${dataVenta.id_venta} desde ${nombreFuente}.\x1b[0m`
@@ -573,7 +573,10 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
 
             case "ORDEN PRODUCTO":
             case "ORDEN BIZCOCHO":
+                let ordenEliminada = false;
+
                 if (fuente.cantidad_buenos - usado === 0) {
+                    ordenEliminada = true;
                     console.log(
                         `\x1b[31m[${nombreFuente}] 🗑️ Se eliminará la ORDEN #${fuente.id_orden} porque se agotó completamente.\x1b[0m`
                     );
@@ -589,20 +592,17 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
                     console.log(payload);
 
                     if (nombreFuente === "ORDEN BIZCOCHO") {
-                        console.log(
-                            `\x1b[36m[${nombreFuente}] 🔄 Se actualizará la cantidad de la ORDEN BIZCOCHO #${fuente.id_orden}\x1b[0m`
-                        );
                         // await updateCantidadOrdenB(payload);
                     } else {
-                        console.log(
-                            `\x1b[36m[${nombreFuente}] 🔄 Se actualizará la cantidad de la ORDEN PRODUCTO #${fuente.id_orden}\x1b[0m`
-                        );
                         // await updateCantidadOrdenP(payload);
                     }
-
                 }
 
-                payload = generarPayloadOrdenVenta(fuente, dataVenta, usado);
+                const extraObs = ordenEliminada
+                    ? `Orden original #${fuente.id_orden} eliminada por uso total. `
+                    : "";
+
+                payload = generarPayloadOrdenVenta(fuente, dataVenta, usado, extraObs);
                 console.log(
                     `\x1b[32m[${nombreFuente}] ➕ Se creará una nueva ORDEN vinculada a la venta #${dataVenta.id_venta} desde ${nombreFuente}.\x1b[0m`
                 );
@@ -614,7 +614,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
     } else if (faltan > 0) {
         if (!fuente) {
             console.log(`\x1b[31m[${nombreFuente}] ❌ No existe.\x1b[0m`);
-            switch (nombreFuente) {
+            switch (nombreFuente) { //aqui lo mismo no se si voy bien o mis datos pueden cruzarse
                 case "PRODUCTO":
                     console.log(`\x1b[33m[${nombreFuente}] ➕ Se creará un nuevo registro de PRODUCTO.\x1b[0m`);
                     payload = {
@@ -627,7 +627,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
                         price: carrito_item.precio,
                         stock_apartado: 0,
                         stock_disponible: 0,
-                        stock_en_proceso: 0 
+                        stock_en_proceso: faltan ?? 0 
                     };
                     console.log(payload);
                     //await createProducto(payload);
@@ -640,7 +640,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
                         biz_model: carrito_item.modelo,
                         stock_apartado: 0,
                         stock_disponible: 0,
-                        stock_en_proceso: 0,
+                        stock_en_proceso: faltan ?? 0 
                     };
                     console.log(payload);
                     /*await createBizcocho(payload);*/
@@ -648,7 +648,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
                 case "ORDEN PRODUCTO":
                 case "ORDEN BIZCOCHO":
                 default:
-                    console.log(`\x1b[33m[${nombreFuente}] ℹ️ No se requiere crear nada.\x1b[0m`);
+                    console.log(`\x1b[33m[${nombreFuente}] ℹ️ No se requiere crear nada de momento.\x1b[0m`);
                     break;
             }
         } else {

@@ -170,3 +170,9 @@
     text-align: center;
     width: 90%;
 }
+
+#disponibles_producto{
+    background-color: #f0f0f0;
+    color: #666;
+    cursor: default;
+}
