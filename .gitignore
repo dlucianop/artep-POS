@@ -133,6 +133,7 @@ dist
 /dist/
 /artep-pos-win32-x64/
 /release/
+/db/
 
 # Ignorar archivos .zip y .rar
 *.zip

@@ -1,24 +1,80 @@
 const { join, resolve } = require('path');
 const { openDataBase, closeDatabase } = require(join(__dirname, '..', 'js', 'connection.js'));
 
-function createOrden(orden) {
+function createOrden(orden, origen) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
 
-        const query = `
-            INSERT INTO orden_produccion
-                (id_venta, id_origen, id_fase, fecha_entrega, categoria, size, cantidad_inicial, cantidad_buenos, cantidad_rotos, cantidad_deformes) 
-            VALUES (?, ?, 1, ?, ?, ?, ?, 0, 0, 0);
-        `;
+        let query = '';
+        let params = [];
 
-        const params = [
-            orden.id_venta,
-            orden.id_origen,
-            orden.fecha_entrega,
-            orden.categoria,
-            orden.size,
-            orden.cantidad_inicial
-        ];
+        switch (origen) {
+            case "VENTA": {
+                if (!orden.id_venta || !orden.fecha_entrega) {
+                    return reject(new Error("Orden de venta requiere 'id_venta' y 'fecha_entrega'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (id_venta, origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, fecha_entrega, observaciones)
+                    VALUES (?, "VENTA", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?, ?);
+                `;
+
+                params = [
+                    orden.id_venta,
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.fecha_entrega,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            case "INVENTARIO": {
+                if (!orden.tipo_item || !orden.name_item || !orden.cantidad_pedida) {
+                    return reject(new Error("Orden de inventario requiere 'tipo_item', 'name_item' y 'cantidad_pedida'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, observaciones)
+                    VALUES ("INVENTARIO", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?);
+                `;
+
+                params = [
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            case "REPOSICION": {
+                if (!orden.id_orden_origen || !orden.name_item || !orden.tipo_item || !orden.cantidad_pedida) {
+                    return reject(new Error("Orden de reposición requiere 'id_orden_origen', 'name_item', 'tipo_item' y 'cantidad_pedida'"));
+                }
+
+                query = `
+                    INSERT INTO orden_produccion
+                        (origen, tipo_item, name_item, cantidad_pedida, cantidad_buenos, cantidad_rotos, cantidad_deformes, fase_actual, estado, id_orden_origen, observaciones)
+                    VALUES ("REPOSICION", ?, ?, ?, 0, 0, 0, 1, "PENDIENTE", ?, ?);
+                `;
+
+                params = [
+                    orden.tipo_item,
+                    orden.name_item,
+                    orden.cantidad_pedida,
+                    orden.id_orden_origen,
+                    orden.observaciones || ''
+                ];
+                break;
+            }
+
+            default:
+                return reject(new Error("Origen de orden no válido"));
+        }
 
         db.run(query, params, function (err) {
             try {
@@ -35,7 +91,9 @@ function createOrden(orden) {
                     ...orden,
                     cantidad_buenos: 0,
                     cantidad_rotos: 0,
-                    cantidad_deformes: 0
+                    cantidad_deformes: 0,
+                    estado: "PENDIENTE",
+                    fase_actual: 1
                 };
 
                 resolve(newOrden);
@@ -48,17 +106,27 @@ function createOrden(orden) {
     });
 }
 
-function updateOrden(orden) {
+function updateOrden(orden, origen) {
+    switch (origen) {
+        case "VENTA":
+            //pendiente
+            break;
+        case "INVENTARIO":
+            //pendiente
+            break;
+        case "REPOSICION":
+            //pendiente
+            break;
+        default:
+            break;
+    }
     return new Promise((resolve, reject) => {
         const db = openDataBase();
 
         const query = `
             UPDATE orden_produccion
             SET
-                id_fase = ?,
-                cantidad_buenos = ?,
-                cantidad_rotos = ?,
-                cantidad_deformes = ?
+                cantidad_buenos
             WHERE id_orden = ?;
         `;
 
@@ -77,6 +145,131 @@ function updateOrden(orden) {
                 }
                 if (this.changes === 0) {
                     return reject(new Error("No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function readOrdenes() {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT * 
+            FROM orden_produccion;
+        `;
+    
+        db.all(query, (err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readOrdenes] Error al leer ordenes de Produccion: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function readOrdenesOrigen(origen) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT * 
+            FROM orden_produccion
+            WHERE origen = ?
+        ;`;
+    
+        db.all(query, origen,(err, rows) => {
+            try {
+                if (err) {
+                    return reject(new Error("[readOrdenesOrigen] Error al leer ordenes de Produccion: " + err.message));
+                }
+        
+                if (!rows || rows.length === 0) {
+                    return resolve([]);
+                }
+                resolve(rows);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function updateEstado(orden){
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                estado = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.estado,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateEstado] Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateEstado] No se encontró ninguna orden con ese identificador"));
+                }
+
+                resolve("[updateEstado] Orden actualizada correctamente.");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function updateRepo(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET
+                cantidad_inicial = ?
+            WHERE id_orden = ?;
+        `;
+
+        const params = [
+            orden.cantidad_inicial,
+            orden.id_orden
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateRepo] Error al actualizar orden: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateRepo] No se encontró ninguna orden con ese identificador"));
                 }
 
                 resolve("Orden actualizada correctamente.");
@@ -208,12 +401,58 @@ function readOrdenesByVenta(id_venta) {
     });
 }
 
+function updateCantidadInicial(id_orden, cantidad_inicial) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+
+        const query = `
+            UPDATE orden_produccion
+            SET cantidad_inicial = ?
+            WHERE id_orden = ?;
+        `;
+
+        db.run(query, [cantidad_inicial, id_orden], function(err) {
+            if (err) {
+                reject(new Error("Error al actualizar cantidad_inicial: " + err.message));
+            } else if (this.changes === 0) {
+                reject(new Error("No se encontró orden para actualizar cantidad_inicial"));
+            } else {
+                resolve("Cantidad inicial actualizada correctamente");
+            }
+            closeDatabase(db);
+        });
+    });
+}
+
+function searchReposicionOrden(orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            SELECT *
+            FROM orden_produccion
+            WHERE id_venta = ? AND id_detalle = ? AND id_origen = 5;
+        `;
+
+        const params = [
+            orden.id_venta, 
+            orden.id_detalle
+        ];
+
+        db.get(query, params, (err, row) => {
+            if (err) {
+                closeDatabase(db);
+                return reject(new Error("[searchReposicionOrden] Error al leer la orden: " + err.message));
+            }
+
+            closeDatabase(db);
+            resolve(row || undefined);
+        });
+    });
+}
 
 module.exports = { 
-    createOrden, 
-    updateOrden,
-    insertDetalle,
-    readOrdenByFase,
-    readOrden,
-    readOrdenesByVenta
+    readOrdenes,
+    createOrden,
+    updateEstado,
+    readOrdenesOrigen
 }

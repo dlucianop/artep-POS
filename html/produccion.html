@@ -26,47 +26,82 @@
         </a>
     </div>
     <div id="content-section-s">
-
-        <div class="kanban-container">
+        <div class="panel-header">
+            <h2>Panel de Produccion</h2>
+            <button type="button" onclick="agregarNuevaOrden()">➕ Agregar Orden</button>
         </div>
-        
-        <dialog id="detail-dialog">
-            <form method="dialog" class="dialog-content">
-                <h3>Detalles de Orden</h3>
-                <div id="detail-content">
+        <div class="kanban-container">
+            <div class="kanban-column" data-estado="pendiente" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>PENDIENTE</h3>
+                <div class="kanban-cards">
                 </div>
-                <menu>
-                    <button id="close-detail">Cerrar</button>
-                </menu>
-            </form>
-        </dialog>
+            </div>
 
-        <dialog id="edit-dialog">
-            <form method="dialog" class="dialog-content">
-                <h6 id="noOrdenH"></h6>
-                <h3 id="fases"></h3>
-                <div id="edit-content">
-                </div>
-                <menu>
-                    <button id="update-edit">Aceptar</button>
-                    <button id="cancel-edit">Cancelar</button-->
-                </menu>
-            </form>
-        </dialog>
+            <div class="kanban-column" data-estado="proceso" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>EN PROCESO</h3>
+                <div class="kanban-cards"></div>
+            </div>
+
+            <div class="kanban-column" data-estado="terminado" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h3>TERMINADO</h3>
+                <div class="kanban-cards"></div>
+            </div>
+        </div>
     </div>
+
+    <dialog id="update-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>Modificar Orden</h3>
+            <div id="update-content">
+            </div>
+            <menu>
+                <button id="save-update" type="button" class="dialog-btn">Guardar</button>
+                <button id="close-dialog-update" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="create-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>Agregar Orden</h3>
+            <div id="create-content">
+            </div>
+            <menu>
+                <button id="save-create" type="button" class="dialog-btn">Guardar</button>
+                <button id="close-dialog-create" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="delete-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3>¿Desea eliminar este Orden?</h3>
+            <div id="delete-content">
+            </div>
+            <menu>
+                <button id="save-delete" type="button" class="dialog-btn">Aceptar</button>
+                <button id="close-dialog-delete" class="dialog-btn">Cancelar</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="confirm-dialog" class="confirm-dialog">
+        <form method="dialog" class="dialog-content confirm-content">
+            <h3 id="confirm-title">¿Estás seguro?</h3>
+            <p id="confirm-message">Esta acción no se puede deshacer.</p>
+            <menu>
+                <button id="confirm-yes" type="button" class="dialog-btn">Sí</button>
+                <button id="confirm-no" class="dialog-btn">No</button>
+            </menu>
+        </form>
+    </dialog>
+
     <script src="../js/window-lock.js"></script>
-    <script src="../js/kanban.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/script-produccion.js"></script>
 
     <!-- Toast de notificación -->
     <div id="simple-toast" class="hidden-toast">Mensaje de ejemplo</div>
 
-    <!-- Confirmación personalizada -->
-    <div id="confirm-toast" class="hidden-toast">
-        <span id="confirm-msg">¿Estás seguro?</span>
-        <div class="confirm-buttons">
-            <button id="btn-confirm-ok">Sí</button>
-            <button id="btn-confirm-cancel">Cancelar</button>
-        </div>
-    </div>
 </body>
 </html>

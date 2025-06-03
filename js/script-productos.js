@@ -7,6 +7,16 @@ const {
     deleteProducto  
 } = require(join(__dirname, '..', 'js', 'crud-productos.js'));
 const { 
+    createBizcocho, 
+    readBizcochos, 
+    updateBizcocho, 
+    searchBizcocho, 
+    deleteBizcocho 
+} = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
+const {
+    readFases, updateFase, readCategorias, readSizes
+} = require(join(__dirname, "..", "js", "crud-config.js"));
+const { 
     showToast, 
     showConfirmToast, 
     ICONOS 
@@ -16,10 +26,22 @@ window.addEventListener('DOMContentLoaded', initProductos);
 
 async function initProductos() {
     try {
+        const fases = await readFases();
+        window.fases = fases;
+        console.warn('📦 Fases cargadas.');
+        const categorias = await readCategorias();
+        window.categorias = categorias;
+        console.warn('📦 Categorias cargadas.');
+        const sizes = await readSizes();
+        window.sizes = sizes;
+        console.warn('📦 Tamaños cargados.');
+        const bizcochos = await readBizcochos();
+        window.bizcochos = bizcochos;
+        console.warn('📦 Se cargaron bizcochos.');
         const productos = await readProductos();
         window.productos = productos;
         fillTableProductos(productos);
-        console.log('📦 Se cargaron productos.');
+        console.warn('📦 Se cargaron productos.');
     } catch (error) {
         console.error('❌ Error al cargar productos:', error.message);
         showToast('Error al cargar inventario', ICONOS.error);
@@ -46,8 +68,8 @@ function fillTableProductos(productos) {
             <td>${p.stock_apartado}</td>
             <td>${p.stock_en_proceso}</td>
             <td class="col-btn">
-                <button onclick="editarProducto('${p.code}');">✏️ Editar</button>
-                <button onclick="eliminarProducto('${p.code}');">🗑️ Eliminar</button>
+                <button onclick="showUpdate(${p.code});">✏️ Editar</button>
+                <button onclick="showDelete(${p.code});">🗑️ Eliminar</button>
             </td>
         `;
         fragment.appendChild(row);
@@ -56,146 +78,447 @@ function fillTableProductos(productos) {
     tableBody.appendChild(fragment);
 }
 
-function eliminarProducto(code) {
-    showConfirmToast(
-        `¿Seguro que quieres eliminar el producto #${code}?`,
-        async (confirmado) => {
-            if (!confirmado) {
-                showToast("Eliminación cancelada", ICONOS.info);
-                return;
-            }
-
-            try {
-                await deleteProducto(code);
-                console.log('📦 Se elimino un producto.');
-                showToast("Producto eliminado 📦.", ICONOS.success);
-                initProductos();
-            } catch (err) {
-                console.error("[ERROR] eliminarProducto:", err.message);
-                showToast("Error al eliminar", ICONOS.error);
-            }
-        },
-        ICONOS.peligro
-    );
+async function showUpdate(code) {
+    document.getElementById('update-content').innerHTML = '';
+    const mode = "update";
+    await fillProducto(code, mode);
+    document.getElementById("update-dialog-s").showModal();
 }
 
-function agregarNuevoProducto() {
-    const form = document.getElementById('formProd');
-    form.dataset.mode = 'create';
-    renderProducto();
+async function showCreate() {
+    document.getElementById('create-content').innerHTML = '';
+    const mode = "create";
+    await fillProducto(null, mode);
+    document.getElementById("create-dialog-s").showModal();
 }
 
-function editarProducto(code) {
-    const form = document.getElementById('formProd');
-    form.dataset.mode = 'edit';
-    renderProducto(code);
+async function showDelete(code){
+    document.getElementById('delete-content').innerHTML = '';
+    const mode = "delete";
+    await fillProducto(code, mode);
+    document.getElementById("delete-dialog-s").showModal();
 }
 
-function renderProducto(code) {
-    const form = document.getElementById('formProd');
-    const prodCodeField = document.getElementById('prodCodeField');
-
-    if (form.dataset.mode === 'create') {
-        form.reset();
-        prodCodeField.style.display = 'block';
-        console.log('Creando nuevo producto 📦');
-    } else if (form.dataset.mode === 'edit') {
-        const p = window.productos.find(x => x.code === parseInt(code));
-        if (!p) return showToast('Producto no encontrado', ICONOS.error);
-
-        document.getElementById('prodCode').value = p.code;
-        prodCodeField.style.display = 'none';
-
-        document.getElementById('prodCategory').value = p.category;
-        document.getElementById('prodModel').value = p.model;
-        document.getElementById('prodSize').value = p.size;
-        document.getElementById('prodDecoration').value = p.decoration;
-        document.getElementById('prodColor').value = p.color;
-        document.getElementById('prodPrice').value = parseFloat(p.price);
-        document.getElementById('prodDisp').value = parseInt(p.stock_disponible);
-        document.getElementById('prodApr').value = parseInt(p.stock_apartado);
-        document.getElementById('prodProc').value = parseInt(p.stock_en_proceso);
-
-        console.log('Editando producto con código:', p.code);
+async function fillProducto(code, mode) {
+    if (mode !== "create") {
+        window.productoCRUD = window.productos.find(p => p.code === code);
     }
 
-    openModal('editProductoModal');
+    let html = "";
+    let contenedorId = "";
+
+    switch (mode) {
+        case "create":
+            contenedorId = "create-content";
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value="" placeholder="Ingrese codigo del producto"></p>
+                <p><strong>Categoria:</strong>
+                    <select id="categoria_producto"></select></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value="" placeholder="Ingrese modelo del producto"></p>
+                <p><strong>Tamaño:</strong>
+                    <select id="size_producto"></select></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value="" placeholder="Ingrese decoracion del producto"></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value="" placeholder="Ingrese color del producto"></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value="" placeholder="$$$$$"></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="" placeholder="Ingrese stock disponible del producto"></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="" placeholder="Ingrese stock apartado del producto"></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="" placeholder="Ingrese stock en proceso del producto"></p>
+            `;
+            document.getElementById(contenedorId).innerHTML = html;
+            await cargarCategorias(contenedorId);
+            await cargarTamanos(contenedorId);
+            break;
+
+        case "update":
+            contenedorId = "update-content";
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value="" placeholder="Ingrese codigo del producto" readonly></p>
+                <p><strong>Categoria:</strong>
+                    <select id="categoria_producto"></select></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value="" placeholder="Ingrese modelo del producto"></p>
+                <p><strong>Tamaño:</strong>
+                    <select id="size_producto"></select></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value="" placeholder="Ingrese decoracion del producto"></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value="" placeholder="Ingrese color del producto"></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value="" placeholder="$$$$$"></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="" placeholder="Ingrese stock disponible del producto"></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="" placeholder="Ingrese stock apartado del producto"></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="" placeholder="Ingrese stock en proceso del producto"></p>
+                <p><strong>¿Activar alarma?:</strong>
+                    <input type="checkbox" id="alarma_producto" ${productoCRUD.stock_critico === 1 ? 'checked' : ''}></p>
+                <p><strong>Min. Stock:</strong>
+                    <input type="number" id="stock_min_producto" step="1" min="0" value="" placeholder="Ingrese stock minimo para activar la alarma"></p>
+            `;
+
+            document.getElementById(contenedorId).innerHTML = html;
+            await cargarCategorias(contenedorId);
+            await cargarTamanos(contenedorId);
+            await cargarData(productoCRUD);
+            break;
+
+        case "delete":
+            html = `
+                <p><strong>Código Producto:</strong>
+                    <input type="number" id="code_producto" step="1" min="0" value="${productoCRUD.code}" readonly></p>
+                <p><strong>Categoria:</strong>
+                    <input id="categoria_producto" value="${productoCRUD.category}" readonly></p>
+                <p><strong>Modelo:</strong>
+                    <input type="text" id="modelo_producto" value="${productoCRUD.model}" readonly></p>
+                <p><strong>Tamaño:</strong>
+                    <input id="size_producto" value="${productoCRUD.size}" readonly></p>
+                <p><strong>Decoración:</strong>
+                    <input type="text" id="decoracion_producto" value="${productoCRUD.decoration}" readonly></p>
+                <p><strong>Color:</strong>
+                    <input type="text" id="color_producto" value="${productoCRUD.color}" readonly></p>
+                <p><strong>Precio Unitario($):</strong>
+                    <input type="number" id="precio_producto" min="0" value="${productoCRUD.price}" readonly></p>
+                <p><strong>Stock Disponible:</strong>
+                    <input type="number" id="disponibles_producto" step="1" min="0" value="${productoCRUD.stock_disponible}" readonly></p>
+                <p><strong>Stock Apartado:</strong>
+                    <input type="number" id="apartados_producto" step="1" min="0" value="${productoCRUD.stock_apartado}" readonly></p>
+                <p><strong>Stock en Proceso:</strong>
+                    <input type="number" id="procesos_producto" step="1" min="0" value="${productoCRUD.stock_en_proceso}" readonly></p>
+            `;
+
+            document.getElementById('delete-content').innerHTML = html;
+            break;
+    }
 }
 
-async function guardarProducto(event) {
-    event.preventDefault();
 
-    const form = document.getElementById('formProd');
-    const mode = form.dataset.mode;
-    const code = parseInt(document.getElementById('prodCode').value.trim());
+function cargarCategorias(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectCate = modal.querySelector("#categoria_producto");
+        selectCate.innerHTML = `<option value="" disabled selected>-- Elija una categoría --</option>`;
 
-    const payload = {
-        code, 
-        category: document.getElementById('prodCategory').value,
-        model: document.getElementById('prodModel').value,
-        size: document.getElementById('prodSize').value,
-        decoration: document.getElementById('prodDecoration').value,
-        color: document.getElementById('prodColor').value,
-        price: +document.getElementById('prodPrice').value,
-        stock_disponible: +document.getElementById('prodDisp').value,
-        stock_apartado: +document.getElementById('prodApr').value,
-        stock_en_proceso: +document.getElementById('prodProc').value
+        window.categorias.forEach(c => {
+            const option = document.createElement("option");
+            option.value = c.name_categoria;
+            option.textContent = c.name_categoria;
+            selectCate.appendChild(option);
+        });
+
+        resolve();
+    });
+}
+
+function cargarTamanos(contenedorId) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById(contenedorId);
+        const selectSize = modal.querySelector("#size_producto");
+        selectSize.innerHTML = `<option value="" disabled selected>-- Elija un tamaño --</option>`;
+
+        window.sizes.forEach(s => {
+            const option = document.createElement("option");
+            option.value = s.name_size;
+            option.textContent = s.name_size;
+            selectSize.appendChild(option);
+        });
+
+        resolve();
+    });
+}
+
+function cargarData(productoCRUD) {
+    return new Promise((resolve) => {
+        const modal = document.querySelector("#update-content");
+        modal.querySelector("#code_producto").value = productoCRUD.code;
+        modal.querySelector("#categoria_producto").value = productoCRUD.category; 
+        modal.querySelector("#modelo_producto").value = productoCRUD.model; 
+        modal.querySelector("#size_producto").value = productoCRUD.size; 
+        modal.querySelector("#decoracion_producto").value = productoCRUD.decoration; 
+        modal.querySelector("#color_producto").value = productoCRUD.color;
+        modal.querySelector("#precio_producto").value = productoCRUD.price;
+        modal.querySelector("#disponibles_producto").value = productoCRUD.stock_disponible; 
+        modal.querySelector("#apartados_producto").value = productoCRUD.stock_apartado; 
+        modal.querySelector("#procesos_producto").value = productoCRUD.stock_en_proceso; 
+        modal.querySelector("#stock_min_producto").value = productoCRUD.stock_min;
+
+        resolve();
+    });
+}
+
+async function verificacionesProducto(contenedorId, mode) {
+    const modal = document.getElementById(contenedorId);
+
+    const getNumber = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
     };
 
-    try {
-        if (mode === 'create') {
-            const dupCode = window.productos.some(p => p.code === payload.code);
-            if (dupCode) {
-                return showToast(`Ya existe un producto con código ${payload.code}.`, ICONOS.advertencia);
-            }
+    const getValue = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
 
-            const dupCombo = window.productos.some(p =>
-                p.category === payload.category &&
-                p.model === payload.model &&
-                p.size === payload.size &&
-                p.decoration === payload.decoration &&
-                p.color === payload.color
-            );
-            if (dupCombo) {
-                return showToast(
-                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                    ICONOS.advertencia
-                );
-            }
-
-            await createProducto(payload);
-            console.log('📦 Se agrego un nuevo producto.');
-            showToast('Producto agregado', ICONOS.success);
-            closeModal('editProductoModal');
-            await initProductos();
-
-        } else if (mode === 'edit') {
-            const dupCombo = window.productos.some(p =>
-                p.category === payload.category &&
-                p.model === payload.model &&
-                p.size === payload.size &&
-                p.decoration === payload.decoration &&
-                p.color === payload.color &&
-                p.code !== payload.code
-            );
-            if (dupCombo) {
-                return showToast(
-                    `Ya existe un producto con categoría “${payload.category}”, modelo “${payload.model}”, tamaño “${payload.size}”, decoración “${payload.decoration}” y color “${payload.color}”.`,
-                    ICONOS.advertencia
-                );
-            }
-
-            await updateProducto(payload);
-            console.log('📦 Se modifico un producto.');
-            showToast('Producto actualizado', ICONOS.success);
-            closeModal('editProductoModal');
-            await initProductos();
-
-        } else {
-            console.warn('guardarProducto: modo desconocido', mode);
-        }
-    } catch (err) {
-        console.error('[ERROR] guardarProducto:', err);
-        showToast('Error al guardar el producto', ICONOS.error);
+    const code_producto = getNumber("#code_producto");
+    if (isNaN(code_producto) || code_producto <= 0) {
+        showToast("El código de producto es inválido.", ICONOS.advertencia);
+        throw new Error("Código de producto inválido.");
     }
+
+    const categoria = getValue("#categoria_producto");
+    if (!categoria) {
+        showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
+        throw new Error("Categoría vacía.");
+    }
+
+    const modelo = getValue("#modelo_producto");
+    if (!modelo) {
+        showToast("Falta llenar el campo de modelo.", ICONOS.advertencia);
+        throw new Error("Modelo vacío.");
+    }
+
+    const tamano = getValue("#size_producto");
+    if (!tamano) {
+        showToast("Debe seleccionar un tamaño.", ICONOS.advertencia);
+        throw new Error("Tamaño vacío.");
+    }
+
+    const decoracion = getValue("#decoracion_producto");
+    if (!decoracion) {
+        showToast("Falta llenar el campo de decoración.", ICONOS.advertencia);
+        throw new Error("Decoración vacía.");
+    }
+
+    const color = getValue("#color_producto");
+    if (!color) {
+        showToast("Falta llenar el campo de color.", ICONOS.advertencia);
+        throw new Error("Color vacío.");
+    }
+
+    const precio = getNumber("#precio_producto");
+    if (isNaN(precio) || precio <= 0) {
+        showToast("El precio unitario es inválido.", ICONOS.advertencia);
+        throw new Error("Precio unitario inválido.");
+    }
+
+    const disponibles = getNumber("#disponibles_producto");
+    if (isNaN(disponibles) || disponibles < 0) {
+        showToast("Stock disponible inválido.", ICONOS.advertencia);
+        throw new Error("Stock disponible inválido.");
+    }
+
+    const apartados = getNumber("#apartados_producto");
+    if (isNaN(apartados) || apartados < 0) {
+        showToast("Stock apartado inválido.", ICONOS.advertencia);
+        throw new Error("Stock apartado inválido.");
+    }
+
+    const procesos = getNumber("#procesos_producto");
+    if (isNaN(procesos) || procesos < 0) {
+        showToast("Stock en proceso inválido.", ICONOS.advertencia);
+        throw new Error("Stock en proceso inválido.");
+    }
+
+    let stock_min = 0;
+    let stock_critico = 0;
+
+    if (mode === "update") {
+        stock_min = getNumber("#stock_min_producto");
+        if (isNaN(stock_min) || stock_min < 0) {
+            showToast("Stock mínimo inválido.", ICONOS.advertencia);
+            throw new Error("Stock mínimo inválido.");
+        }
+
+        const alarma = modal.querySelector("#alarma_producto");
+        stock_critico = alarma && alarma.checked ? 1 : 0;
+    }
+
+    return {
+        code: code_producto,
+        category: categoria,
+        model: modelo,
+        size: tamano,
+        decoration: decoracion,
+        color: color,
+        price: precio,
+        stock_disponible: disponibles,
+        stock_apartado: apartados,
+        stock_en_proceso: procesos,
+        stock_min: stock_min,
+        stock_critico: stock_critico
+    };
 }
+
+document.getElementById("save-create").addEventListener("click", async () => {
+    const contenedorId = "create-content";
+    const mode = "create";
+    try {
+        const payload = await verificacionesProducto(contenedorId, mode);
+        await guardarProducto(mode, payload);
+        document.getElementById("create-dialog-s").close();
+    } catch (err) {
+        showToast(err.message, ICONOS.error);
+        console.error("[ERROR] ", err.message);
+    }
+});
+
+document.getElementById("save-update").addEventListener("click", async () => {
+    const contenedorId = "update-content";
+    const mode = "update";
+    try {
+        const payload = await verificacionesProducto(contenedorId, mode);
+        await guardarProducto(mode, payload);
+        document.getElementById("update-dialog-s").close();
+    } catch (err) {
+        showToast(err.message, ICONOS.error);
+        console.error("[ERROR] ", err.message);
+    }
+});
+
+async function guardarProducto(mode, payload) {
+    if (mode === "create") {
+        const dupCode = window.productos.some(p => p.code === payload.code);
+        if (dupCode) {
+            throw new Error(`Ya existe un producto con Código ${payload.code}.`);
+        }
+        
+        const dupCombo = window.productos.some(p =>
+            p.category    === payload.category &&
+            p.model       === payload.model &&
+            p.size        === payload.size &&
+            p.decoration  === payload.decoration &&
+            p.color       === payload.color
+        );
+        if (dupCombo) {
+            throw new Error(`Ya existe un producto con esa combinación de categoría, modelo, tamaño, decoración y color.`);
+        }
+
+        await createProducto(payload);
+        console.warn('📦 Se agregó un nuevo producto.');
+        showToast('Producto agregado 📦.', ICONOS.success);
+
+    } else if (mode === "update") {
+        const dupCombo = window.productos.some(p =>
+            p.category    === payload.category &&
+            p.model       === payload.model &&
+            p.size        === payload.size &&
+            p.decoration  === payload.decoration &&
+            p.color       === payload.color &&
+            p.code        !== payload.code
+        );
+        if (dupCombo) {
+            throw new Error(`Ya existe un producto con esa combinación de categoría, modelo, tamaño, decoración y color.`);
+        }
+
+        await updateProducto(payload);
+        console.warn('📦 Se actualizó un producto.');
+        showToast('Producto actualizado 📦.', ICONOS.success);
+    }
+
+    const bizcochoRelacionado = window.bizcochos.some(b =>
+        b.biz_category === payload.category &&
+        b.biz_size     === payload.size &&
+        b.biz_model    === payload.model
+    );
+
+    if (!bizcochoRelacionado) {
+        const confirmed = await showConfirmDialog(
+            `No se encontró un bizcocho con categoría "${payload.category}", tamaño "${payload.size}" y modelo "${payload.model}". ¿Desea crear este bizcocho base ahora?`,
+            "Bizcocho relacionado no encontrado"
+        );
+
+        if (confirmed) {
+            const nuevoBizcocho = {
+                biz_category:     payload.category,
+                biz_size:         payload.size,
+                biz_model:        payload.model,
+                stock_disponible: 0,
+                stock_apartado:   0,
+                stock_en_proceso: 0,
+                stock_min: 0,
+                stock_critico: 0,
+            };
+
+            await createBizcocho(nuevoBizcocho);
+            showToast("Bizcocho base creado automáticamente.", ICONOS.info);
+        }
+    }
+
+    await initProductos();
+}
+
+document.getElementById("save-delete").addEventListener("click", async () => {
+    const contenedorId = "delete-content";
+    const code = parseInt(document.querySelector(`#${contenedorId} #code_producto`).value.trim());
+
+    const confirmed = await showConfirmDialog(
+        `¿Seguro que quieres eliminar el producto #${code}?`,
+        "Confirmación"
+    );
+
+    if (!confirmed) {
+        document.getElementById("delete-dialog-s").close();
+        showToast("Eliminación cancelada", ICONOS.info);
+        return;
+    }
+
+    try {
+        await deleteProducto(code);
+        showToast("Producto eliminado 📦.", ICONOS.success);
+        console.warn('📦 Se elimino un producto.');
+        document.getElementById("delete-dialog-s").close();
+        await initProductos();
+    } catch (err) {
+        console.error("❌ Error al eliminar producto:", err.message);
+        showToast(`[ERROR] al eliminar: ${err.message}`, ICONOS.error);
+    }
+});
+
+function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acción") {
+    return new Promise((resolve) => {
+        const dialog = document.getElementById('confirm-dialog-s');
+        const titleEl = document.getElementById('confirm-title');
+        const messageEl = document.getElementById('confirm-message');
+        const yesBtn = document.getElementById('confirm-yes');
+        const noBtn = document.getElementById('confirm-no');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        yesBtn.onclick = () => {
+            dialog.close();
+            resolve(true);
+        };
+
+        noBtn.onclick = () => {
+            dialog.close();
+            resolve(false);
+        };
+
+        dialog.showModal();
+    });
+}
+
+function cerrarDialogo(dialogId, dialogContent, mensaje) {
+    document.getElementById(dialogId).close();
+    document.getElementById(dialogContent).innerHTML = '';
+    showToast(mensaje, ICONOS.info);
+}
+
+document.getElementById("close-dialog-delete").addEventListener("click", () =>
+    cerrarDialogo("delete-dialog-s", "delete-content", "Eliminación cancelada"));
+
+document.getElementById("close-dialog-create").addEventListener("click", () =>
+    cerrarDialogo("create-dialog-s", "create-content", "Creación cancelada"));
+
+document.getElementById("close-dialog-update").addEventListener("click", () =>
+    cerrarDialogo("update-dialog-s", "update-content", "Actualización cancelada"));

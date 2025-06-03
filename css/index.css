@@ -53,20 +53,55 @@ body {
 
 /*********************** Content Section **************************/
 
-#content-section {
+#content-section,
+#content-section-s {
     opacity: 0;
     display: flex;
-    flex-direction: column;
+    animation: fadeIn ease 1.5s forwards;
+    align-items: center;
     width: 100%;
-    height: 100vh;
-    padding-left: 10vh;
-    background-color: white;
-    animation: fade-content ease 1.5s forwards;
-    align-items: end;
-    padding: 0;
-    margin: 0;
+    padding-left: 15vh;
+    overflow-x: hidden;
+
 }
 
+.inventory-header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+    width: 100%;
+}
+
+button:hover {
+    cursor: pointer;
+}
+
+/*******************************TABLES***************************************/
+table,
+.kanban-container {
+    width: 95%;
+    border-collapse: collapse;
+    margin: 1rem 1rem;
+}
+
+#table-productos > thead tr th,
+#table-bizcochos > thead tr th {
+    background-color: #300907;
+    color: white;
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+}
+
+#table-productos > tbody tr td,
+#table-bizcochos > tbody tr td {
+    width: 0;
+    background-color: whitesmoke;
+    color: #300907;
+    border: 1px solid #ccc;
+    padding: 0.75rem;
+    text-align: center;
+}
 
 /*************** Animations *********************/
 @keyframes fade-nav {
@@ -144,4 +179,190 @@ body {
     background-color: #390101;
     color: white;
     transition: background-color 0.3s, color 0.3s;
+}
+
+/*-----DIALOG-----*/
+
+#create-dialog,
+#update-dialog,
+#delete-dialog {
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    justify-self: center;
+    align-self: center;
+}
+
+#create-dialog-s,
+#update-dialog-s,
+#delete-dialog-s,
+#results-dialog-s {
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 700px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    justify-self: center;
+    align-self: center;
+}
+
+.dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.dialog-content h3,
+.dialog-content h6 {
+    margin: 0;
+    font-size: 1.25rem;
+    text-align: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+    color: #390101;
+}
+  
+#update-content, 
+#create-content,
+#delete-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+  
+#update-content p, 
+#create-content p,
+#delete-content p {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    width: 100%;
+}
+
+#update-content div p, 
+#create-content div p,
+#delete-content div p{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    margin: 4px 0;
+    width: 100%;
+}
+
+#grupo-producto{
+    margin: 0;
+    padding: 0;
+}
+
+#update-content p strong,
+#create-content p strong,
+#delete-content p strong {
+    color: #954e38;
+    white-space: nowrap;
+    min-width: 150px;
+}
+
+#update-content p input, 
+#create-content p input,
+#update-content p select,
+#create-content p select {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+}
+
+#update-content p textarea,
+#create-content p textarea {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+    resize: none;
+    min-height: 8em;
+}
+
+#delete-content p input {
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#delete-content p input[readonly],
+#delete-content p input[disabled],
+#update-content p input[readonly],
+#update-content p input[disabled] {
+    background-color: #f0f0f0;
+    color: #666;
+    cursor: default;
+}
+  
+.dialog-content menu {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 1rem;
+}
+  
+.dialog-btn {
+    background-color: #e2b492;
+    color: #390101;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+  
+.dialog-btn:hover {
+    background: #390101;
+    color: #e2b492;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 1rem;
+    width: 100%;
+}
+
+#confirm-dialog,
+#confirm-dialog-s {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: none;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+    background: white;
+}
+
+.confirm-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
 }

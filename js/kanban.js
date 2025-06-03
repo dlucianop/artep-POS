@@ -3,13 +3,13 @@ const {
     createVenta, readVentas, searchVenta, updateVenta, createDetalle, readDetalles, deleteVentaConDetalles,
 } = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const { 
-    createProducto, readProductos, searchProduct, updateProducto, deleteProducto 
+    createProducto, readProductos, searchProduct, updateProducto, deleteProducto, updateStockProducto
 } = require(join(__dirname, '..', 'js', 'crud-productos.js'));
 const { 
     createBizcocho, readBizcochos, updateBizcocho, searchBizcocho, deleteBizcocho 
 } = require(join(__dirname, "..", "js", "crud_bizcochos.js"));
 const {
-    createOrden, updateOrden, readOrdenByFase, readOrden, readOrdenesByVenta
+    createOrden, updateOrden, readOrdenByFase, readOrden, readOrdenesByVenta, updateCantidadInicial, searchReposicionOrden, updateRepo
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -31,10 +31,34 @@ async function initProduccion() {
             'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
         fillEncabezados(fases);
+        await cargarProductos();
+        await cargarBizcochos();
         console.log('✅ Todos los datos fueron cargados correctamente.');
     } catch (error) {
         console.error('❌ Error al cargar fases:', error.message);
         showToast('Error al cargar panel de Produccion', ICONOS.error);
+    }
+}
+
+async function cargarProductos() {
+    try {
+        const productos = await readProductos();
+        window.productos = productos;
+        console.log('📦 Productos cargados.');
+    } catch (err) {
+        console.error('❌ Error al cargar productos:', err.message);
+        showToast('Error al cargar productos', ICONOS.error);
+    }
+}
+
+async function cargarBizcochos() {
+    try {
+        const bizcochos = await readBizcochos();
+        window.bizcochos = bizcochos;
+        console.log('📦 Bizcochos cargados.');
+    } catch (err) {
+        console.error('❌ Error al cargar bizcochos:', err.message);
+        showToast('Error al cargar bizcochos', ICONOS.error);
     }
 }
 
@@ -235,18 +259,69 @@ document.getElementById('cancel-edit').addEventListener('click', () => {
 document.getElementById('update-edit').addEventListener('click', async () => {
     let cardElem = document.querySelector('.kanban-card.editando');
     if (!cardElem?._estadoAnterior) return;
+
     try {
         let ordenData = cardElem._ordenData;
         let detalles_orden = await readOrden(ordenData.id_orden);
-        let detalles_venta = await readDetalles(ordenData.id_venta);
+        let detalleO = detalles_orden[0];
 
-        for (const detalleV of detalles_venta) {
-            if (detalleV.id_detalle === detalles_orden[0].id_detalle){
-                await updateData(detalleV, detalles_orden[0], ordenData);
+        const orden = {
+            id_fase: ordenData.id_fase,
+            cantidad_buenos: await getCantidadConDefault("orden_cantidad_buenos", detalleO.cantidad_buenos),
+            cantidad_rotos: await getCantidadConDefault("orden_cantidad_rotos", detalleO.cantidad_rotos),
+            cantidad_deformes: await getCantidadConDefault("orden_cantidad_deformes", detalleO.cantidad_deformes),
+            id_orden: ordenData.id_orden
+        };
+        console.log("🔍 detalleO:", detalleO);
+        console.log("🔄 ordenData:", ordenData);
+
+        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
+        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
+
+        switch (detalleO.id_origen) {
+            case 1: {
+                let detalles_venta = await readDetalles(ordenData.id_venta);
+
+                console.log("🔍 detalleV:", detalles_venta);
+                for (const detalleV of detalles_venta) {
+                    if (detalleV.id_detalle === detalleO.id_detalle) {
+                        await updateOrdenVenta(orden, detalleO, detalleV, ordenData, newFase, ultimaFase);
+                        showToast(`✅ Orden de venta actualizada`, ICONOS.info);
+                        console.warn(`✅ Orden de venta actualizada`);
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case 2:
+                // Inventario
+                await updateOrdenInventario(orden);
+                showToast(`📦 Orden de inventario actualizada`, ICONOS.info);
+                console.warn(`📦 Orden de inventario actualizada`);
                 break;
 
-            }
+            case 3:
+                // Muestra
+                showToast(`🧪 Orden de muestra actualizada`, ICONOS.info);
+                console.warn(`🧪 Orden de muestra actualizada`);
+                break;
+
+            case 4:
+                // Prueba
+                showToast(`🔬 Orden de prueba actualizada`, ICONOS.info);
+                console.warn(`🔬 Orden de prueba actualizada`);
+                break;
+
+            case 5:
+            default:
+                // Reposición 
+                await updateOrdenReposicion(orden);
+                showToast(`🛠 Orden de reposición actualizada`, ICONOS.info);
+                console.warn(`🛠 Orden de reposición actualizad`);
+                break;
         }
+
     } catch (error) {
         console.error('❌ Error al mover tarjeta:', error.message);
         showToast(`Error al mover tarjeta: ${error.message}`, ICONOS.error);
@@ -256,114 +331,90 @@ document.getElementById('update-edit').addEventListener('click', async () => {
     }
 });
 
-async function updateData(detalleV, detalleO, ordenData) {
+async function updateOrdenVenta(orden, detalleO, detalleV, ordenData, newFase, ultimaFase) {
+    const cantidadProducida = orden.cantidad_buenos;
+    const cantidadInicialActual = detalleO?.cantidad_inicial || ordenData?.cantidad_inicial || 0;
+    const faltante = cantidadInicialActual - cantidadProducida;
+
     try {
-        const orden = {
-            id_fase: ordenData.id_fase,
-            cantidad_buenos: parseInt(document.getElementById("orden_cantidad_buenos").value, 10),
-            cantidad_rotos: parseInt(document.getElementById("orden_cantidad_rotos").value, 10),
-            cantidad_deformes: parseInt(document.getElementById("orden_cantidad_deformes").value, 10),
-            id_orden: ordenData.id_orden
-        };
+        if (
+            faltante > 0 &&
+            orden.cantidad_rotos >= 1 &&
+            orden.cantidad_deformes >= 1
+        ) {
+            const ordenRepo = await searchReposicionOrden(ordenData.id_venta);
 
-        const cantidadProducida = orden.cantidad_buenos;
+            if (!ordenRepo) {
+                await crearOrdenReposicion(
+                    ordenData.id_venta,
+                    ordenData.fecha_entrega,
+                    {
+                        categoria: detalleO.categoria,
+                        size: detalleO.size,
+                        id_detalle: detalleO.id_detalle
+                    },
+                    faltante
+                );
+            } else {
+                const repoActualizado = {
+                    cantidad_inicial: ordenRepo.cantidad_inicial + orden.cantidad_deformes + orden.cantidad_rotos,
+                    id_orden: ordenRepo.id_orden,
+                };
 
-        await updateOrden(orden);
+                await updateRepo(repoActualizado);
+            }
+        }
+    } catch (error) {
+        console.error("❌ Error al gestionar reposición:", error);
+        showToast("Error en reposición", ICONOS.error);
+    }
 
-        const newFase = window.fases.find(f => f.id_fase === orden.id_fase);
-        const ultimaFase = window.fases.reduce((max, f) => f.id_fase > max.id_fase ? f : max, window.fases[0]);
-
+    try {
         if (newFase.tipo_fase === "Bizcocho") {
             const bizcocho = await searchBizcocho({
                 biz_category: detalleO.categoria,
                 biz_size: detalleO.size
             });
 
-            if (bizcocho && bizcocho.id_biz) {
-                bizcocho.stock_en_proceso = Math.max(0, bizcocho.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    bizcocho.stock_apartado += cantidadProducida;
-                } else {
-                    bizcocho.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateBizcocho(bizcocho);
-            } else {
-                showToast("❌ No se encontró el bizcocho para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el bizcocho para actualizar');
-            }
+            await updateBizcocho({
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: faltante > 0
+                    ? bizcocho.stock_disponible - faltante
+                    : bizcocho.stock_disponible,
+                stock_en_proceso: bizcocho.stock_en_proceso + cantidadProducida,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
+            });
 
         } else if (newFase.tipo_fase === "Producto") {
             const producto = await searchProduct(detalleV.codigo);
+            const esUltimaFase = newFase.id_fase === ultimaFase.id_fase;
 
-            if (producto && producto.code) {
-                producto.stock_en_proceso = Math.max(0, producto.stock_en_proceso - cantidadProducida);
-
-                if (orden.id_fase === ultimaFase.id_fase) {
-                    producto.stock_apartado += cantidadProducida;
-                } else {
-                    producto.stock_en_proceso += cantidadProducida;
-                }
-
-                await updateProducto(producto);
-            } else {
-                showToast("❌ No se encontró el producto para actualizar.", ICONOS.error);
-                console.error('❌ No se encontró el producto para actualizar');
-            }
+            await updateStockProducto({
+                stock_apartado: esUltimaFase
+                    ? producto.stock_apartado + cantidadProducida
+                    : producto.stock_apartado,
+                stock_disponible: producto.stock_disponible,
+                stock_en_proceso: esUltimaFase
+                    ? producto.stock_en_proceso
+                    : producto.stock_en_proceso + cantidadProducida,
+                code: producto.code
+            });
         }
-
-        if (cantidadProducida < detalleO.cantidad_inicial) {
-            const faltante = detalleO.cantidad_inicial - cantidadProducida;
-
-            const ordenes = await readOrdenesByVenta(ordenData.id_venta);
-            const ordenReposicion = ordenes.find(o =>
-                o.id_origen === 5 &&
-                o.categoria === detalleO.categoria &&
-                o.size === detalleO.size
-            );
-
-            if (!ordenReposicion) {
-                await ordenesActions(
-                    ordenData.id_venta,
-                    ordenData.fecha_entrega,
-                    {
-                        categoria: detalleO.categoria,
-                        size: detalleO.size
-                    },
-                    faltante
-                );
-
-                showToast(`🛠 Se creó una orden de reposición por ${faltante} piezas.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
-
-            } else {
-                const nuevaCantidad = ordenReposicion.cantidad_inicial + faltante;
-
-                const ordenActualizada = {
-                    id_orden: ordenReposicion.id_orden,
-                    cantidad_inicial: nuevaCantidad,
-                };
-
-                await updateOrden(ordenActualizada);
-
-                showToast(`🔄 Se actualizó la orden de reposición con ${faltante} piezas adicionales.`, ICONOS.info);
-                setTimeout(() => window.location.reload(), 1000);
-                return;
-            }
-        }
-
-        showToast("✅ Orden y stock actualizados correctamente.", ICONOS.exito);
-        initProduccion();
-
     } catch (error) {
-        console.error('❌ ERROR:', error.message);
-        showToast(`ERROR: ${error.message}`, ICONOS.error);
+        console.error("❌ Error al actualizar stock:", error);
+        showToast("Error al actualizar stock", ICONOS.error);
+    }
+
+    try {
+        await updateOrden(orden);
+    } catch (error) {
+        console.error("❌ Error al actualizar la orden:", error);
+        showToast("Error al actualizar orden", ICONOS.error);
     }
 }
 
-async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
+async function crearOrdenReposicion(ventaId, fecha_entrega, item, faltanteRestante) {
     try {
         const orden = {
             id_venta: ventaId,
@@ -371,8 +422,10 @@ async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
             fecha_entrega,
             categoria: item.categoria,
             size: item.size,
-            cantidad_inicial: faltanteRestante
+            cantidad_inicial: faltanteRestante,
+            id_detalle: item.id_detalle
         };
+
         const newOrden = await createOrden(orden);
         return newOrden;
     } catch (error) {
@@ -382,16 +435,182 @@ async function ordenesActions(ventaId, fecha_entrega, item, faltanteRestante) {
     }
 }
 
-async function yaExisteReposicion(id_venta, categoria, size) {
+async function updateOrdenInventario(orden) {
     try {
-        const ordenes = await readOrdenesByVenta(id_venta);
-        return ordenes.some(o => 
-            o.id_origen === 5 &&
-            o.categoria === categoria &&
-            o.size === size
-        );
+        const ordenData = await readOrdenById(orden.id_orden);
+        const detalleO = await readDetalleOrden(orden.id_orden);
+        const newFase = await getFaseById(orden.id_fase);
+
+        const cantidadProducida = orden.cantidad_buenos;
+
+        if (newFase.tipo_fase === "Bizcocho") {
+            const bizcocho = await searchBizcocho({
+                biz_category: detalleO.categoria,
+                biz_size: detalleO.size
+            });
+
+            await updateBizcocho({
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: bizcocho.stock_disponible + cantidadProducida,
+                stock_en_proceso: bizcocho.stock_en_proceso,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
+            });
+        } else if (newFase.tipo_fase === "Producto") {
+            const producto = await searchProduct(detalleO.codigo);
+
+            await updateStockProducto({
+                stock_apartado: producto.stock_apartado,
+                stock_disponible: producto.stock_disponible + cantidadProducida,
+                stock_en_proceso: producto.stock_en_proceso,
+                code: producto.code
+            });
+        }
+
+        await updateOrden(orden);
     } catch (error) {
-        console.error("❌ Error buscando reposición existente:", error);
-        return false;
+        console.error("❌ Error en updateOrdenInventario:", error);
+        showToast("Error en orden de inventario", ICONOS.error);
     }
+}
+
+async function updateOrdenReposicion(orden) {
+    try {
+        const ordenData = await readOrdenById(orden.id_orden);
+        const detalleO = await readDetalleOrden(orden.id_orden);
+        const detalleV = await searchDetalleVenta(detalleO.id_detalle);
+
+        const cantidadProducida = orden.cantidad_buenos;
+        const cantidadInicialActual = detalleO?.cantidad_inicial || ordenData?.cantidad_inicial || 0;
+        const faltante = cantidadInicialActual - cantidadProducida;
+
+        const newFase = await getFaseById(orden.id_fase);
+        const ultimaFase = await getUltimaFase();
+
+        if (newFase.tipo_fase === "Bizcocho") {
+            const bizcocho = await searchBizcocho({
+                biz_category: detalleO.categoria,
+                biz_size: detalleO.size
+            });
+
+            await updateBizcocho({
+                stock_apartado: bizcocho.stock_apartado,
+                stock_disponible: faltante > 0
+                    ? bizcocho.stock_disponible - faltante
+                    : bizcocho.stock_disponible,
+                stock_en_proceso: bizcocho.stock_en_proceso + cantidadProducida,
+                biz_category: bizcocho.biz_category,
+                biz_size: bizcocho.biz_size,
+            });
+        } else if (newFase.tipo_fase === "Producto") {
+            const producto = await searchProduct(detalleV.codigo);
+            const esUltimaFase = newFase.id_fase === ultimaFase.id_fase;
+
+            await updateStockProducto({
+                stock_apartado: esUltimaFase
+                    ? producto.stock_apartado + cantidadProducida
+                    : producto.stock_apartado,
+                stock_disponible: producto.stock_disponible,
+                stock_en_proceso: esUltimaFase
+                    ? producto.stock_en_proceso
+                    : producto.stock_en_proceso + cantidadProducida,
+                code: producto.code
+            });
+        }
+
+        await updateOrden(orden);
+    } catch (error) {
+        console.error("❌ Error en updateOrdenReposicion:", error);
+        showToast("Error en orden de reposición", ICONOS.error);
+    }
+}
+
+async function getCantidadConDefault(idCampo, valorAnterior) {
+    const valor = parseInt(document.getElementById(idCampo).value.trim(), 10);
+    return isNaN(valor) ? valorAnterior : valor;
+}
+
+/*---------------------------------------------------------------------------------------------- */
+
+function agregarNuevaOrden() {
+    const form = document.getElementById('formOrden');
+    form.dataset.mode = 'create';
+    renderOrden();
+}
+
+function renderOrden() {
+    const form = document.getElementById('formOrden');
+    const ordenCodeField = document.getElementById("ordenCodeField");
+    const tipoInventario = document.getElementById('tipoInventario');
+    const itemSeleccionado = document.getElementById('itemSeleccionado');
+
+    if (form.dataset.mode === 'create') {
+        form.reset();  // limpia todo
+        ordenCodeField.style.display = "none";
+        tipoInventario.value = '';
+        itemSeleccionado.innerHTML = '';
+        itemSeleccionado.disabled = true;
+        // Opción por defecto en itemSeleccionado
+        const optionDefault = document.createElement('option');
+        optionDefault.value = '';
+        optionDefault.textContent = '-- Elija un ítem --';
+        optionDefault.disabled = true;
+        optionDefault.selected = true;
+        itemSeleccionado.appendChild(optionDefault);
+
+        console.log('Preparando formulario para nueva orden');
+    }
+    openModal('editOrdenModal');
+}
+
+function cargarOpcionesProducto() {
+    const tipoInventario = document.getElementById('tipoInventario').value;
+    const selectItem = document.getElementById('itemSeleccionado');
+
+    selectItem.innerHTML = '';
+
+    if (!tipoInventario) {
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = '-- Elija un ítem --';
+        option.disabled = true;
+        option.selected = true;
+        selectItem.appendChild(option);
+        selectItem.disabled = true;
+        return;
+    }
+
+    selectItem.disabled = false;
+
+    const optionDefault = document.createElement('option');
+    optionDefault.value = '';
+    optionDefault.textContent = '-- Elija un ítem --';
+    optionDefault.disabled = true;
+    optionDefault.selected = true;
+    selectItem.appendChild(optionDefault);
+
+    let lista = [];
+    if (tipoInventario === 'bizcocho') {
+        lista = window.bizcochos || [];
+    } else {
+        lista = window.productos || [];
+    }
+
+    lista.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id_biz ?? item.code ?? '';
+
+        if (tipoInventario === 'bizcocho') {
+            option.textContent = `${item.biz_category} TAM.${item.biz_size}`;
+        } else {
+            const categoria = item.category || '';
+            const tamaño = item.size || '';
+            const modelo = item.model || '';
+            const color = item.color || '';
+            const decoracion = item.decoration || '';
+            option.textContent = `${categoria} TAM.${tamaño} MOD.${modelo} COL.${color} DEC.${decoracion}`;
+        }
+
+        selectItem.appendChild(option);
+    });
 }

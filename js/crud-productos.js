@@ -116,7 +116,7 @@ function updateProducto(producto) {
             UPDATE inventario_productos
             SET 
                 category = ?, model = ?, size = ?, decoration = ?, color = ?, price = ?,
-                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
+                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?, stock_critico = ?, stock_min = ?
             WHERE code = ?;
         `;
 
@@ -130,6 +130,8 @@ function updateProducto(producto) {
             producto.stock_apartado,
             producto.stock_disponible,
             producto.stock_en_proceso,
+            producto.stock_critico,
+            producto.stock_min,
             producto.code
         ];
 
@@ -140,6 +142,42 @@ function updateProducto(producto) {
                 }
                 if (this.changes === 0) {
                     return reject(new Error("No se encontró ningún producto con ese código"));
+                }
+
+                resolve("Producto actualizado correctamente");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
+function updateStockProducto(producto) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            UPDATE inventario_productos
+            SET 
+                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
+            WHERE code = ?;
+        `;
+
+        const params = [
+            producto.stock_apartado,
+            producto.stock_disponible,
+            producto.stock_en_proceso,
+            producto.code
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateStockProducto] Error al actualizar producto: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateStockProducto] No se encontró ningún producto con ese código"));
                 }
 
                 resolve("Producto actualizado correctamente");
@@ -185,5 +223,6 @@ module.exports = {
     readProductos, 
     searchProduct, 
     updateProducto, 
-    deleteProducto 
+    deleteProducto,
+    updateStockProducto
 };
