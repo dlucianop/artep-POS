@@ -162,22 +162,132 @@ async function drop(ev) {
     let nuevoEstado = (targetColumn.dataset.estado).toUpperCase();
     let orden = window.ordenes.find(o => o.id_orden === idOrden);
 
-    const confirmed = await showConfirmDialog(
-        `¿Desea mover la Orden #${idOrden} de ${orden.estado} a ${nuevoEstado} y cambiar su estado?`,
-        "Confirmación"
-    );
+    if (nuevoEstado === "TERMINADO") {
+        const confirmed = await showConfirmDialog(
+            `¿Está seguro de marcar esta orden como terminada? Esta acción trasladará la cantidad en proceso al inventario disponible o apartado, y generará los ajustes correspondientes.`,
+            "Confirmación"
+        );
 
-    if (confirmed) {
-        const cardsContainer = targetColumn.querySelector('.kanban-cards');
-        cardsContainer.appendChild(card);
-        
-        const payload = {
-            estado: nuevoEstado,
-            id_orden: idOrden
-        };
-        await updateEstado(payload);
+        if (confirmed) {
+            const cardsContainer = targetColumn.querySelector('.kanban-cards');
+            cardsContainer.appendChild(card);
+            
+            const payload = {
+                estado: nuevoEstado,
+                id_orden: idOrden
+            };
+            await updateEstado(payload);
+            
+            const cantidad = orden.cantidad_pedida;
+
+            if (orden.origen === 'INVENTARIO') {
+                if (orden.tipo_item === 'bizcocho') {
+                    const biz = parseNameItemBizcocho(orden.name_item);
+
+                    const bizcocho = window.bizcochos.find(b =>
+                        b.biz_category === biz.biz_category &&
+                        b.biz_size === biz.biz_size &&
+                        b.biz_model === biz.biz_model
+                    );
+
+                    if (!bizcocho) {
+                        console.error("❌ Bizcocho no encontrado");
+                        return;
+                    }
+
+                    bizcocho.stock_disponible += cantidad;
+                    bizcocho.stock_en_proceso -= cantidad;
+                    console.log(bizcocho);
+                    await updateStockBizcocho(bizcocho);
+
+                } else if (orden.tipo_item === 'producto') {
+                    const prod = parseNameItemProducto(orden.name_item);
+
+                    const producto = window.productos.find(p =>
+                        p.category === prod.category &&
+                        p.size === prod.size &&
+                        p.model === prod.model &&
+                        p.decoration === prod.decoration &&
+                        p.color === prod.color
+                    );
+
+                    if (!producto) {
+                        console.error("❌ Producto no encontrado");
+                        return;
+                    }
+
+                    producto.stock_disponible += cantidad;
+                    producto.stock_en_proceso -= cantidad;
+
+                    console.log(producto);
+                    await updateStockProducto(producto);
+                }
+            } else if (orden.origen === 'VENTA' || orden.origen === 'REPOSICION') {
+                const prod = parseNameItemProducto(orden.name_item);
+
+                const producto = window.productos.find(p =>
+                    p.category === prod.category &&
+                    p.size === prod.size &&
+                    p.model === prod.model &&
+                    p.decoration === prod.decoration &&
+                    p.color === prod.color
+                );
+
+                if (!producto) {
+                    console.error("❌ Producto no encontrado");
+                    return;
+                }
+
+                producto.stock_apartado += cantidad;
+                producto.stock_en_proceso -= cantidad;
+
+                console.log(producto);
+                await updateStockProducto(producto);
+            }
+        }
+
+    } else{
+        const confirmed = await showConfirmDialog(
+            `¿Desea mover la Orden #${idOrden} de ${orden.estado} a ${nuevoEstado} y cambiar su estado?`,
+            "Confirmación"
+        );
+
+        if (confirmed) {
+            const cardsContainer = targetColumn.querySelector('.kanban-cards');
+            cardsContainer.appendChild(card);
+            
+            const payload = {
+                estado: nuevoEstado,
+                id_orden: idOrden
+            };
+            await updateEstado(payload);
+        }
     }
     
+}
+
+function parseNameItemProducto(nameItem) {
+    const match = nameItem.match(/^(.+?) (.+?) Mod\.(.+?) Decor\.(.+?) Color (.+)$/);
+    if (!match) throw new Error("Formato inválido para producto");
+
+    return {
+        category: match[1].trim(),
+        size: match[2].trim(),
+        model: match[3].trim(),
+        decoration: match[4].trim(),
+        color: match[5].trim()
+    };
+}
+
+function parseNameItemBizcocho(nameItem) {
+    const match = nameItem.match(/^(.+?) (.+?) Mod\.(.+)$/);
+    if (!match) throw new Error("Formato inválido para bizcocho");
+
+    return {
+        biz_category: match[1].trim(),
+        biz_size: match[2].trim(),
+        biz_model: match[3].trim()
+    };
 }
 
 /*-----------------------------funciones------------------------- */
@@ -701,23 +811,35 @@ document.getElementById("save-create").addEventListener("click", async () => {
 
 async function crearOrdenInv() {
     const payload = await validacionesOrden();
+    const cantidad = payload.cantidad_pedida;
 
+    // Buscar producto o bizcocho
+    let item = null;
     if (payload.tipo_item === "producto") {
-        const producto = window.productos.find(p =>
+        item = window.productos.find(p =>
             p.category === payload.categoria &&
             p.size === payload.tamano &&
             p.model === payload.modelo &&
             p.decoration === payload.decoracion &&
             p.color === payload.color
         );
+    } else if (payload.tipo_item === "bizcocho") {
+        item = window.bizcochos.find(b =>
+            b.biz_category === payload.categoria &&
+            b.biz_size === payload.tamano &&
+            b.biz_model === payload.modelo
+        );
+    }
 
-        if (!producto) {
-            const confirmed = await showConfirmDialog(
-                `No se encontró un producto con categoría "${payload.categoria}", tamaño "${payload.tamano}", modelo "${payload.modelo}". ¿Desea crear este producto base ahora?`,
-                "Producto relacionado no encontrado"
-            );
+    const confirmed = await showConfirmDialog(
+        `¿Desea actualizar el stock en proceso sumando ${cantidad} unidades? Si no lo hace, podría haber inconsistencias en el stock al terminar la orden.`,
+        "Actualizar stock en proceso"
+    );
 
-            if (confirmed) {
+    if (confirmed) {
+        if (!item) {
+            // Crear item con stock_en_proceso inicial
+            if (payload.tipo_item === "producto") {
                 const nuevoProducto = {
                     code: Date.now(),
                     category: payload.categoria,
@@ -728,83 +850,42 @@ async function crearOrdenInv() {
                     price: 0,
                     stock_disponible: 0,
                     stock_apartado: 0,
-                    stock_en_proceso: payload.cantidad_pedida,
+                    stock_en_proceso: cantidad,
                     stock_min: 0,
                     stock_critico: 0
                 };
-
-                console.log(`\x1b[32m🆕 Crear producto base con stock en proceso: ${payload.cantidad_pedida}\x1b[0m`);
                 await createProducto(nuevoProducto);
-                showToast("Producto base creado automáticamente.", ICONOS.info);
-            }
-        } else {
-            const confirmed = await showConfirmDialog(
-                `Este producto ya existe. ¿Desea actualizar el stock en proceso sumando ${payload.cantidad_pedida} unidades?`,
-                "Actualizar producto existente"
-            );
-
-            if (confirmed) {
-                const actualizado = {
-                    ...producto,
-                    stock_en_proceso: producto.stock_en_proceso + payload.cantidad_pedida
-                };
-
-                console.log(`\x1b[33m♻️ Actualizar producto existente sumando: +${payload.cantidad_pedida}\x1b[0m`);
-                await updateStockProducto(actualizado);
-                showToast("Stock del producto actualizado.", ICONOS.success);
-            }
-        }
-
-    } else if (payload.tipo_item === "bizcocho") {
-        const bizcocho = window.bizcochos.find(b =>
-            b.biz_category === payload.categoria &&
-            b.biz_size === payload.tamano &&
-            b.biz_model === payload.modelo
-        );
-
-        if (!bizcocho) {
-            const confirmed = await showConfirmDialog(
-                `No se encontró un bizcocho con categoría "${payload.categoria}", tamaño "${payload.tamano}", modelo "${payload.modelo}". ¿Desea crear este bizcocho base ahora?`,
-                "Bizcocho relacionado no encontrado"
-            );
-
-            if (confirmed) {
+                showToast("Producto base creado con stock en proceso.", ICONOS.info);
+            } else {
                 const nuevoBizcocho = {
                     biz_category: payload.categoria,
                     biz_size: payload.tamano,
                     biz_model: payload.modelo,
                     stock_disponible: 0,
                     stock_apartado: 0,
-                    stock_en_proceso: payload.cantidad_pedida,
+                    stock_en_proceso: cantidad,
                     stock_min: 0,
                     stock_critico: 0
                 };
-
-                console.log(`\x1b[32m🆕 Crear bizcocho base con stock en proceso: ${payload.cantidad_pedida}\x1b[0m`);
                 await createBizcocho(nuevoBizcocho);
-                showToast("Bizcocho base creado automáticamente.", ICONOS.info);
+                showToast("Bizcocho base creado con stock en proceso.", ICONOS.info);
             }
-
         } else {
-            const confirmed = await showConfirmDialog(
-                `Este bizcocho ya existe. ¿Desea actualizar el stock en proceso sumando ${payload.cantidad_pedida} unidades?`,
-                "Actualizar bizcocho existente"
-            );
-
-            if (confirmed) {
-                const actualizado = {
-                    ...bizcocho,
-                    stock_en_proceso: bizcocho.stock_en_proceso + payload.cantidad_pedida
-                };
-                console.log(`\x1b[33m♻️ Actualizar bizcocho existente sumando: +${payload.cantidad_pedida}\x1b[0m`);
-                await updateStockBizcocho(actualizado);
-                showToast("Stock del bizcocho actualizado.", ICONOS.success);
+            // Actualizar stock_en_proceso sumando
+            item.stock_en_proceso += cantidad;
+            if (payload.tipo_item === "producto") {
+                await updateStockProducto(item);
+            } else {
+                await updateStockBizcocho(item);
             }
+            showToast("Stock en proceso actualizado correctamente.", ICONOS.success);
         }
+    } else {
+        await showToast("Advertencia: No se actualizó el stock en proceso. Esto puede generar inconsistencias al finalizar la orden.", ICONOS.warning);
     }
 
     await createOrden(payload, "INVENTARIO");
-    console.log(`\x1b[34m📝 Orden INVENTARIO ${payload.tipo_item} creada correctamente para "${payload.name_item}" de ${payload.cantidad_pedida} unidad(es).\x1b[0m`);
+    console.log(`📝 Orden INVENTARIO ${payload.tipo_item} creada para "${payload.name_item}" de ${cantidad} unidad(es).`);
     cerrarDialogo("create-dialog-s", "create-content", "Creación de orden exitosa");
     await cargarOrdenes();
     await fillColumnas(ordenes);

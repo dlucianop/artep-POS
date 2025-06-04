@@ -153,19 +153,22 @@ function updateBizcocho(bizcocho) {
 function updateStockBizcocho(bizcocho) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
-        const query = `
+
+        let query = `
             UPDATE inventario_bizcochos
             SET 
                 stock_disponible = ?, 
                 stock_en_proceso = ?
-            WHERE id_biz = ?;
         `;
+        const params = [bizcocho.stock_disponible, bizcocho.stock_en_proceso];
 
-        const params = [
-            bizcocho.stock_disponible,
-            bizcocho.stock_en_proceso,
-            bizcocho.id_biz
-        ];
+        if (bizcocho.id_biz) {
+            query += ` WHERE id_biz = ?`;
+            params.push(bizcocho.id_biz);
+        } else {
+            query += ` WHERE biz_category = ? AND biz_size = ? AND biz_model = ?`;
+            params.push(bizcocho.biz_category, bizcocho.biz_size, bizcocho.biz_model);
+        }
 
         db.run(query, params, function (err) {
             try {
@@ -173,9 +176,8 @@ function updateStockBizcocho(bizcocho) {
                     return reject(new Error("[updateStockBizcocho] ❌ Error al actualizar bizcocho: " + err.message));
                 }
                 if (this.changes === 0) {
-                    return reject(new Error("[updateStockBizcocho] ⚠️ No se encontró ningún bizcocho con ese ID"));
+                    return reject(new Error("[updateStockBizcocho] ⚠️ No se encontró ningún bizcocho con esos datos"));
                 }
-
                 resolve("✅ Bizcocho actualizado correctamente");
             } catch (err) {
                 reject(err);
@@ -185,6 +187,7 @@ function updateStockBizcocho(bizcocho) {
         });
     });
 }
+
 
 function deleteBizcocho(id_biz){
     return new Promise((resolve, reject) => {
