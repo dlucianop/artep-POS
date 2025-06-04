@@ -107,36 +107,83 @@ function createOrden(orden, origen) {
 }
 
 function updateOrden(orden, origen) {
-    switch (origen) {
-        case "VENTA":
-            //pendiente
-            break;
-        case "INVENTARIO":
-            //pendiente
-            break;
-        case "REPOSICION":
-            //pendiente
-            break;
-        default:
-            break;
-    }
+    console.log(orden);
     return new Promise((resolve, reject) => {
         const db = openDataBase();
 
-        const query = `
-            UPDATE orden_produccion
-            SET
-                cantidad_buenos
-            WHERE id_orden = ?;
-        `;
+        let query = "";
+        let params = [];
 
-        const params = [
-            orden.id_fase,
-            orden.cantidad_buenos,
-            orden.cantidad_rotos,
-            orden.cantidad_deformes,
-            orden.id_orden
-        ];
+        switch (origen) {
+            case "VENTA":
+                query = `
+                    UPDATE orden_produccion
+                    SET
+                        fase_actual = ?,
+                        cantidad_buenos = ?,
+                        cantidad_rotos = ?,
+                        cantidad_deformes = ?,
+                        observaciones = ?
+                    WHERE id_orden = ?
+                `;
+                params = [
+                    orden.fase_actual,
+                    orden.cantidad_buenos,
+                    orden.cantidad_rotos,
+                    orden.cantidad_deformes,
+                    orden.observaciones,
+                    orden.id_orden
+                ];
+                break;
+
+            case "INVENTARIO":
+                query = `
+                    UPDATE orden_produccion
+                    SET
+                        fase_actual = ?,
+                        tipo_item = ?,
+                        cantidad_pedida = ?,
+                        cantidad_rotos = ?,
+                        cantidad_deformes = ?,
+                        observaciones = ?
+                    WHERE id_orden = ?
+                `;
+                params = [
+                    orden.fase_actual,
+                    orden.tipo_item,
+                    orden.cantidad_pedida,
+                    orden.cantidad_rotos,
+                    orden.cantidad_deformes,
+                    orden.observaciones,
+                    orden.id_orden
+                ];
+                break;
+
+            case "REPOSICION":
+                query = `
+                    UPDATE orden_produccion
+                    SET
+                        fase_actual = ?,
+                        cantidad_buenos = ?,
+                        cantidad_rotos = ?,
+                        cantidad_deformes = ?,
+                        observaciones = ?
+                    WHERE id_orden = ?
+                `;
+                params = [
+                    orden.fase_actual,
+                    orden.cantidad_buenos,
+                    orden.cantidad_rotos,
+                    orden.cantidad_deformes,
+                    orden.observaciones,
+                    orden.id_orden
+                ];
+                break;
+
+            default:
+                closeDatabase(db);
+                return reject(new Error("Tipo de orden no válido"));
+        }
 
         db.run(query, params, function (err) {
             try {
@@ -454,5 +501,6 @@ module.exports = {
     readOrdenes,
     createOrden,
     updateEstado,
-    readOrdenesOrigen
+    readOrdenesOrigen,
+    updateOrden
 }

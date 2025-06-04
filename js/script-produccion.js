@@ -23,7 +23,7 @@ const {
     readFases, updateFase, readCategorias, readSizes
 } = require(join(__dirname, "..", "js", "crud-config.js"));
 const {
-    readOrdenes, createOrden, updateEstado
+    readOrdenes, createOrden, updateEstado, updateOrden
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -177,7 +177,7 @@ async function drop(ev) {
                 id_orden: idOrden
             };
             await updateEstado(payload);
-            
+
             const cantidad = orden.cantidad_pedida;
 
             if (orden.origen === 'INVENTARIO') {
@@ -810,7 +810,7 @@ document.getElementById("save-create").addEventListener("click", async () => {
 });
 
 async function crearOrdenInv() {
-    const payload = await validacionesOrden();
+    const payload = await validacionesOrden("create-content");
     const cantidad = payload.cantidad_pedida;
 
     // Buscar producto o bizcocho
@@ -891,8 +891,8 @@ async function crearOrdenInv() {
     await fillColumnas(ordenes);
 }
 
-async function validacionesOrden() {
-    const contenedorId = "create-content";
+async function validacionesOrden(contenedorId) {
+    //const contenedorId = "create-content";
     const modal = document.getElementById(contenedorId);
 
     const getNumber = (selector) => {
@@ -907,7 +907,7 @@ async function validacionesOrden() {
 
     const tipo_item = getValue("#orden_tipo_item");
     if (!tipo_item) {
-        showToast("Debe seleccionar una inventario.", ICONOS.advertencia);
+        showToast("Debe seleccionar un inventario.", ICONOS.advertencia);
         throw new Error("Inventario no seleccionado.");
     }
 
@@ -974,4 +974,120 @@ async function validacionesOrden() {
         decoracion,
         color
     }
+}
+
+/***************************************************************************************************************************************** */
+
+document.getElementById("save-update").addEventListener("click", async () => {
+    await actualizarDatosOrden();
+    cerrarDialogo("update-dialog-s", "update-content", "Actualizacion de orden exitosa");
+    setTimeout(() => {
+        window.location.reload();
+    }, 1500);
+
+});
+
+async function actualizarDatosOrden() {
+    const payload = await validacionesUpdateOrden("update-content");
+    updateOrden(payload, payload.origen);
+}
+
+async function validacionesUpdateOrden(contenedorId) {
+    const modal = document.getElementById(contenedorId);
+    if (!modal) {
+        showToast("No se encontró el contenedor de la orden.", ICONOS.error);
+        throw new Error("Modal no encontrado.");
+    }
+
+    const getNumber = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
+    };
+
+    const getValue = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
+
+    const tipo_item = getValue("#orden_tipo_item") || null;
+    const name_item = getValue("#orden_name_item");
+
+    const orden = window.ordenes.find(o => o.name_item === name_item);
+    console.log(orden);
+
+    if (!orden) {
+        showToast(`No se pudo obtener la orden.`, ICONOS.error);
+        throw new Error("Orden no encontrada.");
+    }
+
+    const fase_actual = parseInt(getValue("#orden_fase_actual"), 10);
+    const cantidad_pedida = getNumber("#orden_cantidad_pedida");
+    const cantidad_buenos = getNumber("#orden_cantidad_buenos");
+    const cantidad_rotos = getNumber("#orden_cantidad_rotos");
+    const cantidad_deformes = getNumber("#orden_cantidad_deformes");
+    const observaciones = getValue("#orden_observaciones");
+
+    const isVenta = !!modal.querySelector("#orden_id_venta");
+    const isReposicion = !!modal.querySelector("#orden_id_orden_origen");
+    const isInventario = !!modal.querySelector("#orden_tipo_item") && !isVenta && !isReposicion;
+
+    let tipo_orden = null;
+    if (isVenta) tipo_orden = "VENTA";
+    else if (isReposicion) tipo_orden = "REPOSICION";
+    else if (isInventario) tipo_orden = "INVENTARIO";
+
+    if (!fase_actual || isNaN(fase_actual)) {
+        showToast("Debe seleccionar una fase.", ICONOS.advertencia);
+        throw new Error("Fase no seleccionada.");
+    }
+
+    if (tipo_orden === "VENTA" || tipo_orden === "REPOSICION") {
+        if (isNaN(cantidad_buenos) || cantidad_buenos < 0) {
+            showToast("Cantidad de piezas buenas inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad de buenos inválida.");
+        }
+        if (isNaN(cantidad_rotos) || cantidad_rotos < 0) {
+            showToast("Cantidad de piezas rotas inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad de rotos inválida.");
+        }
+        if (isNaN(cantidad_deformes) || cantidad_deformes < 0) {
+            showToast("Cantidad de piezas deformes inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad de deformes inválida.");
+        }
+    } else if (tipo_orden === "INVENTARIO") {
+        if (!tipo_item) {
+            showToast("Debe seleccionar el tipo de inventario.", ICONOS.advertencia);
+            throw new Error("Tipo de inventario vacío.");
+        }
+        if (isNaN(cantidad_pedida) || cantidad_pedida < 0) {
+            showToast("Cantidad de piezas en proceso inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad pedida inválida.");
+        }
+        if (isNaN(cantidad_rotos) || cantidad_rotos < 0) {
+            showToast("Cantidad de piezas rotas inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad de rotos inválida.");
+        }
+        if (isNaN(cantidad_deformes) || cantidad_deformes < 0) {
+            showToast("Cantidad de piezas deformes inválida.", ICONOS.advertencia);
+            throw new Error("Cantidad de deformes inválida.");
+        }
+    }
+
+    if (!name_item) {
+        showToast("No se pudo obtener el nombre del producto.", ICONOS.error);
+        throw new Error("Producto no definido.");
+    }
+
+    return {
+        id_orden: orden.id_orden,
+        origen: tipo_orden,
+        tipo_item: tipo_item,
+        name_item: name_item,
+        fase_actual: fase_actual,
+        cantidad_pedida: cantidad_pedida,
+        cantidad_buenos: cantidad_buenos,
+        cantidad_rotos: cantidad_rotos,
+        cantidad_deformes: cantidad_deformes,
+        observaciones: observaciones
+    };
 }
