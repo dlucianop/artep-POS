@@ -204,6 +204,34 @@ function updateOrden(orden, origen) {
     });
 }
 
+function deleteOrden(id_orden) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            DELETE FROM orden_produccion
+            WHERE id_orden = ?;
+        `;
+
+        db.run(query, [id_orden], function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[deleteOrden] Error al eliminar orden: " + err.message));
+                }
+
+                if (this.changes === 0) {
+                    return reject(new Error("[deleteOrden] No se encontró ninguna orden con ese ID."));
+                }
+
+                resolve(true);
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 function readOrdenes() {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
@@ -502,5 +530,6 @@ module.exports = {
     createOrden,
     updateEstado,
     readOrdenesOrigen,
-    updateOrden
+    updateOrden,
+    deleteOrden
 }

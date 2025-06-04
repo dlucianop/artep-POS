@@ -23,7 +23,7 @@ const {
     readFases, updateFase, readCategorias, readSizes
 } = require(join(__dirname, "..", "js", "crud-config.js"));
 const {
-    readOrdenes, createOrden, updateEstado, updateOrden
+    readOrdenes, createOrden, updateEstado, updateOrden, deleteOrden
 } = require(join(__dirname, "..", "js", "crud-produccion.js"));
 const { 
     showToast, showConfirmToast, ICONOS 
@@ -164,7 +164,7 @@ async function drop(ev) {
 
     if (nuevoEstado === "TERMINADO") {
         const confirmed = await showConfirmDialog(
-            `¿Está seguro de marcar esta orden como terminada? Esta acción trasladará la cantidad en proceso al inventario disponible o apartado, y generará los ajustes correspondientes.`,
+            `¿Está seguro de marcar esta orden como terminada? Esta acción trasladará la cantidad de productos procesados al inventario disponible o apartado, ademas de eliminar la orden. Esta acción es IRREVERSIBLE.`,
             "Confirmación"
         );
 
@@ -176,74 +176,11 @@ async function drop(ev) {
                 estado: nuevoEstado,
                 id_orden: idOrden
             };
-            await updateEstado(payload);
-
-            const cantidad = orden.cantidad_pedida;
-
-            if (orden.origen === 'INVENTARIO') {
-                if (orden.tipo_item === 'bizcocho') {
-                    const biz = parseNameItemBizcocho(orden.name_item);
-
-                    const bizcocho = window.bizcochos.find(b =>
-                        b.biz_category === biz.biz_category &&
-                        b.biz_size === biz.biz_size &&
-                        b.biz_model === biz.biz_model
-                    );
-
-                    if (!bizcocho) {
-                        console.error("❌ Bizcocho no encontrado");
-                        return;
-                    }
-
-                    bizcocho.stock_disponible += cantidad;
-                    bizcocho.stock_en_proceso -= cantidad;
-                    console.log(bizcocho);
-                    await updateStockBizcocho(bizcocho);
-
-                } else if (orden.tipo_item === 'producto') {
-                    const prod = parseNameItemProducto(orden.name_item);
-
-                    const producto = window.productos.find(p =>
-                        p.category === prod.category &&
-                        p.size === prod.size &&
-                        p.model === prod.model &&
-                        p.decoration === prod.decoration &&
-                        p.color === prod.color
-                    );
-
-                    if (!producto) {
-                        console.error("❌ Producto no encontrado");
-                        return;
-                    }
-
-                    producto.stock_disponible += cantidad;
-                    producto.stock_en_proceso -= cantidad;
-
-                    console.log(producto);
-                    await updateStockProducto(producto);
-                }
-            } else if (orden.origen === 'VENTA' || orden.origen === 'REPOSICION') {
-                const prod = parseNameItemProducto(orden.name_item);
-
-                const producto = window.productos.find(p =>
-                    p.category === prod.category &&
-                    p.size === prod.size &&
-                    p.model === prod.model &&
-                    p.decoration === prod.decoration &&
-                    p.color === prod.color
-                );
-
-                if (!producto) {
-                    console.error("❌ Producto no encontrado");
-                    return;
-                }
-
-                producto.stock_apartado += cantidad;
-                producto.stock_en_proceso -= cantidad;
-
-                console.log(producto);
-                await updateStockProducto(producto);
-            }
+            //await updateEstado(payload);
+            await terminarOrden(orden);
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         }
 
     } else{
@@ -255,40 +192,173 @@ async function drop(ev) {
         if (confirmed) {
             const cardsContainer = targetColumn.querySelector('.kanban-cards');
             cardsContainer.appendChild(card);
-            
+                
             const payload = {
                 estado: nuevoEstado,
                 id_orden: idOrden
             };
-            await updateEstado(payload);
+        await updateEstado(payload);
         }
     }
-    
+        
 }
 
-function parseNameItemProducto(nameItem) {
-    const match = nameItem.match(/^(.+?) (.+?) Mod\.(.+?) Decor\.(.+?) Color (.+)$/);
-    if (!match) throw new Error("Formato inválido para producto");
+function parseNameItem(nameItem) {
+    try {
+        const partes = nameItem.trim().split(/\s+/);
+        const indexMod = partes.findIndex(p => /^Mod\./i.test(p));
+        const indexDecor = partes.findIndex(p => /^Decor\./i.test(p));
+        const indexColor = partes.findIndex(p => /^Color$/i.test(p));
 
-    return {
-        category: match[1].trim(),
-        size: match[2].trim(),
-        model: match[3].trim(),
-        decoration: match[4].trim(),
-        color: match[5].trim()
-    };
+        if (indexMod === -1) {
+            throw new Error("No se encontró 'Mod.' en el nombre del item");
+        }
+
+        const category = partes[0];
+        const size = partes[1];
+
+        let finModeloIndex = -1;
+        if (indexDecor !== -1) {
+            finModeloIndex = indexDecor;
+        } else if (indexColor !== -1) {
+            finModeloIndex = indexColor;
+        } else {
+            finModeloIndex = partes.length;
+        }
+
+        const model = partes
+            .slice(indexMod, finModeloIndex)
+            .join(' ')
+            .replace(/^Mod\./i, '')
+            .trim();
+
+        if (indexDecor !== -1) {
+            const decorWord = partes.find(p => /^Decor\./i.test(p));
+            const decoration = decorWord ? decorWord.replace(/^Decor\./i, '') : null;
+
+            const color = (indexColor !== -1 && partes[indexColor + 1]) ? partes[indexColor + 1] : null;
+            return {
+                tipo: "producto",
+                category,
+                size,
+                model,
+                decoration,
+                color
+            };
+        } else {
+            return {
+                tipo: "bizcocho",
+                category,
+                size,
+                model
+            };
+        }
+    } catch (err) {
+        throw new Error(`parseNameItem error: ${err.message}`);
+    }
 }
 
-function parseNameItemBizcocho(nameItem) {
-    const match = nameItem.match(/^(.+?) (.+?) Mod\.(.+)$/);
-    if (!match) throw new Error("Formato inválido para bizcocho");
+async function terminarOrden(orden) {
+    console.log(orden);
+    let dataItem = null;
+    let producto = null;
+    let bizcocho = null;
+    let payload = null;
 
-    return {
-        biz_category: match[1].trim(),
-        biz_size: match[2].trim(),
-        biz_model: match[3].trim()
-    };
+    try {
+        try {
+            dataItem = parseNameItem(orden.name_item);
+        } catch (err) {
+            console.error(err.message);
+            showToast("Error interpretando nombre del ítem", ICONOS.error);
+            return;
+        }
+
+        if (dataItem.tipo === "producto") {
+            producto = window.productos.find(p =>
+                p.category === dataItem.category &&
+                p.size === dataItem.size &&
+                p.model === dataItem.model &&
+                p.decoration === dataItem.decoration &&
+                p.color === dataItem.color
+            );
+
+            if (!producto) {
+                showToast("Producto no encontrado", ICONOS.error);
+                return;
+            }
+        } else {
+            bizcocho = window.bizcochos.find(b =>
+                b.biz_category === dataItem.category &&
+                b.biz_size === dataItem.size &&
+                b.biz_model === dataItem.model
+            );
+
+            if (!bizcocho) {
+                showToast("Bizcocho no encontrado", ICONOS.error);
+                return;
+            }
+        }
+
+        try {
+            switch (orden.origen) {
+                case "INVENTARIO":
+                    if (orden.tipo_item === "producto") {
+                        payload = {
+                            stock_apartado: producto.stock_apartado,
+                            stock_disponible: producto.stock_disponible + orden.cantidad_pedida,
+                            stock_en_proceso: producto.stock_en_proceso,
+                            code: producto.code
+                        };
+                        //console.log(payload);
+                        await updateStockProducto(payload);
+                    } else {
+                        payload = {
+                            stock_apartado: bizcocho.stock_apartado,
+                            stock_disponible: bizcocho.stock_disponible + orden.cantidad_pedida,
+                            stock_en_proceso: bizcocho.stock_en_proceso,
+                            code: bizcocho.id_biz
+                        };
+                        //console.log(payload);
+                        await updateBizcocho(payload);
+                    }
+                    break;
+
+                case "VENTA":
+                    payload = {
+                        stock_apartado: producto.stock_apartado + orden.cantidad_pedida,
+                        stock_disponible: producto.stock_disponible,
+                        stock_en_proceso: producto.stock_en_proceso,
+                        code: producto.code
+                    };
+                    //console.log(payload);
+                    await updateStockProducto(payload);
+                    break;
+
+                default:
+                    console.warn("⚠️ Origen no reconocido:", orden.origen);
+                    break;
+            }
+        } catch (err) {
+            console.error("❌ Error creando payload:", err.message);
+            showToast("Error creando payload de stock", ICONOS.error);
+            return;
+        }
+
+        try {
+            //console.log(orden.id_orden);
+            await deleteOrden(orden.id_orden);
+        } catch (err) {
+            console.error("❌ Error al eliminar la orden:", err.message);
+            showToast("Error al eliminar orden", ICONOS.error);
+        }
+
+    } catch (err) {
+        console.error("🟥 Error general inesperado:", err.message);
+        showToast("Error inesperado al procesar la orden", ICONOS.error);
+    }
 }
+
 
 /*-----------------------------funciones------------------------- */
 
