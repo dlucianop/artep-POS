@@ -13,7 +13,8 @@ const {
     readBizcochos, 
     updateBizcocho, 
     searchBizcocho, 
-    deleteBizcocho 
+    deleteBizcocho,
+    updateStockBizcocho
 } = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
 const {
     readDetalles, createVenta, createDetalle, readVentas
@@ -498,6 +499,7 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
         const usado = Math.min(faltan, original);
         const restante = original - usado;
         const faltanteNuevo = faltan - usado;
+        let payload = null;
 
         console.log(
             `\x1b[32m[${nombreFuente}] ✅ Stock disponible: ${original}\x1b[0m\n` +
@@ -506,12 +508,77 @@ async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, data
             `\x1b[33m[${nombreFuente}] ⚠️ Faltarían por cubrir: ${faltanteNuevo}\x1b[0m\n`
         );
 
+        if(nombreFuente === "PRODUCTO") {
+            payload = {
+                stock_apartado: usado,
+                stock_disponible: restante,
+                stock_en_proceso: faltanteNuevo,
+                code: fuente.code
+            }
+            //console.log(payload);
+            await updateStockProducto({payload});
+        } else {
+            console.log(`[NUEVA ORDEN]🆕 Se debería crear una nueva orden para ${usado} unidad(es) para convertir bizcochos a productos.`);
+            payload = {
+                stock_disponible: fuente.stock_disponible - usado, 
+                stock_en_proceso: fuente.stock_en_proceso,
+                id_biz: fuente.id_biz
+            }
+            //console.log(payload);
+            await updateStockBizcocho(payload);
+            let productoEsperado = 
+                carrito_item.categoria + " " +
+                carrito_item.size + " Mod." + carrito_item.modelo + " " +
+                "Decor." + carrito_item.decoracion + " " +
+                "Color " + carrito_item.color;
+           
+            payload = {
+                id_venta: dataVenta.id_venta,
+                tipo_item: "producto",
+                name_item: productoEsperado,
+                cantidad_pedida: usado,
+                fecha_entrega: dataVenta.fecha_entrega,
+                observaciones: `Se creo una nueva orden para ${usado} unidad(es) para convertir bizcochos a productos de la venta #${dataVenta.id_venta}.`
+            }
+            //console.log(payload);
+            await createOrden(payload, "VENTA");
+        }
+
         return faltanteNuevo;
 
     } else if (faltan > 0) {
         if (!fuente) {
             console.log(`\x1b[31m[${nombreFuente}] ❌ No existe registro para este ítem.\x1b[0m`);
             console.log(`\x1b[33m[${nombreFuente}] ➕ Se debería crear un registro nuevo para este producto/bizcocho.\x1b[0m`);
+
+            if(nombreFuente === "BIZCOCHO") {
+                console.log(`[BIZCOCHO]🆕 Se debería crear un NUEVO REGISTRO.`);
+                payload = {
+                    biz_category: carrito_item.categoria,
+                    biz_size: carrito_item.size,
+                    biz_model: carrito_item.modelo,
+                    stock_disponible: 0,
+                    stock_en_proceso: 0,
+                }
+                //console.log(payload);
+                await createBizcocho(payload);
+            } else {
+                console.log(`[PRODUCTO]🆕 Se debería crear un NUEVO REGISTRO.`);
+                payload = {
+                    code: carrito_item.codigo,
+                    category: carrito_item.categoria,
+                    model: carrito_item.modelo,
+                    size: carrito_item.size,
+                    decoration: carrito_item.decoracion,
+                    color: carrito_item.color,
+                    price: carrito_item.precio,
+                    stock_apartado: 0,
+                    stock_disponible: 0,
+                    stock_en_proceso: carrito_item.cantidad
+                }
+                //console.log(payload);
+                await createProducto(payload);
+            }
         } else {
             console.log(`\x1b[31m[${nombreFuente}] ⚠️ Stock insuficiente o cero (${fuente[clave]} disponibles).\x1b[0m`);
             console.log(`\x1b[33m[${nombreFuente}] ➕ Se necesitan ${faltan} unidad(es) más para cubrir la orden.\x1b[0m`);
@@ -555,10 +622,32 @@ async function printCarrito() {
 
         if (faltan > 0) {
             console.log(`[NUEVA ORDEN]🆕 Se debería crear una nueva orden para ${faltan} unidad(es).`);
+            const payload = {
+                id_venta: dataVenta.id_venta,
+                tipo_item: "producto",
+                name_item: productoEsperado,
+                cantidad_pedida: faltan,
+                fecha_entrega: dataVenta.fecha_entrega,
+                observaciones: `Se creo una nueva orden desde cero para ${faltan} unidad(es) ligados a la venta #${dataVenta.id_venta}.`
+            }
+            //console.log(payload);
+            await createOrden(payload, "VENTA");
             faltan = 0;
         }
+        
+        const payloadDetalle = {
+            id_venta: dataVenta.id_venta, 
+            code: +carrito_item.codigo,
+            price: +carrito_item.precio,
+            quantity: +carrito_item.cantidad,
+            importe: +(carrito_item.precio * carrito_item.cantidad).toFixed(2)
+        };
+        console.log(payloadDetalle);
+
+        await createDetalle(payloadDetalle);
 
         faltan = Math.max(faltan, 0);
+        initPOS(); //recargar lo que se tiene en cache para que no haya errores
     }
 
     const confirmed = await showConfirmDialog(
@@ -568,8 +657,6 @@ async function printCarrito() {
 
     if (confirmed) {
         console.log(dataVenta);
-
-        // Aquí solo llamarías las funciones reales si quieres procesar la venta
         await createVenta(dataVenta);
         let ventaId = +document.getElementById("pos_id_venta").value;
         const detalles_venta = await readDetalles(ventaId);
