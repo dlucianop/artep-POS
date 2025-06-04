@@ -150,6 +150,41 @@ function updateBizcocho(bizcocho) {
     });
 }
 
+function updateStockBizcocho(bizcocho) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            UPDATE inventario_bizcochos
+            SET 
+                stock_disponible = ?, 
+                stock_en_proceso = ?
+            WHERE id_biz = ?;
+        `;
+
+        const params = [
+            bizcocho.stock_disponible,
+            bizcocho.stock_en_proceso,
+            bizcocho.id_biz
+        ];
+
+        db.run(query, params, function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("[updateStockBizcocho] ❌ Error al actualizar bizcocho: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("[updateStockBizcocho] ⚠️ No se encontró ningún bizcocho con ese ID"));
+                }
+
+                resolve("✅ Bizcocho actualizado correctamente");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
 
 function deleteBizcocho(id_biz){
     return new Promise((resolve, reject) => {
@@ -184,5 +219,6 @@ module.exports = {
     readBizcochos, 
     updateBizcocho, 
     searchBizcocho, 
-    deleteBizcocho 
+    deleteBizcocho,
+    updateStockBizcocho
 };

@@ -47,3 +47,37 @@
 .kanban-card:hover {
     background-color: #e9f5ff;
 }
+
+/*----------------------  results dialog -------------------------*/
+#search-bar{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+}
+
+#search-bar p{
+    display: flex;
+    width: 85%;
+    gap: 1rem;
+}
+
+#search-bar p strong{
+    color: #954e38;
+    white-space: nowrap;
+}
+
+#search-bar p input{
+    text-align: center;
+    flex: 1;
+    box-sizing: border-box;
+}
+
+.resultado-item:hover{
+    background-color: #954e38;
+    color: white;
+
+    transition: background-color 0.2s ease-in-out;
+}

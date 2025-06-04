@@ -1,3 +1,4 @@
+const { Console } = require('console');
 const { join } = require('path');
 const {
     createVenta, readVentas, searchVenta, updateVenta, createDetalle, readDetalles, deleteVentaConDetalles,
@@ -7,14 +8,16 @@ const {
     readProductos, 
     searchProduct, 
     updateProducto, 
-    deleteProducto  
+    deleteProducto,
+    updateStockProducto
 } = require(join(__dirname, '..', 'js', 'crud-productos.js'));
 const { 
     createBizcocho, 
     readBizcochos, 
     updateBizcocho, 
     searchBizcocho, 
-    deleteBizcocho 
+    deleteBizcocho,
+    updateStockBizcocho
 } = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
 const {
     readFases, updateFase, readCategorias, readSizes
@@ -33,19 +36,26 @@ async function initProduccion() {
     try {
         const fases = await readFases();
         window.fases = fases;
-        console.warn('📦 Fases cargadas.');
+;
         const categorias = await readCategorias();
         window.categorias = categorias;
-        console.warn('📦 Categorias cargadas.');
+
         const sizes = await readSizes();
         window.sizes = sizes;
-        console.warn('📦 Tamaños cargados.');
+
         window.today = new Date();
         window.meses = [
             'Enero', 'Febrero', 'Marzo', 'Abril',
             'Mayo', 'Junio', 'Julio', 'Agosto',
             'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
+
+        const bizcochos = await readBizcochos();
+        window.bizcochos = bizcochos;
+
+        const productos = await readProductos();
+        window.productos = productos;
+
         await cargarOrdenes();
         await fillColumnas(ordenes);
         console.warn('✅ Todos los datos fueron cargados correctamente.');
@@ -95,7 +105,7 @@ async function fillColumnas() {
                 <div id="${cardId}" class="kanban-card ${clase}" draggable="true" ondragstart="drag(event)" onclick="verDetalle(${orden.id_orden})">
                     <strong>Orden #${orden.id_orden} / ${label}</strong><br>
                     ${orden.name_item}<br>
-                    Cant: ${orden.cantidad_buenos}<br>
+                    Cant: ${orden.cantidad_pedida}<br>
                     Fase: ${faseNombre}
                 </div>
             `;
@@ -221,7 +231,7 @@ async function fillOrden(id_orden) {
                 <p><strong>Fase:</strong>
                     <select id="orden_fase_actual"></select></p>
                 <p><strong>Piezas Buenas:</strong>
-                    <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas buenas"></p>
+                    <input type="number" id="orden_cantidad_pedida" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas en proceso"></p>
                 <p><strong>Piezas Rotas:</strong>
                     <input type="number" id="orden_cantidad_rotos" step="1" min="0" value="" placeholder="Ingrese cantidad de piezas rotas"></p>
                 <p><strong>Piezas Deformes:</strong>
@@ -334,7 +344,7 @@ function cargarData(ordenCRUD, origen) {
                 modal.querySelector("#orden_name_item").value = ordenCRUD.name_item;
                 modal.querySelector("#orden_tipo_item").value = ordenCRUD.tipo_item;
                 modal.querySelector("#orden_fase_actual").value = ordenCRUD.fase_actual;
-                modal.querySelector("#orden_cantidad_buenos").value = ordenCRUD.cantidad_buenos;
+                modal.querySelector("#orden_cantidad_pedida").value = ordenCRUD.cantidad_pedida;
                 modal.querySelector("#orden_cantidad_rotos").value = ordenCRUD.cantidad_rotos;
                 modal.querySelector("#orden_cantidad_deformes").value = ordenCRUD.cantidad_deformes;
                 modal.querySelector("#orden_observaciones").value = ordenCRUD.observaciones;
@@ -388,14 +398,12 @@ async function agregarNuevaOrden() {
                 <input type="text" id="orden_color" value="" placeholder="Ingrese color"></p>
         </div>
 
-        <p><strong>Fase:</strong>
-            <select id="orden_fase_actual"></select></p>
         <p><strong>Piezas a Producir:</strong>
-            <input type="number" id="orden_cantidad_buenos" step="1" min="0" value="" placeholder="Ingrese el numero de piezas a producir"></p>
+            <input type="number" id="orden_cantidad_pedida" step="1" min="0" value="" placeholder="Ingrese el numero de piezas a producir"></p>
     `;
 
     document.getElementById(contenedorId).innerHTML = html;
-    await cargarFases(contenedorId);
+    //await cargarFases(contenedorId);
     await cargarCategorias(contenedorId);
     await cargarTamanos(contenedorId);
 
@@ -404,17 +412,243 @@ async function agregarNuevaOrden() {
     document.getElementById('orden_tipo_item').addEventListener('change', function () {
         const tipo = this.value;
         const grupoProducto = document.getElementById('grupo-producto');
+        const searchBar = document.getElementById("search-bar");
+        let htmlS;
 
         if (tipo === 'producto') {
             grupoProducto.style.display = 'block';
+            htmlS = `
+                <p><strong>Buscar un producto:</strong>
+                <input type="text" value="" id="search-input" placeholder="Ingrese algún dato del producto de inventario"></p>
+                <button id="search-product" type="button" class="dialog-btn" onclick="searchProducto()">Buscar</button>
+            `;
         } else {
             grupoProducto.style.display = 'none';
             document.getElementById('orden_decoracion').value = '';
             document.getElementById('orden_color').value = '';
+            htmlS = `
+                <p><strong>Buscar un bizcocho:</strong>
+                <input type="text" value="" id="search-input" placeholder="Ingrese algún dato del bizcocho de inventario"></p>
+                <button id="search-product" type="button" class="dialog-btn" onclick="searchBiz()">Buscar</button>
+            `;
         }
+
+        searchBar.innerHTML = htmlS;
     });
+
 }
 
+async function searchProducto(){
+    const searchInput = document.getElementById("search-input").value.trim();
+
+    if (!searchInput) {
+        showToast("Campo de búsqueda vacío", ICONOS.info);
+        return;
+    }
+
+    document.getElementById('results-content').innerHTML = '';
+    const titleRES = document.getElementById('results-title');
+    titleRES.textContent = `Coincidencias para "${searchInput}":`;
+
+    const resultados = await coincidenciasProducto(searchInput);
+    if (!resultados || resultados.length === 0) {
+        mostrarSinCoincidencias();
+    } else {
+        mostrarListaResultados(resultados);
+    }
+
+    document.getElementById("results-dialog-s").showModal();
+}
+
+function mostrarSinCoincidencias() {
+    const content = document.getElementById('results-content');
+    const menu = document.getElementById("menu-results");
+
+    content.innerHTML = `<p style="text-align:center; padding: 1rem;">No se encontraron coincidencias.</p>`;
+    menu.innerHTML = `<button id="close-dialog-results" class="dialog-btn">Cancelar</button>`;
+    document.getElementById("search-input").value = '';
+
+    document.getElementById("close-dialog-results").addEventListener("click", () =>
+        cerrarDialogo("results-dialog-s", "results-content", "No se encontraron coincidencias.")
+    );
+}
+
+async function coincidenciasProducto(searchInput) {
+    try {
+        const input = searchInput.toLowerCase().trim();
+        const palabrasClave = input.split(/\s+/).filter(p => p.length > 0);
+
+        console.log("🔍 Palabras clave:", palabrasClave);
+
+        const coincidencias = window.productos.filter(producto => {
+            const campos = [
+                producto.category?.toLowerCase() || "",
+                producto.size?.toLowerCase() || "",
+                producto.model?.toLowerCase() || "",
+                producto.decoration?.toLowerCase() || "",
+                producto.color?.toLowerCase() || ""
+            ];
+
+            // Compara solo con palabras completas
+            return palabrasClave.every(palabra =>
+                campos.some(campo => campo.split(/\s+/).includes(palabra))
+            );
+        });
+
+        return coincidencias;
+
+    } catch (error) {
+        console.error('❌ Error al buscar coincidencias del producto:', error.message);
+        showToast(`[ERROR] Al buscar coincidencias del producto: ${error.message}`, ICONOS.error);
+        return [];
+    }
+}
+
+
+function llenarFormularioDesdeProducto(producto) {
+    document.getElementById('orden_categoria').value   = producto.category || '';
+    document.getElementById('orden_modelo').value      = producto.model || '';
+    document.getElementById('orden_size').value        = producto.size || '';
+    document.getElementById('orden_decoracion').value  = producto.decoration || '';
+    document.getElementById('orden_color').value       = producto.color || '';
+    document.getElementById('orden_cantidad_pedida').value = '';
+    document.getElementById('search-input').value = '';
+}
+
+function mostrarListaResultados(productos) {
+    const menu = document.getElementById("menu-results");
+    menu.innerHTML = '';
+    const content = document.getElementById('results-content');
+    content.innerHTML = '';
+
+    const lista = document.createElement('ul');
+    lista.style.listStyle = 'none';
+    lista.style.padding = '0';
+
+    productos.forEach(producto => {
+        const item = document.createElement('li');
+        item.classList.add('resultado-item');
+
+        item.innerHTML = `
+            <div style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid #ccc;">
+                ${producto.category} ${producto.size} Mod.${producto.model} Decor.${producto.decoration} Color ${producto.color}
+            </div>
+        `;
+
+        item.addEventListener('click', () => {
+            llenarFormularioDesdeProducto(producto);
+            document.getElementById("results-dialog-s").close();
+        });
+
+        lista.appendChild(item);
+    });
+
+    content.appendChild(lista);
+}
+
+async function searchBiz() {
+    const searchInput = document.getElementById("search-input").value.trim();
+
+    if (!searchInput) {
+        showToast("Campo de búsqueda vacío", ICONOS.info);
+        return;
+    }
+
+    document.getElementById('results-content').innerHTML = '';
+    const titleRES = document.getElementById('results-title');
+    titleRES.textContent = `Coincidencias para "${searchInput}":`;
+
+    const resultados = await coincidenciasBizcocho(searchInput);
+
+    if (!resultados|| resultados.length === 0) {
+        mostrarSinCoincidencias();
+    } else {
+        mostrarListaResultadosBiz(resultados);
+    }
+
+    document.getElementById("results-dialog-s").showModal();
+}
+
+
+async function coincidenciasBizcocho(searchInput) {
+    try {
+        const input = searchInput.toLowerCase().trim();
+        const palabrasClave = input.split(/\s+/);
+
+        const coincidencias = window.bizcochos.filter(biz => {
+            const campos = [
+                biz.biz_category?.toLowerCase() || "",
+                biz.biz_size?.toLowerCase() || "",
+                biz.biz_model?.toLowerCase() || ""
+            ];
+
+            return palabrasClave.every(palabra =>
+                campos.some(campo =>
+                    campo.split(/\s+/).includes(palabra)
+                )
+            );
+        });
+
+        return coincidencias;
+
+    } catch (error) {
+        console.error('❌ Error al buscar coincidencias del bizcocho:', error.message);
+        showToast(`[ERROR] Al buscar coincidencias del bizcocho: ${error.message}`, ICONOS.error);
+    }
+}
+
+
+function mostrarListaResultadosBiz(bizcochos) {
+    const menu = document.getElementById("menu-results");
+    menu.innerHTML = '';
+    const content = document.getElementById('results-content');
+    content.innerHTML = '';
+
+    const lista = document.createElement('ul');
+    lista.style.listStyle = 'none';
+    lista.style.padding = '0';
+
+    bizcochos.forEach(biz => {
+        const item = document.createElement('li');
+        item.classList.add('resultado-item');
+
+        item.innerHTML = `
+            <div style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid #ccc;">
+                ${biz.biz_category} ${biz.biz_size} Mod.${biz.biz_model}
+            </div>
+        `;
+
+        item.addEventListener('click', () => {
+            llenarFormularioDesdeBizcocho(biz);
+            document.getElementById("results-dialog-s").close();
+        });
+
+        lista.appendChild(item);
+    });
+
+    content.appendChild(lista);
+}
+
+function llenarFormularioDesdeBizcocho(bizcocho) {
+    document.getElementById('orden_categoria').value   = bizcocho.biz_category || '';
+    document.getElementById('orden_modelo').value      = bizcocho.biz_model || '';
+    document.getElementById('orden_size').value        = bizcocho.biz_size || '';
+    document.getElementById('orden_decoracion').value  = '';
+    document.getElementById('orden_color').value       = '';
+    document.getElementById('orden_cantidad_pedida').value = '';
+    document.getElementById('search-input').value = '';
+}
+
+async function limpiarFormularioOrden() {
+    document.getElementById('orden_tipo_item').value = '';
+    document.getElementById('orden_categoria').value = '';
+    document.getElementById('orden_modelo').value = '';
+    document.getElementById('orden_size').value = '';
+    document.getElementById('orden_decoracion').value = '';
+    document.getElementById('orden_color').value = '';
+    document.getElementById('orden_cantidad_pedida').value = '';
+    document.getElementById('search-input').value = '';
+}
 
 function showConfirmDialog(message = "¿Estás seguro?", title = "Confirmar acción") {
     return new Promise((resolve) => {
@@ -455,3 +689,208 @@ document.getElementById("close-dialog-create").addEventListener("click", () =>
 
 document.getElementById("close-dialog-update").addEventListener("click", () =>
     cerrarDialogo("update-dialog-s", "update-content", "Modificación cancelada"));
+
+document.getElementById("clean-create").addEventListener("click", async () => {
+    await limpiarFormularioOrden();
+});
+
+/*---------------------------------------------------CREAR ORDENES PARA INVENTARIO-------------------------------------------------------------------------------------- */
+document.getElementById("save-create").addEventListener("click", async () => {
+    await crearOrdenInv();
+});
+
+async function crearOrdenInv() {
+    const payload = await validacionesOrden();
+
+    if (payload.tipo_item === "producto") {
+        const producto = window.productos.find(p =>
+            p.category === payload.categoria &&
+            p.size === payload.tamano &&
+            p.model === payload.modelo &&
+            p.decoration === payload.decoracion &&
+            p.color === payload.color
+        );
+
+        if (!producto) {
+            const confirmed = await showConfirmDialog(
+                `No se encontró un producto con categoría "${payload.categoria}", tamaño "${payload.tamano}", modelo "${payload.modelo}". ¿Desea crear este producto base ahora?`,
+                "Producto relacionado no encontrado"
+            );
+
+            if (confirmed) {
+                const nuevoProducto = {
+                    code: Date.now(),
+                    category: payload.categoria,
+                    model: payload.modelo,
+                    size: payload.tamano,
+                    decoration: payload.decoracion,
+                    color: payload.color,
+                    price: 0,
+                    stock_disponible: 0,
+                    stock_apartado: 0,
+                    stock_en_proceso: payload.cantidad_pedida,
+                    stock_min: 0,
+                    stock_critico: 0
+                };
+
+                console.log(`\x1b[32m🆕 Crear producto base con stock en proceso: ${payload.cantidad_pedida}\x1b[0m`);
+                await createProducto(nuevoProducto);
+                showToast("Producto base creado automáticamente.", ICONOS.info);
+            }
+        } else {
+            const confirmed = await showConfirmDialog(
+                `Este producto ya existe. ¿Desea actualizar el stock en proceso sumando ${payload.cantidad_pedida} unidades?`,
+                "Actualizar producto existente"
+            );
+
+            if (confirmed) {
+                const actualizado = {
+                    ...producto,
+                    stock_en_proceso: producto.stock_en_proceso + payload.cantidad_pedida
+                };
+
+                console.log(`\x1b[33m♻️ Actualizar producto existente sumando: +${payload.cantidad_pedida}\x1b[0m`);
+                await updateStockProducto(actualizado);
+                showToast("Stock del producto actualizado.", ICONOS.success);
+            }
+        }
+
+    } else if (payload.tipo_item === "bizcocho") {
+        const bizcocho = window.bizcochos.find(b =>
+            b.biz_category === payload.categoria &&
+            b.biz_size === payload.tamano &&
+            b.biz_model === payload.modelo
+        );
+
+        if (!bizcocho) {
+            const confirmed = await showConfirmDialog(
+                `No se encontró un bizcocho con categoría "${payload.categoria}", tamaño "${payload.tamano}", modelo "${payload.modelo}". ¿Desea crear este bizcocho base ahora?`,
+                "Bizcocho relacionado no encontrado"
+            );
+
+            if (confirmed) {
+                const nuevoBizcocho = {
+                    biz_category: payload.categoria,
+                    biz_size: payload.tamano,
+                    biz_model: payload.modelo,
+                    stock_disponible: 0,
+                    stock_apartado: 0,
+                    stock_en_proceso: payload.cantidad_pedida,
+                    stock_min: 0,
+                    stock_critico: 0
+                };
+
+                console.log(`\x1b[32m🆕 Crear bizcocho base con stock en proceso: ${payload.cantidad_pedida}\x1b[0m`);
+                await createBizcocho(nuevoBizcocho);
+                showToast("Bizcocho base creado automáticamente.", ICONOS.info);
+            }
+
+        } else {
+            const confirmed = await showConfirmDialog(
+                `Este bizcocho ya existe. ¿Desea actualizar el stock en proceso sumando ${payload.cantidad_pedida} unidades?`,
+                "Actualizar bizcocho existente"
+            );
+
+            if (confirmed) {
+                const actualizado = {
+                    ...bizcocho,
+                    stock_en_proceso: bizcocho.stock_en_proceso + payload.cantidad_pedida
+                };
+                console.log(`\x1b[33m♻️ Actualizar bizcocho existente sumando: +${payload.cantidad_pedida}\x1b[0m`);
+                await updateStockBizcocho(actualizado);
+                showToast("Stock del bizcocho actualizado.", ICONOS.success);
+            }
+        }
+    }
+
+    await createOrden(payload, "INVENTARIO");
+    console.log(`\x1b[34m📝 Orden INVENTARIO ${payload.tipo_item} creada correctamente para "${payload.name_item}" de ${payload.cantidad_pedida} unidad(es).\x1b[0m`);
+    cerrarDialogo("create-dialog-s", "create-content", "Creación de orden exitosa");
+    await cargarOrdenes();
+    await fillColumnas(ordenes);
+}
+
+async function validacionesOrden() {
+    const contenedorId = "create-content";
+    const modal = document.getElementById(contenedorId);
+
+    const getNumber = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? parseInt(input.value.trim(), 10) : NaN;
+    };
+
+    const getValue = (selector) => {
+        const input = modal.querySelector(selector);
+        return input ? input.value.trim() : "";
+    };
+
+    const tipo_item = getValue("#orden_tipo_item");
+    if (!tipo_item) {
+        showToast("Debe seleccionar una inventario.", ICONOS.advertencia);
+        throw new Error("Inventario no seleccionado.");
+    }
+
+    const categoria = getValue("#orden_categoria");
+    if (!categoria) {
+        showToast("Debe seleccionar una categoría.", ICONOS.advertencia);
+        throw new Error("Categoría vacía.");
+    }
+
+    const modelo = getValue("#orden_modelo");
+    if (!modelo) {
+        showToast("Falta llenar el campo de modelo.", ICONOS.advertencia);
+        throw new Error("Modelo vacío.");
+    }
+
+    const tamano = getValue("#orden_size");
+    if (!tamano) {
+        showToast("Debe seleccionar un tamaño.", ICONOS.advertencia);
+        throw new Error("Tamaño vacío.");
+    }
+
+    let decoracion = null;
+    let color = null;
+    if (tipo_item === 'producto'){
+        
+        decoracion = getValue("#orden_decoracion");
+        if (!decoracion) {
+            showToast("Falta llenar el campo de decoración.", ICONOS.advertencia);
+            throw new Error("Decoración vacía.");
+        }
+
+        color = getValue("#orden_color");
+        if (!color) {
+            showToast("Falta llenar el campo de color.", ICONOS.advertencia);
+            throw new Error("Color vacío.");
+        }
+
+    }
+
+    const cantidad_pedida = getNumber("#orden_cantidad_pedida");
+    if (isNaN(cantidad_pedida) || cantidad_pedida <= 0) {
+        showToast("Debe ingresar una cantidad válida para la orden.", ICONOS.advertencia);
+        return Promise.reject(new Error("Cantidad para la orden inválido."));
+    }
+    
+    let name_item = null;
+    let observaciones = null;
+    if (tipo_item === 'producto'){
+        name_item = `${categoria} ${tamano} Mod.${modelo} Decor.${decoracion} Color ${color}`; 
+        observaciones = `Se creo una orden para INVENTARIO DE PRODUCTOS para el PRODUCTO ${categoria} ${tamano} Mod.${modelo} Decor.${decoracion} Color ${color}`; 
+    } else{
+        name_item = `${categoria} ${tamano} Mod.${modelo}`; 
+        observaciones = `Se creo una orden para INVENTARIO DE BIZCOCHOS para el BIZCOCHO ${categoria} ${tamano} Mod.${modelo}`;  
+    }
+
+    return {
+        tipo_item,
+        name_item,
+        cantidad_pedida,
+        observaciones,
+        categoria,
+        tamano,
+        modelo,
+        decoracion,
+        color
+    }
+}

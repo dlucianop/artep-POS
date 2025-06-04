@@ -64,10 +64,13 @@
     <dialog id="create-dialog-s">
         <form method="dialog" class="dialog-content">
             <h3>Agregar Orden</h3>
+            <div id="search-bar">
+            </div>
             <div id="create-content">
             </div>
             <menu>
                 <button id="save-create" type="button" class="dialog-btn">Guardar</button>
+                <button id="clean-create" type="button" class="dialog-btn">Limpiar Campos</button>
                 <button id="close-dialog-create" class="dialog-btn">Cancelar</button>
             </menu>
         </form>
@@ -92,6 +95,16 @@
             <menu>
                 <button id="confirm-yes" type="button" class="dialog-btn">Sí</button>
                 <button id="confirm-no" class="dialog-btn">No</button>
+            </menu>
+        </form>
+    </dialog>
+
+    <dialog id="results-dialog-s">
+        <form method="dialog" class="dialog-content">
+            <h3 id="results-title">Coincidencias para: </h3>
+            <div id="results-content">
+            </div>
+            <menu id="menu-results">
             </menu>
         </form>
     </dialog>

@@ -190,7 +190,7 @@ async function coincidenciasProducto(searchInput) {
         const palabrasClave = input.split(/\s+/);
 
         const coincidencias = window.productos.filter(producto => {
-            const textoProducto = `${producto.category} TAM.${producto.size} MOD.${producto.model} DECOR.${producto.decoration} COLOR ${producto.color}`.toLowerCase();
+            const textoProducto = `${producto.category} ${producto.size} Mod.${producto.model} Decor.${producto.decoration} Color ${producto.color}`.toLowerCase();
             
             return palabrasClave.some(palabra => textoProducto.includes(palabra));
         });
@@ -220,7 +220,7 @@ function mostrarListaResultados(productos) {
 
         item.innerHTML = `
             <div style="padding: 0.5rem; cursor: pointer; border-bottom: 1px solid #ccc;">
-                ${producto.category} TAM.${producto.size} MOD.${producto.model} DECOR. ${producto.decoration} COLOR ${producto.color}
+                ${producto.category} ${producto.size} Mod.${producto.model} Decor. ${producto.decoration} Color ${producto.color}
             </div>
         `;
 
@@ -299,7 +299,7 @@ async function agregarProductoCarrito() {
         return;
     }
 
-    const descripcion = `${categoria} TAM.${size} MOD.${modelo} DECOR. ${decoracion} COLOR ${color}`;
+    const descripcion = `${categoria} ${size} Mod.${modelo} Decor.${decoracion} Color ${color}`;
     const importe = precio * cantidad;
 
     const tbody = document.getElementById("carrito");
@@ -553,14 +553,15 @@ async function printCarrito() {
     }
 
     for (const carrito_item of window.carrito) {
-        let productoEsperado = 
+        /*let productoEsperado = 
             carrito_item.categoria + " TAM." +
             carrito_item.size + " MOD." + carrito_item.modelo + " " +
             "DECOR." + carrito_item.decoracion + " " +
             "COLOR " + carrito_item.color;
         let bizcochoEsperado = 
             carrito_item.categoria + " TAM." +
-            carrito_item.size + " MOD." + carrito_item.modelo;
+            carrito_item.size + " MOD." + carrito_item.modelo;*/
+        const nombreBiz = `${payload.biz_category} ${payload.biz_size} Mod.${payload.biz_model}`;
 
         let existeProducto = window.productos.find(p => p.code === carrito_item.codigo);
         let existeOrdenProducto = window.ordenesInv.find(o =>
