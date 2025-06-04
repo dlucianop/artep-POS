@@ -157,30 +157,43 @@ function updateProducto(producto) {
 function updateStockProducto(producto) {
     return new Promise((resolve, reject) => {
         const db = openDataBase();
-        const query = `
+
+        let query = `
             UPDATE inventario_productos
             SET 
-                stock_apartado = ?, stock_disponible = ?, stock_en_proceso = ?
-            WHERE code = ?;
+                stock_apartado = ?, 
+                stock_disponible = ?, 
+                stock_en_proceso = ?
         `;
-
         const params = [
             producto.stock_apartado,
             producto.stock_disponible,
-            producto.stock_en_proceso,
-            producto.code
+            producto.stock_en_proceso
         ];
+
+        if (producto.code) {
+            query += ` WHERE code = ?`;
+            params.push(producto.code);
+        } else {
+            query += ` WHERE category = ? AND model = ? AND size = ? AND decoration = ? AND color = ?`;
+            params.push(
+                producto.category,
+                producto.model,
+                producto.size,
+                producto.decoration,
+                producto.color
+            );
+        }
 
         db.run(query, params, function (err) {
             try {
                 if (err) {
-                    return reject(new Error("[updateStockProducto] Error al actualizar producto: " + err.message));
+                    return reject(new Error("[updateStockProducto] ❌ Error al actualizar producto: " + err.message));
                 }
                 if (this.changes === 0) {
-                    return reject(new Error("[updateStockProducto] No se encontró ningún producto con ese código"));
+                    return reject(new Error("[updateStockProducto] ⚠️ No se encontró ningún producto con esos datos"));
                 }
-
-                resolve("Producto actualizado correctamente");
+                resolve("✅ Producto actualizado correctamente");
             } catch (err) {
                 reject(err);
             } finally {
@@ -189,6 +202,7 @@ function updateStockProducto(producto) {
         });
     });
 }
+
 
 function deleteProducto(code) {
     return new Promise((resolve, reject) => {

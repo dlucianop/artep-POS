@@ -157,6 +157,33 @@ function updateVenta(venta) {
     });
 }
 
+function updateEstadoVenta(idVenta) {
+    return new Promise((resolve, reject) => {
+        const db = openDataBase();
+        const query = `
+            UPDATE ventas 
+            SET entregada = 1 
+            WHERE id_venta = ?;`;
+
+        db.run(query, [idVenta], function (err) {
+            try {
+                if (err) {
+                    return reject(new Error("Error al actualizar estado de entrega: " + err.message));
+                }
+                if (this.changes === 0) {
+                    return reject(new Error("No se encontró ninguna venta con ese id."));
+                }
+
+                resolve("Estado de entrega actualizado");
+            } catch (err) {
+                reject(err);
+            } finally {
+                closeDatabase(db);
+            }
+        });
+    });
+}
+
 /*-------------------------------------------------------------DETALLES DE VENTA ------------------------------------------------------------------------------------ */
 
 function createDetalle(detalles){
@@ -312,4 +339,5 @@ module.exports = {
     createDetalle,
     readDetalles,
     deleteVentaConDetalles,
+    updateEstadoVenta
  }
