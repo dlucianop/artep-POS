@@ -16,7 +16,7 @@ const {
     deleteBizcocho 
 } = require(crudJS = join(__dirname, '..', 'js', 'crud_bizcochos.js'));
 const {
-    readDetalles, createVenta, readVentas
+    readDetalles, createVenta, createDetalle, readVentas
 } = require(join(__dirname, "..", "js", "crud-ventas.js"));
 const {
     readFases, updateFase, readCategorias, readSizes
@@ -493,52 +493,33 @@ function formatearHora(fecha) {
 
 /*------------------------------------------------------------------------------------------------------------------------------------------------------------------------ */
 async function usarStock(fuente, clave, nombreFuente, faltan, carrito_item, dataVenta) {
-    let payload;
-
     if (fuente && fuente[clave] > 0) {
-        const disponible = fuente[clave];
-        const en_proceso = fuente["stock_en_proceso"] || 0;
-        const usado = Math.min(faltan, disponible);
-        const restante = disponible - usado;
-        faltan -= usado;
+        const original = fuente[clave];
+        const usado = Math.min(faltan, original);
+        const restante = original - usado;
+        const faltanteNuevo = faltan - usado;
 
         console.log(
-            `\x1b[32m[${nombreFuente}] ✅ Stock disponible: ${disponible}\x1b[0m\n` +
-            `\x1b[32m[${nombreFuente}] ✅ Stock en proceso: ${en_proceso}\x1b[0m\n` +
-            `\x1b[33m[${nombreFuente}] ➖ Se usaron: ${usado}\x1b[0m\n` +
-            `\x1b[33m[${nombreFuente}] 📦 Queda restante: ${restante}\x1b[0m\n` +
-            `\x1b[33m[${nombreFuente}] ⚠️ Faltan por cubrir: ${faltan}\x1b[0m\n`
+            `\x1b[32m[${nombreFuente}] ✅ Stock disponible: ${original}\x1b[0m\n` +
+            `\x1b[33m[${nombreFuente}] ➖ Se usarían: ${usado}\x1b[0m\n` +
+            `\x1b[33m[${nombreFuente}] 📦 Quedaría restante: ${restante}\x1b[0m\n` +
+            `\x1b[33m[${nombreFuente}] ⚠️ Faltarían por cubrir: ${faltanteNuevo}\x1b[0m\n`
         );
 
-        //`\x1b[33m[${nombreFuente}] 🔄 Se procederá con la actualización.\x1b[0m`
+        return faltanteNuevo;
 
-        const comunes = {
-            stock_apartado: fuente.stock_apartado + usado,
-            stock_disponible: fuente.stock_disponible - usado,
-            stock_en_proceso: fuente.stock_en_proceso
-        };
-
-        
     } else if (faltan > 0) {
         if (!fuente) {
-            console.log(`\x1b[31m[${nombreFuente}] ❌ No existe.\x1b[0m`);
-            switch (nombreFuente) {
-                case "PRODUCTO":
-                    console.log(`\x1b[33m[${nombreFuente}] ➕ Se creará un nuevo registro de PRODUCTO.\x1b[0m`);
-                    break;
-                case "BIZCOCHO":
-                    console.log(`\x1b[33m[${nombreFuente}] ➕ Se creará un nuevo registro de BIZCOCHO.\x1b[0m`);
-                    break;
-                case "ORDEN PRODUCTO":
-                case "ORDEN BIZCOCHO":
-                default:
-                    console.log(`\x1b[33m[${nombreFuente}] ℹ️ No se requiere crear nada de momento.\x1b[0m`);
-                    break;
-            }
+            console.log(`\x1b[31m[${nombreFuente}] ❌ No existe registro para este ítem.\x1b[0m`);
+            console.log(`\x1b[33m[${nombreFuente}] ➕ Se debería crear un registro nuevo para este producto/bizcocho.\x1b[0m`);
         } else {
-            console.log(`\x1b[31m[${nombreFuente}] ⚠️ Existe pero no hay stock disponible (${fuente[clave]}).\x1b[0m`);
+            console.log(`\x1b[31m[${nombreFuente}] ⚠️ Stock insuficiente o cero (${fuente[clave]} disponibles).\x1b[0m`);
+            console.log(`\x1b[33m[${nombreFuente}] ➕ Se necesitan ${faltan} unidad(es) más para cubrir la orden.\x1b[0m`);
         }
+        return faltan;
     }
+
+
     return faltan;
 }
 
@@ -553,48 +534,31 @@ async function printCarrito() {
     }
 
     for (const carrito_item of window.carrito) {
-        /*let productoEsperado = 
-            carrito_item.categoria + " TAM." +
-            carrito_item.size + " MOD." + carrito_item.modelo + " " +
-            "DECOR." + carrito_item.decoracion + " " +
-            "COLOR " + carrito_item.color;
-        let bizcochoEsperado = 
-            carrito_item.categoria + " TAM." +
-            carrito_item.size + " MOD." + carrito_item.modelo;*/
-        const nombreBiz = `${payload.biz_category} ${payload.biz_size} Mod.${payload.biz_model}`;
+        let productoEsperado = 
+            carrito_item.categoria + " " +
+            carrito_item.size + " Mod." + carrito_item.modelo + " " +
+            "Decor." + carrito_item.decoracion + " " +
+            "Color " + carrito_item.color;
 
         let existeProducto = window.productos.find(p => p.code === carrito_item.codigo);
-        let existeOrdenProducto = window.ordenesInv.find(o =>
-            o.tipo_item === "producto" &&
-            o.name_item === productoEsperado
-        );
-
         let existeBizcocho = window.bizcochos.find(b => b.biz_category === carrito_item.categoria && b.biz_model === carrito_item.modelo && b.biz_size === carrito_item.size);
-        let existeOrdenBizcocho = window.ordenesInv.find(o =>
-            o.tipo_item === "bizcocho" &&
-            o.name_item === bizcochoEsperado
-        );
 
-        let faltan = carrito_item.cantidad;
+        let faltan = carrito_item.cantidad; 
         console.warn(`\n🛒 Item: ${productoEsperado}`);
         console.warn(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
 
-        faltan = await usarStock(existeProducto, "stock_disponible",  "PRODUCTO", faltan, carrito_item, dataVenta);
-        if (faltan > 0) {
-            faltan = await usarStock(existeOrdenProducto, "cantidad_buenos", "ORDEN PRODUCTO", faltan, carrito_item, dataVenta);
-        }
+        faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan, carrito_item, dataVenta);
 
         if (faltan > 0) {
             faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan, carrito_item, dataVenta);
         }
 
         if (faltan > 0) {
-            faltan = await usarStock(existeOrdenBizcocho, "cantidad_buenos", "ORDEN BIZCOCHO", faltan, carrito_item, dataVenta);
+            console.log(`[NUEVA ORDEN]🆕 Se debería crear una nueva orden para ${faltan} unidad(es).`);
+            faltan = 0;
         }
 
-        if (faltan > 0) {
-            console.log(`[NUEVA ORDEN]🆕 Se necesita nueva orden para ${faltan} unidad(es).`);
-        }
+        faltan = Math.max(faltan, 0);
     }
 
     const confirmed = await showConfirmDialog(
@@ -605,23 +569,22 @@ async function printCarrito() {
     if (confirmed) {
         console.log(dataVenta);
 
-        
-        /* //esto ya esta bien
+        // Aquí solo llamarías las funciones reales si quieres procesar la venta
         await createVenta(dataVenta);
         let ventaId = +document.getElementById("pos_id_venta").value;
         const detalles_venta = await readDetalles(ventaId);
         await generarRecibos({ venta_datos: detalles_venta });
         showToast(`Venta #${ventaId} y recibo procesados exitosamente. Que tenga buen día.`, ICONOS.success);
-        */
 
         setTimeout(() => {
             window.location.reload();
         }, 2500);
-        
+
     } else {
         showToast("Acción IMPRIMIR NOTA cancelada", ICONOS.error);
     }
 }
+
 
 async function validacionesVenta() {
     const carrito = document.querySelector("#carrito");
