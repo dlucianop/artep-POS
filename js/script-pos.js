@@ -188,12 +188,22 @@ function mostrarSinCoincidencias() {
 async function coincidenciasProducto(searchInput) {
     try {
         const input = searchInput.toLowerCase().trim();
-        const palabrasClave = input.split(/\s+/);
+        const palabrasClave = input.split(/\s+/).filter(p => p.length > 0);
+
+        console.log("🔍 Palabras clave:", palabrasClave);
 
         const coincidencias = window.productos.filter(producto => {
-            const textoProducto = `${producto.category} ${producto.size} Mod.${producto.model} Decor.${producto.decoration} Color ${producto.color}`.toLowerCase();
-            
-            return palabrasClave.some(palabra => textoProducto.includes(palabra));
+            const campos = [
+                producto.category?.toLowerCase() || "",
+                producto.size?.toLowerCase() || "",
+                producto.model?.toLowerCase() || "",
+                producto.decoration?.toLowerCase() || "",
+                producto.color?.toLowerCase() || ""
+            ];
+
+            return palabrasClave.every(palabra =>
+                campos.some(campo => campo.split(/\s+/).includes(palabra))
+            );
         });
 
         return coincidencias;
@@ -201,6 +211,7 @@ async function coincidenciasProducto(searchInput) {
     } catch (error) {
         console.error('❌ Error al buscar coincidencias del producto:', error.message);
         showToast(`[ERROR] Al buscar coincidencias del producto: ${error.message}`, ICONOS.error);
+        return [];
     }
 }
 
@@ -600,56 +611,6 @@ async function printCarrito() {
         return;
     }
 
-    for (const carrito_item of window.carrito) {
-        let productoEsperado = 
-            carrito_item.categoria + " " +
-            carrito_item.size + " Mod." + carrito_item.modelo + " " +
-            "Decor." + carrito_item.decoracion + " " +
-            "Color " + carrito_item.color;
-
-        let existeProducto = window.productos.find(p => p.code === carrito_item.codigo);
-        let existeBizcocho = window.bizcochos.find(b => b.biz_category === carrito_item.categoria && b.biz_model === carrito_item.modelo && b.biz_size === carrito_item.size);
-
-        let faltan = carrito_item.cantidad; 
-        console.warn(`\n🛒 Item: ${productoEsperado}`);
-        console.warn(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
-
-        faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan, carrito_item, dataVenta);
-
-        if (faltan > 0) {
-            faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan, carrito_item, dataVenta);
-        }
-
-        if (faltan > 0) {
-            console.log(`[NUEVA ORDEN]🆕 Se debería crear una nueva orden para ${faltan} unidad(es).`);
-            const payload = {
-                id_venta: dataVenta.id_venta,
-                tipo_item: "producto",
-                name_item: productoEsperado,
-                cantidad_pedida: faltan,
-                fecha_entrega: dataVenta.fecha_entrega,
-                observaciones: `Se creo una nueva orden desde cero para ${faltan} unidad(es) ligados a la venta #${dataVenta.id_venta}.`
-            }
-            //console.log(payload);
-            await createOrden(payload, "VENTA");
-            faltan = 0;
-        }
-        
-        const payloadDetalle = {
-            id_venta: dataVenta.id_venta, 
-            code: +carrito_item.codigo,
-            price: +carrito_item.precio,
-            quantity: +carrito_item.cantidad,
-            importe: +(carrito_item.precio * carrito_item.cantidad).toFixed(2)
-        };
-        console.log(payloadDetalle);
-
-        await createDetalle(payloadDetalle);
-
-        faltan = Math.max(faltan, 0);
-        initPOS(); //recargar lo que se tiene en cache para que no haya errores
-    }
-
     const confirmed = await showConfirmDialog(
         `¿Desea terminar la venta e imprimir la nota de venta?`,
         "Imprimir venta"
@@ -658,6 +619,57 @@ async function printCarrito() {
     if (confirmed) {
         console.log(dataVenta);
         await createVenta(dataVenta);
+
+        for (const carrito_item of window.carrito) {
+            let productoEsperado = 
+                carrito_item.categoria + " " +
+                carrito_item.size + " Mod." + carrito_item.modelo + " " +
+                "Decor." + carrito_item.decoracion + " " +
+                "Color " + carrito_item.color;
+
+            let existeProducto = window.productos.find(p => p.code === carrito_item.codigo);
+            let existeBizcocho = window.bizcochos.find(b => b.biz_category === carrito_item.categoria && b.biz_model === carrito_item.modelo && b.biz_size === carrito_item.size);
+
+            let faltan = carrito_item.cantidad; 
+            console.warn(`\n🛒 Item: ${productoEsperado}`);
+            console.warn(`📦 Cantidad solicitada: ${carrito_item.cantidad}`);
+
+            faltan = await usarStock(existeProducto, "stock_disponible", "PRODUCTO", faltan, carrito_item, dataVenta);
+
+            if (faltan > 0) {
+                faltan = await usarStock(existeBizcocho, "stock_disponible", "BIZCOCHO", faltan, carrito_item, dataVenta);
+            }
+
+            if (faltan > 0) {
+                console.log(`[NUEVA ORDEN]🆕 Se debería crear una nueva orden para ${faltan} unidad(es).`);
+                const payload = {
+                    id_venta: dataVenta.id_venta,
+                    tipo_item: "producto",
+                    name_item: productoEsperado,
+                    cantidad_pedida: faltan,
+                    fecha_entrega: dataVenta.fecha_entrega,
+                    observaciones: `Se creo una nueva orden desde cero para ${faltan} unidad(es) ligados a la venta #${dataVenta.id_venta}.`
+                }
+                //console.log(payload);
+                await createOrden(payload, "VENTA");
+                faltan = 0;
+            }
+            
+            const payloadDetalle = {
+                id_venta: dataVenta.id_venta, 
+                code: +carrito_item.codigo,
+                price: +carrito_item.precio,
+                quantity: +carrito_item.cantidad,
+                importe: +(carrito_item.precio * carrito_item.cantidad).toFixed(2)
+            };
+            console.log(payloadDetalle);
+
+            await createDetalle(payloadDetalle);
+
+            faltan = Math.max(faltan, 0);
+            initPOS(); //recargar lo que se tiene en cache para que no haya errores
+        }
+
         let ventaId = +document.getElementById("pos_id_venta").value;
         const detalles_venta = await readDetalles(ventaId);
         await generarRecibos({ venta_datos: detalles_venta });
